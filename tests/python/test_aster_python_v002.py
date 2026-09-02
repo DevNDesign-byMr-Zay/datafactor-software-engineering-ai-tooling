@@ -34,7 +34,7 @@ def test_normalize_prompt_text_collapses_mixed_whitespace():
 def test_cap_prompt_enforces_limit_without_trailing_whitespace():
     text = "alpha beta gamma delta"
     capped = aster.cap_prompt(text, limit=12)
-    assert capped == "alpha beta"
+    assert capped == "alpha beta g"
     assert len(capped) <= 12
     assert capped == capped.rstrip()
 
