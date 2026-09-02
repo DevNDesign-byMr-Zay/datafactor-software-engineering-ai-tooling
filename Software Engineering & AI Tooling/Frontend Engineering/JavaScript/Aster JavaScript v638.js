@@ -40,7 +40,7 @@ export function createAdaptiveDurationProgressController({
   }
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-  const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const finite = (value, fallback) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
   const smoothing = clamp(finite(alpha, 0.22), 0, 1);
   const minDuration = Math.max(1, finite(minDurationMs, 250));
   const maxDuration = Math.max(minDuration, finite(maxDurationMs, 60000));
@@ -77,7 +77,9 @@ export function createAdaptiveDurationProgressController({
   }
 
   function persist() {
-    try { saveEstimates({ ...estimates }); } catch {}
+    try {
+      saveEstimates({ ...estimates });
+    } catch {}
   }
 
   function recordSample(key, sampleMs) {
@@ -110,7 +112,9 @@ export function createAdaptiveDurationProgressController({
 
   function stopFrame(handle) {
     if (!handle?.frame) return;
-    try { cancelFrame(handle.frame); } catch {}
+    try {
+      cancelFrame(handle.frame);
+    } catch {}
     handle.frame = 0;
   }
 

@@ -66,7 +66,9 @@ describe('Aster JavaScript v638 adaptive progress controller', () => {
 
     expect(handle.progress).toBeLessThanOrEqual(0.8);
     expect(handle.progress).toBeGreaterThanOrEqual(0.1);
-    expect(harness.progressEvents.every(({ progress }) => progress >= 0 && progress <= 1)).toBe(true);
+    expect(harness.progressEvents.every(({ progress }) => progress >= 0 && progress <= 1)).toBe(
+      true,
+    );
   });
 
   test('finish transitions to done, emits 100 percent, and learns a duration sample', () => {
