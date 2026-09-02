@@ -3,6 +3,7 @@ name: Format maintained JavaScript
 on:
   workflow_dispatch:
   push:
+    branches: ["main"]
     paths:
       - ".github/workflows/format-maintained-js.yml"
       - "tests/js/**"
@@ -12,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: format-maintained-javascript
+  group: format-maintained-javascript-main
   cancel-in-progress: true
 
 jobs:
@@ -20,12 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
       - name: Install pinned tooling
         run: npm ci --ignore-scripts
