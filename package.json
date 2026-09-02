@@ -1,0 +1,23 @@
+{
+  "name": "software-engineering-ai-tooling-corpus",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deidentified software engineering and AI tooling corpus with executable validation suites for selected Aster utilities.",
+  "scripts": {
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:js": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/js",
+    "lint": "eslint --max-warnings=0 tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'",
+    "format:check": "prettier --check tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'",
+    "check": "npm run lint && npm run format:check && npm test",
+    "setup": "npm ci && python -m pip install -r requirements.lock.txt"
+  },
+  "devDependencies": {
+    "eslint": "^9.35.0",
+    "jest": "^30.1.3",
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
