@@ -18,11 +18,11 @@
     "setup": "npm ci && python -m pip install -r requirements.lock.txt"
   },
   "devDependencies": {
-    "eslint": "^9.35.0",
+    "eslint": "^10.9.1",
     "jest": "^30.1.3",
     "prettier": "^3.6.2"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }
