@@ -5,9 +5,15 @@ on:
   push:
     paths:
       - ".github/workflows/format-maintained-js.yml"
+      - "tests/js/**"
+      - "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
 
 permissions:
   contents: write
+
+concurrency:
+  group: format-maintained-javascript
+  cancel-in-progress: true
 
 jobs:
   format:
