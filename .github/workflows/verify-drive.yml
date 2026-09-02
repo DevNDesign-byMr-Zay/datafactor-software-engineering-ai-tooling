@@ -2,9 +2,6 @@ name: Verify live Drive corpus
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/verify-drive.yml"
 
 permissions:
   contents: write
@@ -37,4 +34,6 @@ jobs:
             exit 0
           fi
           git commit -m "Verify live Drive corpus against GitHub [skip ci]"
+          git fetch origin main
+          git rebase origin/main
           git push origin HEAD:main
