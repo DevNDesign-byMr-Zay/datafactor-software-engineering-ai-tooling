@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py"
 SPEC = importlib.util.spec_from_file_location("aster_python_v002", MODULE_PATH)
