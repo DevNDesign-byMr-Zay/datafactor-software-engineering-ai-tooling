@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Canonical maintained package
+## 1.1.0 — Canonical maintained package
 
 - Added conventional `src/index.js` package entrypoint and explicit package exports.
 - Extracted repeated authenticated erase/mask behavior into `src/frontend/erase-mask.js` without rewriting historical snapshots.
@@ -9,6 +9,10 @@
 - Added focused tests for canonical geometry, reliability configuration, auth/CORS adapters, and the public package entrypoint.
 - Expanded lint, formatting, and coverage enforcement to the canonical `src/` surface.
 - Updated maintained-surface documentation with measured test/coverage evidence and future promotion priorities.
+- Merged the canonical maintained surface through PR #7 with focused commit history preserved.
+- Verified 12/12 JavaScript suites and 68/68 JavaScript tests with 99.15% statements, 89.42% branches, 98.07% functions, and 100% lines on the measured JavaScript surface.
+- Verified JavaScript and Python quality jobs, dependency audits, lint/format gates, and CodeQL analysis on the merged mainline change.
+- Refreshed the generated Python dependency lock after merge; the automated refresh advanced `anyio` from 4.14.2 to 4.15.0.
 
 ## 1.0.0 — Engineering quality baseline
 
