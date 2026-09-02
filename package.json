@@ -10,8 +10,8 @@
     "./erase-mask": "./src/frontend/erase-mask.js",
     "./backend-config": "./src/reliability/backend-config.js",
     "./progress": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
-    "./auth": "./Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs",
-    "./cors": "./Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs"
+    "./auth": "./src/auth/token-auth.js",
+    "./cors": "./src/api/cors-policy.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
