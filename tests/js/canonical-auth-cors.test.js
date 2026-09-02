@@ -16,11 +16,7 @@ describe('canonical token auth adapter', () => {
   test('allows OPTIONS and matching tokens while rejecting missing configuration', () => {
     const next = jest.fn();
     const optionsRes = responseDouble();
-    createTokenAuthMiddleware('secret')(
-      { method: 'OPTIONS', header: jest.fn() },
-      optionsRes,
-      next,
-    );
+    createTokenAuthMiddleware('secret')({ method: 'OPTIONS', header: jest.fn() }, optionsRes, next);
     expect(optionsRes.sendStatus).toHaveBeenCalledWith(204);
 
     const allowedRes = responseDouble();
@@ -32,11 +28,7 @@ describe('canonical token auth adapter', () => {
     expect(next).toHaveBeenCalled();
 
     const deniedRes = responseDouble();
-    createTokenAuthMiddleware('')(
-      { method: 'POST', header: () => '' },
-      deniedRes,
-      jest.fn(),
-    );
+    createTokenAuthMiddleware('')({ method: 'POST', header: () => '' }, deniedRes, jest.fn());
     expect(deniedRes.status).toHaveBeenCalledWith(401);
     expect(deniedRes.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
   });
