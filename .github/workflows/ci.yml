@@ -31,8 +31,8 @@ jobs:
         run: npm run lint
       - name: Check maintained JavaScript formatting
         run: npm run format:check
-      - name: Run JavaScript tests
-        run: npm test
+      - name: Run JavaScript tests with enforced coverage
+        run: npm run test:coverage
 
   python:
     name: Python quality
@@ -55,5 +55,7 @@ jobs:
         run: pip-audit -r requirements.lock.txt
       - name: Lint maintained Python
         run: python -m ruff check .
-      - name: Run Python tests
-        run: python -m pytest
+      - name: Run Python tests with enforced coverage
+        run: |
+          python -m coverage run -m pytest
+          python -m coverage report --include="Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
