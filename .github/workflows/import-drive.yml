@@ -3,9 +3,6 @@ name: Import Drive code corpus
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/import-drive.yml"
 
 permissions:
   contents: write
@@ -42,4 +39,6 @@ jobs:
             exit 0
           fi
           git commit -m "Import Software Engineering & AI Tooling code corpus [skip ci]"
+          git fetch origin main
+          git rebase origin/main
           git push origin HEAD:main
