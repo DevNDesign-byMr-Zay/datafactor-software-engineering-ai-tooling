@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: drive-code-import
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   import:
