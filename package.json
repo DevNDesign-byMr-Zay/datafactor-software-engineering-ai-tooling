@@ -1,6 +1,6 @@
 {
   "name": "software-engineering-ai-tooling-corpus",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Deidentified software engineering and AI tooling corpus with a canonical maintained library surface backed by authenticated historical implementations.",
