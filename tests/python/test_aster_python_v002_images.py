@@ -44,7 +44,7 @@ def test_build_expand_prefill_canvas_with_no_padding_preserves_source(monkeypatc
     canvas = aster.build_expand_prefill_canvas(source, 0, 0, 0, 0)
 
     assert canvas.size == source.size
-    assert list(canvas.getdata()) == list(source.getdata())
+    assert list(canvas.get_flattened_data()) == list(source.get_flattened_data())
 
 
 def test_build_expand_prefill_canvas_blur_preserves_original_center(monkeypatch):
