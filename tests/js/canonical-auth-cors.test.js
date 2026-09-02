@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { createCorsPolicy } from '../../src/api/cors-policy.js';
 import { createTokenAuthMiddleware } from '../../src/auth/token-auth.js';
 
