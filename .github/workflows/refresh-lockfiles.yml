@@ -38,8 +38,8 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts
       - name: Generate Python lockfile
         run: |
-          python -m pip install "pip<26" "pip-tools==7.5.0"
-          pip-compile requirements-dev.txt --output-file=requirements.lock.txt --strip-extras
+          python -m pip install --disable-pip-version-check -r requirements-dev.txt
+          python -m pip freeze --exclude-editable > requirements.lock.txt
       - name: Commit refreshed lockfiles
         shell: bash
         run: |
