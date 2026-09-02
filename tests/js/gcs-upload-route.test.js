@@ -70,7 +70,7 @@ describe('GCS upload pipeline final route', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'No file uploaded' });
   });
 
-  test('normalizes the filename, saves bytes, and returns object metadata', async () => {
+  test('prefixes the filename, saves bytes, and returns object metadata', async () => {
     jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
     const save = jest.fn().mockResolvedValue(undefined);
     const file = jest.fn(() => ({ save }));
@@ -89,14 +89,14 @@ describe('GCS upload pipeline final route', () => {
       res,
     );
 
-    expect(file).toHaveBeenCalledWith('uploads/1700000000000-project_notes.txt');
+    expect(file).toHaveBeenCalledWith('uploads/1700000000000-project notes.txt');
     expect(save).toHaveBeenCalledWith(buffer, {
       metadata: { contentType: 'text/plain' },
       resumable: false,
     });
     expect(res.json).toHaveBeenCalledWith({
       ok: true,
-      objectName: 'uploads/1700000000000-project_notes.txt',
+      objectName: 'uploads/1700000000000-project notes.txt',
       mimeType: 'text/plain',
     });
   });
