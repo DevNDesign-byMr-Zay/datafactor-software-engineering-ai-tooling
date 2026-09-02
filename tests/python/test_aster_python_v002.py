@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
-import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -61,20 +61,32 @@ def test_safe_prompt_compose_prefers_first_and_last_sections_when_over_limit():
     assert result == "primary subject. final constraint"
 
 
-def test_invalid_url_parse_emits_structured_warning(monkeypatch, capfd):
+def test_invalid_url_parse_emits_structured_warning(monkeypatch):
+    records: list[logging.LogRecord] = []
+
+    class RecordHandler(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            records.append(record)
+
+    handler = RecordHandler()
+    aster.logger.addHandler(handler)
+
     def fail_parse(_value):
         raise ValueError("malformed")
 
     monkeypatch.setattr(aster, "urlparse", fail_parse)
 
-    assert aster.safe_http_url("bad") is False
+    try:
+        assert aster.safe_http_url("bad") is False
+    finally:
+        aster.logger.removeHandler(handler)
 
-    captured = capfd.readouterr().err.strip().splitlines()
-    assert captured
-    payload = json.loads(captured[-1])
-    assert payload["level"] == "WARNING"
-    assert payload["event"] == "invalid_http_url"
-    assert payload["logger"] == "aster_python_v002"
+    assert records
+    record = records[-1]
+    assert record.levelno == logging.WARNING
+    assert record.name == "aster_python_v002"
+    assert record.event == "invalid_http_url"
+    assert record.error_type == "ValueError"
 
 
 @pytest.mark.parametrize(
