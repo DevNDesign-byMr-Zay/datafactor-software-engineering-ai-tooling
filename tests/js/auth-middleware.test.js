@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE = '../../Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs';
+const SOURCE =
+  '../../Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs';
 let importId = 0;
 const originalToken = process.env.APP_API_TOKEN;
 
