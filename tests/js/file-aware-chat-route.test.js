@@ -154,7 +154,11 @@ describe('file-aware Gemini chat final route', () => {
       res,
     );
 
-    expect(consoleWarn).toHaveBeenCalledWith('Failed to sign file:', 'uploads/a.pdf', 'sign failed');
+    expect(consoleWarn).toHaveBeenCalledWith(
+      'Failed to sign file:',
+      'uploads/a.pdf',
+      'sign failed',
+    );
     expect(generateReply).toHaveBeenCalledWith([{ text: 'hello' }]);
     expect(res.json).toHaveBeenCalledWith({ reply: 'fallback reply', sessionId: 'default' });
   });
