@@ -3,6 +3,7 @@ name: Refresh dependency lockfiles
 on:
   workflow_dispatch:
   push:
+    branches: ["main"]
     paths:
       - "package.json"
       - "requirements.txt"
@@ -13,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: dependency-lock-refresh
+  group: dependency-lock-refresh-main
   cancel-in-progress: true
 
 jobs:
@@ -21,15 +22,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
           cache-dependency-path: package.json
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
