@@ -18,7 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 STAGING_ROOT = REPO_ROOT / "Software Engineering & AI Tooling"
 REPORT_PATH = REPO_ROOT / "IMPORT_REPORT.md"
 FAILURES_PATH = REPO_ROOT / "IMPORT_FAILURES.json"
-WORKERS = 6
+WORKERS = 32
+DOWNLOAD_TIMEOUT_SECONDS = 3
 
 SOURCE_SUFFIXES = {
     ".asm", ".bash", ".c", ".cc", ".cfg", ".cjs", ".clj", ".cljs", ".cmake",
@@ -90,11 +91,11 @@ def download(fid: str, destination: Path) -> tuple[bool, str]:
     destination.parent.mkdir(parents=True, exist_ok=True)
     cmd = ["gdown", fid, "-O", str(destination), "--quiet", "--no-cookies"]
     try:
-        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=12)
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=DOWNLOAD_TIMEOUT_SECONDS)
     except subprocess.TimeoutExpired:
         if destination.exists():
             destination.unlink()
-        return False, "anonymous Drive download timed out after 12 seconds"
+        return False, f"anonymous Drive download timed out after {DOWNLOAD_TIMEOUT_SECONDS} seconds"
     if proc.returncode == 0 and destination.exists():
         return True, ""
     if destination.exists():
@@ -188,6 +189,7 @@ def main() -> int:
         f"- Non-source/binary entries excluded: **{excluded}**",
         f"- Files in duplicate-path groups preserved with Drive-ID suffixes: **{collision_files}**",
         f"- Anonymous download workers: **{WORKERS}**",
+        f"- Per-file anonymous timeout: **{DOWNLOAD_TIMEOUT_SECONDS}s**",
         "",
         "Every duplicate-path Drive entry receives a distinct repository path. Files that cannot be fetched anonymously are recorded in `IMPORT_FAILURES.json` for authenticated Drive recovery rather than silently omitted.",
         "",
