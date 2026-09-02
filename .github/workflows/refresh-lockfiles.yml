@@ -1,0 +1,57 @@
+name: Refresh dependency lockfiles
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "package.json"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - ".github/workflows/refresh-lockfiles.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dependency-lock-refresh
+  cancel-in-progress: true
+
+jobs:
+  lockfiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: package.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Generate npm lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Generate Python lockfile
+        run: |
+          python -m pip install "pip-tools==7.5.0"
+          pip-compile requirements-dev.txt --output-file=requirements.lock.txt --strip-extras
+      - name: Commit refreshed lockfiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json requirements.lock.txt
+          if git diff --cached --quiet; then
+            echo "Lockfiles already current."
+            exit 0
+          fi
+          git commit -m "build: refresh dependency lockfiles [skip ci]"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
