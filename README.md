@@ -1,39 +1,57 @@
-# Software Engineering & AI Tooling — Deidentified Engineering Corpus
+# Software Engineering & AI Tooling — Maintained Library + Deidentified Corpus
 
-This repository contains a deidentified software-engineering and AI-tooling corpus plus an executable quality surface for representative maintained/final artifacts. The corpus is preserved under `Software Engineering & AI Tooling/`; engineering checks at the repository root make the assessment installable, testable, lintable, auditable, and security-scannable from a fresh clone without Google Drive access.
+This repository contains a deidentified software-engineering/AI-tooling corpus **and a canonical maintained library surface at `src/`**. The historical corpus remains preserved under `Software Engineering & AI Tooling/`; the root package exposes selected authenticated/final implementations through a conventional package entrypoint so static analysis can distinguish maintained software from historical provenance.
 
-## Repository scope
+## Canonical package entrypoint
 
-The corpus spans frontend engineering, backend engineering, full-stack workflows, API foundations, AI model integration, cloud/deployment patterns, authentication/security, storage/file services, application bootstrap, and reliability/infrastructure material.
+`package.json` points to:
 
-`VERIFY_REPORT.md` records the independent Drive-to-GitHub corpus verification. The current mirrored corpus is **1,610 / 1,610 files with zero missing and zero unexpected paths**.
+```text
+src/index.js
+```
 
-The executable validation surface currently promotes seven real corpus artifacts across six engineering domains:
+That entrypoint exposes maintained functionality from both canonical extractions and authenticated final corpus artifacts. Consumers and static analyzers no longer have to infer the active surface from hundreds of historical revisions.
 
-- Frontend Engineering — `Aster JavaScript v638.js`: adaptive-duration progress controller.
-- Backend Engineering — `Aster Python v002.py`: prompt normalization/chunking, URL hardening, image prefill, and mask feathering utilities.
+The current maintained surface spans **nine behaviorally distinct artifacts across seven engineering areas**:
+
+- Frontend Engineering — adaptive-duration progress controller from `Aster JavaScript v638.js`.
+- Frontend Engineering — `src/frontend/erase-mask.js`, a canonical extraction of repeated authenticated erase/mask geometry and brush behavior.
+- Backend Engineering — `Aster Python v002.py` prompt, URL, image-prefill, and mask-feather utilities.
 - Authentication & Security — final token-authentication middleware.
 - API Foundations — final CORS policy middleware.
 - Storage & File Services — final GCS upload route.
 - Storage & File Services — final signed-URL access route.
 - AI Model Integration — final file-aware Gemini chat route.
+- Reliability & Infrastructure — `src/reliability/backend-config.js`, a canonical extraction of CORS/token/health configuration policy from the authenticated restored backend entrypoint.
 
-Historical/versioned files remain provenance material. They are not bulk-modified or falsely counted as maintained production code.
+Historical/versioned files remain provenance material and are not bulk-modified or falsely counted as maintained production code.
 
-## Architecture of the maintained quality surface
+## Repository scope and provenance
 
-- `tests/js/` — Jest coverage for frontend state transitions plus authentication, CORS, upload, signed-URL, and file-aware chat behavior and failure paths.
-- `tests/python/` — pytest coverage for prompt normalization/capping/chunking, guidance coercion, HTTP/proxy validation, structured warning emission, image prefill, and mask feathering.
-- `python_support/logging_config.py` — shared JSON logging configuration used by maintained Python utilities.
-- `docs/MAINTAINED_SURFACE.md` — explicit promotion/test-density policy and measured-artifact inventory.
-- `package.json` + `package-lock.json` — JavaScript tooling and reproducible dependency resolution.
-- `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`, `requirements.lock.txt` — Python metadata, tooling, and resolved dependency snapshot.
-- `eslint.config.js` + `.prettierrc.json` — JavaScript lint/format policy.
-- `.github/workflows/ci.yml` — Drive-independent JavaScript and Python quality gates.
-- `.github/workflows/codeql.yml` — scheduled and push/PR static analysis for JavaScript and Python.
+The full corpus spans frontend engineering, backend engineering, full-stack workflows, API foundations, AI model integration, cloud/deployment patterns, authentication/security, storage/file services, application bootstrap, and reliability/infrastructure material.
+
+`VERIFY_REPORT.md` records the independent Drive-to-GitHub corpus verification. The mirrored corpus is **1,610 / 1,610 files with zero missing and zero unexpected paths**.
+
+The maintained `src/` modules are deliberately extracted from authenticated historical behavior rather than invented replacements. Their original historical implementations remain intact for provenance and trajectory analysis.
+
+## Maintained architecture
+
+- `src/index.js` — canonical package boundary and static-analysis entrypoint.
+- `src/frontend/erase-mask.js` — shared erase/mask geometry, brush normalization, scaling, stroke spacing, and feather policy.
+- `src/reliability/backend-config.js` — CORS origin normalization, app-token policy, authorization matching, and deterministic health metadata.
+- `tests/js/` — Jest tests for the canonical `src/` modules plus promoted frontend, authentication, CORS, storage, and AI behavior/failure paths.
+- `tests/python/` — pytest coverage for maintained backend utilities.
+- `python_support/logging_config.py` — shared JSON logging configuration.
+- `docs/MAINTAINED_SURFACE.md` — promotion/test-density policy and measured-artifact inventory.
+- `package.json` + `package-lock.json` — JavaScript package surface and reproducible dependency resolution.
+- `pyproject.toml` + requirements files/lock — Python metadata, tooling, and resolved dependency snapshot.
+- `eslint.config.js` + `.prettierrc.json` — JavaScript quality policy.
+- `.github/workflows/ci.yml` — Drive-independent JS/Python quality gates.
+- `.github/workflows/codeql.yml` — JavaScript/Python static security analysis.
+- `.github/workflows/format-maintained-js.yml` — deterministic formatting for `src/`, tests, and actively maintained JS on any working branch.
 - `.github/workflows/import-drive.yml` and `verify-drive.yml` — manual-only corpus maintenance workflows.
 
-JavaScript CI measures the promoted JavaScript artifacts together and fails below 85% statements/functions/lines or 75% branches. Python CI fails below 85% line coverage for the maintained `Aster Python v002.py` surface.
+JavaScript CI fails below 85% statements/functions/lines or 75% branches across the measured maintained surface. Python CI enforces its existing maintained-surface coverage floor.
 
 ## Fresh-clone install
 
@@ -41,9 +59,7 @@ Requirements:
 
 - Node.js 22+
 - Python 3.11+ (CI uses 3.12)
-- GNU Make is optional but recommended
-
-Clone and install only from committed lockfiles:
+- GNU Make optional
 
 ```bash
 git clone https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling.git
@@ -51,38 +67,53 @@ cd datafactor-software-engineering-ai-tooling
 make setup
 ```
 
-Equivalent manual commands:
+Equivalent commands:
 
 ```bash
 npm ci --ignore-scripts
 python -m pip install -r requirements.lock.txt
 ```
 
-No Google credentials or Drive connection are needed to install, lint, audit, or test the repository.
+No Google credentials or Drive connection are needed to install, lint, audit, or test the maintained engineering surface.
+
+## Package exports
+
+The package provides explicit export paths for the canonical and promoted modules:
+
+```text
+.
+./erase-mask
+./backend-config
+./progress
+./auth
+./cors
+```
+
+This creates an ordinary discoverable software-library boundary while preserving all historical source beneath the corpus directory.
 
 ## Test
-
-Run both suites:
 
 ```bash
 make test
 ```
 
-Or separately:
+Or:
 
 ```bash
 npm test
 python -m pytest
 ```
 
-## Lint and format checks
+The JS suite includes normal-path, boundary, configuration, cancellation, validation, security, storage, AI integration, erase/mask geometry, and reliability configuration behavior. Tests are added by distinct behavior family rather than by generating shallow assertions for every historical snapshot.
+
+## Lint and format
 
 ```bash
 make lint
 make format-check
 ```
 
-JavaScript linting is enforced across the promoted frontend, authentication/security, API, storage, and AI integration artifacts plus their tests. Python checks are scoped by `pyproject.toml` to the maintained `v002` module, shared support package, and Python tests. This keeps historical provenance intact while the maintained surface expands incrementally.
+JavaScript linting covers `src/`, promoted authenticated/final artifacts, and tests. Python checks remain scoped to the maintained Python surface. Historical provenance stays unchanged unless an artifact is intentionally promoted into active maintenance.
 
 ## Dependency and security audit
 
@@ -90,54 +121,37 @@ JavaScript linting is enforced across the promoted frontend, authentication/secu
 make audit
 ```
 
-This runs:
-
-```bash
-npm audit --audit-level=moderate
-pip-audit -r requirements.lock.txt
-```
-
-Dependabot is configured for npm, pip, and GitHub Actions. CodeQL separately analyzes JavaScript/TypeScript and Python on main-branch changes, pull requests, and a weekly schedule.
+This runs npm audit at the moderate threshold and pip-audit against the committed Python lock. Dependabot tracks npm, pip, and GitHub Actions. CodeQL analyzes JavaScript/TypeScript and Python.
 
 ## One-command quality check
-
-After setup:
 
 ```bash
 make check
 ```
 
-CI independently performs reproducible install, dependency audits, lint/format enforcement, automated tests, and coverage thresholds on every push and pull request.
+CI performs reproducible installation, dependency audits, lint/format enforcement, tests, and coverage gates on pushes and pull requests.
 
 ## Container verification
-
-The included Dockerfile builds a clean Node 22 + Python test environment from the committed lockfiles:
 
 ```bash
 docker build -t software-engineering-ai-tooling .
 docker run --rm software-engineering-ai-tooling
 ```
 
-The container exits non-zero if either the JavaScript or Python test suite fails.
+The container exits non-zero if the maintained JavaScript or Python test suites fail.
 
-## Environment
+## Environment, logging, and errors
 
-`.env.example` documents the non-secret Aster settings used by the maintained Python utility. Copy values into your own environment only when you need to change the defaults. No credentials, tokens, or production secrets belong in this repository.
+`.env.example` documents non-secret maintained settings. Credentials and production secrets do not belong in the repository. Maintained Python utilities use `python_support.logging_config` for structured JSON logs and typed/explicit handling of expected parsing failures.
 
-## Logging and error handling
+## Test-density and refactoring policy
 
-Maintained Python utilities use `python_support.logging_config` for JSON-formatted logs. `Aster Python v002.py` no longer silently swallows the URL/parsing failures covered by the maintained path; expected parsing errors are handled explicitly and emit structured warning events without exposing arbitrary exception messages.
+Test density grows by promoting **distinct, behaviorally meaningful authenticated/final artifacts** into test + coverage + lint enforcement. Repeated behavior found in historical snapshots can be extracted into a canonical maintained module, as with `src/frontend/erase-mask.js`, while the original historical files remain immutable provenance.
 
-## Test-density policy
+This approach improves architecture and maintainability without deleting the historical engineering trajectory or manufacturing hundreds of low-value tests.
 
-Test density is increased by promoting distinct behaviorally meaningful final/canonical artifacts into lint + test + coverage enforcement. The repository does not manufacture shallow tests for every historical snapshot. See `docs/MAINTAINED_SURFACE.md` for the current measured surface and promotion priorities.
+## Corpus maintenance and development history
 
-## Corpus maintenance
+Drive import and live verification remain manual-only and are not required to build/test the library. New fixes and features should land as small focused commits paired with the tests that prove them. Historical corpus files are not bulk-reformatted, and repository history is never backdated or fabricated for assessment purposes.
 
-Drive import and live verification are intentionally **manual-only** GitHub Actions workflows. They are not required checks and are not part of the build/test path. This keeps engineering CI deterministic and runnable without external Drive access.
-
-## Development policy
-
-New fixes and features should be committed in small, focused increments with their tests in the same commit whenever possible. Historical corpus files should not be reformatted in bulk merely to satisfy a style tool; move individual modules under active lint/test enforcement as they are changed.
-
-See `CONTRIBUTING.md`, `IMPORT_REPORT.md`, `VERIFY_REPORT.md`, and `docs/MAINTAINED_SURFACE.md` for additional workflow, provenance, and quality-surface details.
+See `CONTRIBUTING.md`, `IMPORT_REPORT.md`, `VERIFY_REPORT.md`, and `docs/MAINTAINED_SURFACE.md` for additional provenance and quality-surface details.

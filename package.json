@@ -3,17 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Deidentified software engineering and AI tooling corpus with executable validation suites for selected Aster utilities.",
-  "main": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
+  "description": "Deidentified software engineering and AI tooling corpus with a canonical maintained library surface backed by authenticated historical implementations.",
+  "main": "./src/index.js",
   "exports": {
-    ".": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+    ".": "./src/index.js",
+    "./erase-mask": "./src/frontend/erase-mask.js",
+    "./backend-config": "./src/reliability/backend-config.js",
+    "./progress": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
+    "./auth": "./src/auth/token-auth.js",
+    "./cors": "./src/api/cors-policy.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:js": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/js",
     "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --coverage",
-    "lint": "eslint --max-warnings=0 tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js' 'Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs' 'Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs' 'Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs' 'Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs' 'Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs'",
-    "format:check": "prettier --check tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'",
+    "lint": "eslint --max-warnings=0 src tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js' 'Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs' 'Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs' 'Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs' 'Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs' 'Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs'",
+    "format:check": "prettier --check src tests/js 'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'",
     "check": "npm run lint && npm run format:check && npm run test:coverage",
     "setup": "npm ci && python -m pip install -r requirements.lock.txt"
   },
