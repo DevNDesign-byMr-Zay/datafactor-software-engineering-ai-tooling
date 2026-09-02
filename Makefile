@@ -16,7 +16,7 @@ format-check:
 	npm run format:check
 
 audit:
-	npm audit --audit-level=high
+	npm audit --audit-level=moderate
 	pip-audit -r requirements.lock.txt
 
 check: lint format-check test audit
