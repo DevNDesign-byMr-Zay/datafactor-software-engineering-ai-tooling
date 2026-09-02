@@ -1,6 +1,7 @@
 export default [
   {
     files: [
+      "src/**/*.js",
       "tests/js/**/*.js",
       "tests/js/**/*.mjs",
       "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
