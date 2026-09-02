@@ -93,6 +93,18 @@ describe('Aster JavaScript v638 persistence and configuration', () => {
     expect(harness.controller.getExpected('render')).toBe(800);
   });
 
+  test('uses the platform clock when no explicit now hook is supplied', () => {
+    const requestFrame = jest.fn(() => 1);
+    const cancelFrame = jest.fn();
+    const controller = createAdaptiveDurationProgressController({ requestFrame, cancelFrame });
+
+    const handle = controller.start('render');
+
+    expect(handle.startedAt).toEqual(expect.any(Number));
+    expect(Number.isFinite(handle.startedAt)).toBe(true);
+    controller.cancel(handle);
+  });
+
   test.each([
     [{ defaults: [] }, 'defaults must be an object'],
     [{ loadEstimates: null }, 'estimate persistence hooks must be functions'],
