@@ -14,7 +14,6 @@ Original product identity, credentials, private paths, and proprietary prompt te
 from __future__ import annotations
 
 import os
-from typing import Optional
 from urllib.parse import parse_qs, quote, urlparse
 
 from fastapi import Request
@@ -55,7 +54,7 @@ def unwrap_media_proxy_url(url: str) -> str:
     return url
 
 
-def ui_proxy_url(request: Optional[Request], url: str) -> str:
+def ui_proxy_url(request: Request | None, url: str) -> str:
     """Return a browser-safe URL for local file-based frontends."""
     if not url or not safe_http_url(url):
         return url
@@ -79,9 +78,9 @@ def ui_proxy_url(request: Optional[Request], url: str) -> str:
 
 
 def coerce_fill_guidance(
-    value: Optional[float],
+    value: float | None,
     *,
-    default: Optional[float] = None,
+    default: float | None = None,
 ) -> float:
     fallback = float(default) if default is not None else DEFAULT_FILL_GUIDANCE
     if value is None:
