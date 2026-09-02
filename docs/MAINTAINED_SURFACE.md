@@ -10,25 +10,26 @@ This repository preserves a 1,610-file deidentified engineering corpus while inc
 | Backend Engineering | `Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py` | prompt normalization/capping/chunking, guidance coercion, URL/proxy hardening, structured failures, image prefill, mask feathering | Python line coverage must be at least 85% |
 | Authentication & Security | `Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs` | OPTIONS behavior, matching token, missing/wrong token, fail-closed configuration | Included in Jest global threshold |
 | API Foundations | `Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs` | normalized allowlist, no-Origin requests, denied origins, structured 403 conversion, unrelated error propagation | Included in Jest global threshold |
+| Storage & File Services | `Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs` | upload middleware registration, missing configuration/file validation, filename normalization, byte persistence, storage failure handling | Included in Jest global threshold |
+| Storage & File Services | `Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs` | route registration, required object validation, one-hour signed-read URLs, configuration and signing failures | Included in Jest global threshold |
+| AI Model Integration | `Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs` | default sessions, empty requests, file signing and MIME fallback, missing storage, per-file signing failures, provider failures | Included in Jest global threshold |
 
-JavaScript coverage fails CI below 85% statements/functions/lines or 75% branches across the measured JavaScript artifacts. Python coverage fails CI below 85% for the maintained `Aster Python v002.py` module.
+JavaScript coverage fails CI below 85% statements/functions/lines or 75% branches across all measured JavaScript artifacts. Python coverage fails CI below 85% for the maintained `Aster Python v002.py` module.
 
 ## Test-density policy
 
-Test density is increased by broadening the number of distinct, behaviorally meaningful corpus modules under enforcement, not by generating shallow tests for every historical snapshot. A module is promoted into the maintained surface when it has a clear final/canonical role, can be executed deterministically without private credentials, and has tests that cover normal behavior, boundaries, and failures.
+Test density is increased by broadening the number of distinct, behaviorally meaningful corpus modules under enforcement, not by generating shallow tests for every historical snapshot. A module is promoted into the maintained surface when it has a clear final/canonical role, can be executed deterministically without private credentials, and has tests that cover normal behavior, boundaries, configuration, and failures.
 
-Priority promotion order:
+The maintained surface currently spans frontend, backend, authentication/security, API foundations, storage/file services, and AI model integration. Multiple modules from the same domain are promoted only when they exercise distinct behavior and risk boundaries rather than duplicated historical revisions.
 
-1. Authentication & Security
-2. API Foundations
-3. Reliability & Infrastructure
-4. Storage & File Services
-5. AI Model Integration
-6. Backend Engineering
-7. Frontend Engineering
-8. Full Stack Workflows
-9. Cloud Deployment
-10. Application Bootstrap
+Priority promotion order for the remaining corpus:
+
+1. Reliability & Infrastructure
+2. Full Stack Workflows
+3. Cloud Deployment
+4. Application Bootstrap
+5. Additional unique Backend Engineering modules
+6. Additional unique Frontend Engineering modules
 
 Each newly promoted module should arrive in a focused commit with its tests, then be added to lint/coverage enforcement. Historical source files remain intact for provenance.
 
