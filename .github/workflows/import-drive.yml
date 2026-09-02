@@ -1,4 +1,4 @@
-# Importer revision: parallel-32-timeout-3s
+# Importer revision: direct-https-32
 name: Import Drive code corpus
 
 on:
