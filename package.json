@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "description": "Deidentified software engineering and AI tooling corpus with executable validation suites for selected Aster utilities.",
+  "main": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
+  "exports": {
+    ".": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+  },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:js": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/js",
