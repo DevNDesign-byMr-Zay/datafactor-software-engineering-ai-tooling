@@ -17,18 +17,25 @@ import os
 from typing import Optional
 from urllib.parse import parse_qs, quote, urlparse
 
-from PIL import Image, ImageDraw, ImageFilter
 from fastapi import Request
+from PIL import Image, ImageDraw, ImageFilter
+
+from python_support.logging_config import get_logger
 
 IMAGE_TOOL_BASE = "http://127.0.0.1:5151"
 PROMPT_MAX_CHARS = int(os.getenv("ASTER_PROMPT_MAX_CHARS", "500"))
 DEFAULT_FILL_GUIDANCE = float(os.getenv("ASTER_FILL_GUIDANCE", "32"))
+logger = get_logger(__name__)
 
 
 def safe_http_url(url: str) -> bool:
     try:
         return urlparse(url).scheme in ("http", "https")
-    except Exception:
+    except (TypeError, ValueError, AttributeError) as exc:
+        logger.warning(
+            "Unable to parse candidate HTTP URL",
+            extra={"event": "invalid_http_url", "error_type": type(exc).__name__},
+        )
         return False
 
 
@@ -40,8 +47,11 @@ def unwrap_media_proxy_url(url: str) -> str:
             inner = (parse_qs(parsed.query or "").get("url") or [None])[0]
             if inner and safe_http_url(inner):
                 return inner
-    except Exception:
-        pass
+    except (TypeError, ValueError, AttributeError) as exc:
+        logger.warning(
+            "Unable to unwrap media proxy URL",
+            extra={"event": "media_proxy_unwrap_failed", "error_type": type(exc).__name__},
+        )
     return url
 
 
@@ -60,7 +70,11 @@ def ui_proxy_url(request: Optional[Request], url: str) -> str:
         ):
             base = IMAGE_TOOL_BASE
         return f"{base}/media?url={quote(url, safe='')}"
-    except Exception:
+    except (TypeError, ValueError, AttributeError) as exc:
+        logger.warning(
+            "Unable to construct UI proxy URL",
+            extra={"event": "ui_proxy_url_failed", "error_type": type(exc).__name__},
+        )
         return url
 
 
@@ -75,7 +89,7 @@ def coerce_fill_guidance(
 
     try:
         guidance = float(value)
-    except Exception:
+    except (TypeError, ValueError):
         return fallback
 
     if guidance <= 2.0:
@@ -239,7 +253,11 @@ def maybe_feather_mask(mask: Image.Image) -> Image.Image:
         radius = float(
             os.getenv("ASTER_EXPAND_MASK_FEATHER", "4") or "4"
         )
-    except Exception:
+    except (TypeError, ValueError) as exc:
+        logger.warning(
+            "Invalid expansion mask feather value",
+            extra={"event": "invalid_mask_feather", "error_type": type(exc).__name__},
+        )
         radius = 0.0
 
     if radius <= 0:
