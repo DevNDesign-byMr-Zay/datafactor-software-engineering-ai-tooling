@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path, PurePosixPath
 from urllib.parse import parse_qs, urlparse
 
@@ -17,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 STAGING_ROOT = REPO_ROOT / "Software Engineering & AI Tooling"
 REPORT_PATH = REPO_ROOT / "IMPORT_REPORT.md"
 FAILURES_PATH = REPO_ROOT / "IMPORT_FAILURES.json"
+WORKERS = 6
 
 SOURCE_SUFFIXES = {
     ".asm", ".bash", ".c", ".cc", ".cfg", ".cjs", ".clj", ".cljs", ".cmake",
@@ -125,11 +127,9 @@ def main() -> int:
     STAGING_ROOT.mkdir(parents=True, exist_ok=True)
 
     used: set[str] = set()
-    failures: list[dict[str, str]] = []
+    planned: list[dict[str, object]] = []
     collision_files = 0
-    imported = 0
-
-    for index, entry in enumerate(entries, 1):
+    for entry in entries:
         rel = entry["rel"]
         assert isinstance(rel, PurePosixPath)
         fid = str(entry["id"])
@@ -142,22 +142,41 @@ def main() -> int:
         used.add(key)
         if collision:
             collision_files += 1
+        planned.append({**entry, "target_rel": target_rel})
 
-        print(f"[{index}/{len(entries)}] {rel} -> {target_rel}", flush=True)
+    failures: list[dict[str, str]] = []
+    imported = 0
+    completed = 0
+
+    def worker(item: dict[str, object]) -> tuple[dict[str, object], bool, str]:
+        target_rel = item["target_rel"]
+        assert isinstance(target_rel, PurePosixPath)
         target = STAGING_ROOT.joinpath(*target_rel.parts)
-        ok, error = download(fid, target)
-        if ok:
-            imported += 1
-        else:
-            print(f"BLOCKED {fid}: {rel}", flush=True)
-            failures.append({
-                "drive_id": fid,
-                "source_path": str(rel),
-                "repository_path": str(PurePosixPath("Software Engineering & AI Tooling") / target_rel),
-                "url": str(entry["url"]),
-                "error": error,
-            })
+        ok, error = download(str(item["id"]), target)
+        return item, ok, error
 
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        futures = [pool.submit(worker, item) for item in planned]
+        for future in as_completed(futures):
+            item, ok, error = future.result()
+            completed += 1
+            rel = item["rel"]
+            target_rel = item["target_rel"]
+            fid = str(item["id"])
+            print(f"[{completed}/{len(planned)}] {'OK' if ok else 'BLOCKED'} {rel}", flush=True)
+            if ok:
+                imported += 1
+            else:
+                assert isinstance(target_rel, PurePosixPath)
+                failures.append({
+                    "drive_id": fid,
+                    "source_path": str(rel),
+                    "repository_path": str(PurePosixPath("Software Engineering & AI Tooling") / target_rel),
+                    "url": str(item["url"]),
+                    "error": error,
+                })
+
+    failures.sort(key=lambda x: x["repository_path"].casefold())
     FAILURES_PATH.write_text(json.dumps(failures, indent=2) + "\n", encoding="utf-8")
     report = [
         "# Drive Import Report", "",
@@ -168,6 +187,7 @@ def main() -> int:
         f"- Authenticated follow-up required: **{len(failures)}**",
         f"- Non-source/binary entries excluded: **{excluded}**",
         f"- Files in duplicate-path groups preserved with Drive-ID suffixes: **{collision_files}**",
+        f"- Anonymous download workers: **{WORKERS}**",
         "",
         "Every duplicate-path Drive entry receives a distinct repository path. Files that cannot be fetched anonymously are recorded in `IMPORT_FAILURES.json` for authenticated Drive recovery rather than silently omitted.",
         "",
