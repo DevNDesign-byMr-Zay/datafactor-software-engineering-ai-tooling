@@ -22,10 +22,20 @@ export function clampFeather(value) {
 export function computeStrokeSteps({ distance, brushSize, forceDot = false }) {
   if (forceDot) return 1;
   const spacing = Math.max(2, clampBrushSize(brushSize) * 0.18);
-  return Math.max(1, Math.ceil(Math.max(0, Number(distance) || 0) / spacing));
+  return Math.max(
+    1,
+    Math.ceil(Math.max(0, Number(distance) || 0) / spacing),
+  );
 }
 
-export function mapDisplayPointToMask({ x, y, displayWidth, displayHeight, maskWidth, maskHeight }) {
+export function mapDisplayPointToMask({
+  x,
+  y,
+  displayWidth,
+  displayHeight,
+  maskWidth,
+  maskHeight,
+}) {
   const width = Math.max(1, Number(displayWidth) || 1);
   const height = Math.max(1, Number(displayHeight) || 1);
   const sx = Math.max(1, Number(maskWidth) || 1) / width;
