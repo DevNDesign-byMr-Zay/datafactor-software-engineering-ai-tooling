@@ -3,9 +3,9 @@ name: Format maintained JavaScript
 on:
   workflow_dispatch:
   push:
-    branches: ["main"]
     paths:
       - ".github/workflows/format-maintained-js.yml"
+      - "src/**"
       - "tests/js/**"
       - "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
 
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: format-maintained-javascript-main
+  group: format-maintained-javascript-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -33,6 +33,7 @@ jobs:
       - name: Format maintained files
         run: >-
           npx prettier --write
+          src
           tests/js
           'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'
       - name: Commit formatting
@@ -41,12 +42,12 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- tests/js "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+          git add -- src tests/js "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
           if git diff --cached --quiet; then
             echo "Maintained JavaScript is already formatted."
             exit 0
           fi
           git commit -m "style: format maintained JavaScript [skip ci]"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
