@@ -1,0 +1,33 @@
+[project]
+name = "software-engineering-ai-tooling-corpus"
+version = "1.0.0"
+description = "Deidentified engineering corpus with executable validation suites for maintained Python utilities."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "Pillow>=11,<13",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.4,<9",
+  "ruff>=0.12,<1",
+  "pip-audit>=2.9,<3",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+include = [
+  "tests/python/*.py",
+  "python_support/*.py",
+  "Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
