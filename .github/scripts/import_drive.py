@@ -7,7 +7,6 @@ import json
 import re
 import shutil
 import subprocess
-import sys
 from collections import Counter
 from pathlib import Path, PurePosixPath
 from urllib.parse import parse_qs, urlparse
@@ -39,7 +38,7 @@ SOURCE_BASENAMES = {
 def probe() -> list[dict[str, str]]:
     p = subprocess.run(
         ["gdown", ROOT_URL, "--folder", "--json", "--quiet"],
-        check=True, text=True, capture_output=True,
+        check=True, text=True, capture_output=True, timeout=240,
     )
     data = json.loads(p.stdout)
     if not isinstance(data, list):
@@ -75,11 +74,7 @@ def safe_path(raw: str) -> PurePosixPath:
 
 def is_source(path: PurePosixPath) -> bool:
     name = path.name.casefold()
-    return (
-        name in SOURCE_BASENAMES
-        or name.startswith(".env")
-        or path.suffix.casefold() in SOURCE_SUFFIXES
-    )
+    return name in SOURCE_BASENAMES or name.startswith(".env") or path.suffix.casefold() in SOURCE_SUFFIXES
 
 
 def with_drive_suffix(path: PurePosixPath, fid: str, width: int = 10) -> PurePosixPath:
@@ -89,22 +84,20 @@ def with_drive_suffix(path: PurePosixPath, fid: str, width: int = 10) -> PurePos
     return path.with_name(f"{stem}.drive-{clean}{suffix}")
 
 
-def download(url: str, fid: str, destination: Path) -> tuple[bool, str]:
+def download(fid: str, destination: Path) -> tuple[bool, str]:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    attempts = [
-        ["gdown", fid, "-O", str(destination), "--quiet", "--no-cookies"],
-        ["gdown", f"https://drive.google.com/file/d/{fid}/view?usp=sharing", "-O", str(destination), "--quiet", "--no-cookies"],
-        ["gdown", url, "-O", str(destination), "--quiet", "--no-cookies"],
-    ]
-    errors: list[str] = []
-    for cmd in attempts:
-        proc = subprocess.run(cmd, text=True, capture_output=True)
-        if proc.returncode == 0 and destination.exists():
-            return True, ""
-        errors.append((proc.stderr or proc.stdout).strip())
+    cmd = ["gdown", fid, "-O", str(destination), "--quiet", "--no-cookies"]
+    try:
+        proc = subprocess.run(cmd, text=True, capture_output=True, timeout=12)
+    except subprocess.TimeoutExpired:
         if destination.exists():
             destination.unlink()
-    return False, " | ".join(e for e in errors if e)[-4000:]
+        return False, "anonymous Drive download timed out after 12 seconds"
+    if proc.returncode == 0 and destination.exists():
+        return True, ""
+    if destination.exists():
+        destination.unlink()
+    return False, (proc.stderr or proc.stdout).strip()[-4000:]
 
 
 def main() -> int:
@@ -127,7 +120,6 @@ def main() -> int:
 
     counts = Counter(str(e["rel"]).casefold() for e in entries)
     collisions = {path for path, count in counts.items() if count > 1}
-
     if STAGING_ROOT.exists():
         shutil.rmtree(STAGING_ROOT)
     STAGING_ROOT.mkdir(parents=True, exist_ok=True)
@@ -153,11 +145,11 @@ def main() -> int:
 
         print(f"[{index}/{len(entries)}] {rel} -> {target_rel}", flush=True)
         target = STAGING_ROOT.joinpath(*target_rel.parts)
-        ok, error = download(str(entry["url"]), fid, target)
+        ok, error = download(fid, target)
         if ok:
             imported += 1
         else:
-            print(f"BLOCKED {fid}: {rel}", file=sys.stderr, flush=True)
+            print(f"BLOCKED {fid}: {rel}", flush=True)
             failures.append({
                 "drive_id": fid,
                 "source_path": str(rel),
