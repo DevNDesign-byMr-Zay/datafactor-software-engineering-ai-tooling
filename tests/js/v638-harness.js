@@ -27,7 +27,8 @@ export function makeV638Harness(options = {}) {
     requestFrame,
     cancelFrame,
     onProgress: (progress, handle) => progressEvents.push({ progress, state: handle.state }),
-    onState: (state, handle, detail) => stateEvents.push({ state, progress: handle.progress, detail }),
+    onState: (state, handle, detail) =>
+      stateEvents.push({ state, progress: handle.progress, detail }),
     saveEstimates: (estimates) => saved.push(estimates),
     ...options,
   });
