@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "historical_individual_authorship": "Do not infer an individual contributor from shared-account or unattributed historical artifacts.",
+    "maintained_surface_authorship": "Record the authenticated GitHub identity responsible for the modern maintained-surface promotion separately from historical authorship.",
+    "confidence_levels": [
+      "verified",
+      "strongly-supported",
+      "shared-team",
+      "unresolved"
+    ]
+  },
+  "changes": [
+    {
+      "change_id": "CFW-001",
+      "component": "Cloud Deployment / Storage Workflow",
+      "behavior": "GCS memory-upload route with object persistence and authenticated error contracts",
+      "historical_source": "Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs",
+      "historical_blob_sha": "ba1134db645eb1d2b98675bec800e0051306c414",
+      "canonical_destination": "src/workflows/cloud-file-workflow.js",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "attribution_basis": "Historical behavior is tied to the exact repository artifact and blob SHA; the artifact does not mechanically identify an individual historical author. The maintained-surface promotion is attributable to the authenticated GitHub identity that created this change.",
+      "confidence": "shared-team",
+      "tests": "tests/js/cloud-file-workflow.test.js",
+      "review_verification": "Canonical behavior is compared against the already-tested historical route contract; historical file is not modified."
+    },
+    {
+      "change_id": "CFW-002",
+      "component": "Reliability & Infrastructure / Cloud File Access",
+      "behavior": "One-hour GCS signed-read URL generation with validation and failure handling",
+      "historical_source": "Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs",
+      "historical_blob_sha": "ac683ef87c219da88dcf3b8c1c52b4ff72af6da7",
+      "canonical_destination": "src/workflows/cloud-file-workflow.js",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "attribution_basis": "Historical behavior is tied to the exact repository artifact and blob SHA; the artifact does not mechanically identify an individual historical author. The maintained-surface promotion is attributable to the authenticated GitHub identity that created this change.",
+      "confidence": "shared-team",
+      "tests": "tests/js/cloud-file-workflow.test.js",
+      "review_verification": "Canonical behavior is compared against the already-tested historical route contract; historical file is not modified."
+    },
+    {
+      "change_id": "CFW-003",
+      "component": "Full Stack Workflow / AI Model Integration",
+      "behavior": "File-aware Gemini chat flow with short-lived signed file references, text composition, fallback, and request errors",
+      "historical_source": "Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs",
+      "historical_blob_sha": "ed4b46f700988e41c27375a051be6bbec0fd9627",
+      "canonical_destination": "src/workflows/cloud-file-workflow.js",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "attribution_basis": "Historical behavior is tied to the exact repository artifact and blob SHA; the artifact does not mechanically identify an individual historical author. The maintained-surface promotion is attributable to the authenticated GitHub identity that created this change.",
+      "confidence": "shared-team",
+      "tests": "tests/js/cloud-file-workflow.test.js",
+      "review_verification": "Canonical behavior is compared against the already-tested historical route contract; historical file is not modified."
+    }
+  ]
+}
