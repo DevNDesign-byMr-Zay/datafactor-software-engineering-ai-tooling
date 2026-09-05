@@ -68,6 +68,10 @@ export function buildCloudRunDeployArgs({
   envVarsFile = DEFAULT_ENV_FILE,
   allowUnauthenticated = true,
 } = {}) {
+  if (typeof allowUnauthenticated !== 'boolean') {
+    throw new TypeError('allowUnauthenticated must be a boolean');
+  }
+
   const args = [
     'run',
     'deploy',
