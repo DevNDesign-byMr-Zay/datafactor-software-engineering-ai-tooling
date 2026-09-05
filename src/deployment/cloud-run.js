@@ -28,6 +28,9 @@ function normalizeBaseUrl(value) {
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     throw new TypeError('serviceUrl must use http or https');
   }
+  if (parsed.username || parsed.password) {
+    throw new TypeError('serviceUrl must not include embedded credentials');
+  }
 
   parsed.pathname = parsed.pathname.replace(/\/+$/, '');
   parsed.search = '';
