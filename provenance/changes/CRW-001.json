@@ -1,0 +1,26 @@
+{
+  "change_id": "CRW-001",
+  "component": "Reliability & Infrastructure / Cloud Deployment Workflow",
+  "behavior": "Deployment-readiness gate followed by injected gcloud execution and ordered authenticated Cloud Run smoke verification",
+  "canonical_destination": "src/deployment/cloud-run-workflow.js",
+  "builds_on": {
+    "github_identity": "DevNDesign-Team",
+    "contributor_name": "Jameal",
+    "pull_request": 9,
+    "branch": "jameal/complement-maintained-surface",
+    "commit_sha": "c322e0ee9cf0f5b7b51610a081b9d651681e238d",
+    "source_module": "src/deployment/cloud-run.js",
+    "attribution_basis": "PR #9 is authenticated GitHub evidence that DevNDesign-Team/Jameal introduced the maintained Cloud Run deployment planner, environment-readiness validation, and authenticated health/chat smoke plan consumed by this follow-on workflow."
+  },
+  "historical_source": "Cloud Run Environment Deployment trajectory referenced and promoted by PR #9",
+  "historical_contributor": "shared-team/unknown",
+  "historical_github_identity": null,
+  "legacy_shared_account_identity": "unresolved",
+  "maintained_surface_contributor": "Mr. Zay",
+  "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+  "attribution_basis": "This follow-on change branches from Jameal's exact PR #9 head SHA and imports his maintained Cloud Run planner rather than reassigning or recreating it. Historical individual authorship remains unresolved because the authenticated historical artifact does not mechanically identify an individual author.",
+  "confidence": "verified",
+  "tests": "tests/js/cloud-run-workflow.test.js",
+  "review_verification": "Focused child PR targets Jameal's branch so his authored base remains separately reviewable; merge is gated on CI and CodeQL.",
+  "historical_files_modified": false
+}
