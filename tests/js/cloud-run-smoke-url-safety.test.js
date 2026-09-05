@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { executeCloudRunSmokePlan } from '../../src/deployment/cloud-run.js';
 
 describe('manual Cloud Run smoke plan URL safety', () => {
