@@ -15,22 +15,28 @@ function requireNonEmptyString(value, name) {
   return value.trim();
 }
 
-function normalizeBaseUrl(value) {
-  const serviceUrl = requireNonEmptyString(value, 'serviceUrl');
+function validateHttpUrl(value, name) {
+  const url = requireNonEmptyString(value, name);
   let parsed;
 
   try {
-    parsed = new URL(serviceUrl);
+    parsed = new URL(url);
   } catch {
-    throw new TypeError('serviceUrl must be a valid absolute URL');
+    throw new TypeError(`${name} must be a valid absolute URL`);
   }
 
   if (!['http:', 'https:'].includes(parsed.protocol)) {
-    throw new TypeError('serviceUrl must use http or https');
+    throw new TypeError(`${name} must use http or https`);
   }
   if (parsed.username || parsed.password) {
-    throw new TypeError('serviceUrl must not include embedded credentials');
+    throw new TypeError(`${name} must not include embedded credentials`);
   }
+
+  return { url, parsed };
+}
+
+function normalizeBaseUrl(value) {
+  const { parsed } = validateHttpUrl(value, 'serviceUrl');
 
   parsed.pathname = parsed.pathname.replace(/\/+$/, '');
   parsed.search = '';
@@ -205,7 +211,7 @@ export async function executeCloudRunSmokePlan(plan, { fetchImpl = globalThis.fe
   const results = [];
   for (const request of plan) {
     const method = requireNonEmptyString(request?.method, 'request method');
-    const url = requireNonEmptyString(request?.url, 'request url');
+    const { url } = validateHttpUrl(request?.url, 'request url');
     const options = {
       method,
       headers: request.headers ? { ...request.headers } : {},
