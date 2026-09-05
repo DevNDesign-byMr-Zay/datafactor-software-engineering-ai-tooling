@@ -26,7 +26,10 @@ function jsonResponse(body, status = 200) {
 
 describe('Cloud Run deployment workflow', () => {
   test('accepts Jameal planner output only when deployment and smoke gates are ready', () => {
-    expect(assessCloudRunDeploymentReadiness(readyPlan())).toEqual({ ready: true, blockers: [] });
+    expect(assessCloudRunDeploymentReadiness(readyPlan())).toEqual({
+      ready: true,
+      blockers: [],
+    });
 
     const blocked = readyPlan();
     blocked.environmentReport = {
@@ -53,7 +56,11 @@ describe('Cloud Run deployment workflow', () => {
       },
     });
 
-    expect(events.map(({ type }) => type)).toEqual(['deploy', 'smoke', 'smoke']);
+    expect(events.map(({ type }) => type)).toEqual([
+      'deploy',
+      'smoke',
+      'smoke',
+    ]);
     expect(result.evidence).toMatchObject({
       command: 'gcloud',
       verified: true,
@@ -77,7 +84,9 @@ describe('Cloud Run deployment workflow', () => {
     };
     const execFileImpl = jest.fn();
 
-    await expect(executeCloudRunDeploymentWorkflow(plan, { execFileImpl })).rejects.toMatchObject({
+    await expect(
+      executeCloudRunDeploymentWorkflow(plan, { execFileImpl }),
+    ).rejects.toMatchObject({
       message: expect.stringContaining('deployment plan is not ready'),
       blockers: ['missing required environment value: GEMINI_API_KEY'],
     });
@@ -118,7 +127,10 @@ describe('Cloud Run deployment workflow', () => {
         }),
       ).rejects.toMatchObject({
         stage: 'smoke',
-        deployment: expect.objectContaining({ stdout: 'deployed', stderr: 'warning' }),
+        deployment: expect.objectContaining({
+          stdout: 'deployed',
+          stderr: 'warning',
+        }),
         smokeResults: [
           expect.objectContaining({ method: 'GET', status: 200, ok: true }),
           expect.objectContaining({ method: 'POST', status: 502, ok: false }),
