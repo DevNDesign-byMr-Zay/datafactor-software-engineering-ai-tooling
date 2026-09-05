@@ -7,6 +7,7 @@ const DEFAULT_REQUIRED_ENV_KEYS = [
   'APP_API_TOKEN',
   'GEMINI_API_KEY',
 ];
+const ALLOWED_SMOKE_METHODS = new Set(['GET', 'POST']);
 
 function requireNonEmptyString(value, name) {
   if (typeof value !== 'string' || !value.trim()) {
@@ -210,7 +211,11 @@ export async function executeCloudRunSmokePlan(plan, { fetchImpl = globalThis.fe
 
   const results = [];
   for (const request of plan) {
-    const method = requireNonEmptyString(request?.method, 'request method');
+    const method = requireNonEmptyString(request?.method, 'request method').toUpperCase();
+    if (!ALLOWED_SMOKE_METHODS.has(method)) {
+      throw new TypeError('request method must be GET or POST');
+    }
+
     const { url } = validateHttpUrl(request?.url, 'request url');
     const options = {
       method,
