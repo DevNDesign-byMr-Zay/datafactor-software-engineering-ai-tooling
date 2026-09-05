@@ -1,0 +1,26 @@
+{
+  "change_id": "CRW-002",
+  "component": "Reliability & Infrastructure / Cloud Deployment Workflow",
+  "behavior": "Deployment execution with stage-aware failure attribution and compact post-deploy evidence preserving successful and partial smoke results",
+  "canonical_destination": "src/deployment/cloud-run-workflow.js",
+  "builds_on": {
+    "github_identity": "DevNDesign-Team",
+    "contributor_name": "Jameal",
+    "pull_request": 9,
+    "branch": "jameal/complement-maintained-surface",
+    "commit_sha": "b26884b3fda82a711ee816bc23ed2d848ad0cf7e",
+    "source_module": "src/deployment/cloud-run.js",
+    "attribution_basis": "PR #9 and commit b26884b3fda82a711ee816bc23ed2d848ad0cf7e are authenticated GitHub evidence that DevNDesign-Team/Jameal owns the maintained Cloud Run deployment planner, URL validation, environment-readiness checks, and ordered smoke executor consumed by this follow-on workflow."
+  },
+  "historical_source": "Cloud Run Environment Deployment trajectory referenced and promoted by PR #9",
+  "historical_contributor": "shared-team/unknown",
+  "historical_github_identity": null,
+  "legacy_shared_account_identity": "unresolved",
+  "maintained_surface_contributor": "Mr. Zay",
+  "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+  "attribution_basis": "This follow-on branch starts from Jameal's current PR #9 head and imports his maintained Cloud Run planner/executor. It adds orchestration evidence and stage-aware error preservation without modifying historical artifacts or reassigning Jameal's implementation.",
+  "confidence": "verified",
+  "tests": "tests/js/cloud-run-workflow.test.js",
+  "review_verification": "Child PR targets Jameal's branch and is merge-gated on CI and CodeQL; Jameal's implementation remains separately attributable.",
+  "historical_files_modified": false
+}
