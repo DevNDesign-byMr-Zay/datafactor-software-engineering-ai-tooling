@@ -10,9 +10,9 @@ describe('manual Cloud Run smoke plan URL safety', () => {
   ])('rejects unsafe request URL %s before transport', async (url, message) => {
     const fetchImpl = jest.fn();
 
-    await expect(
-      executeCloudRunSmokePlan([{ method: 'GET', url }], { fetchImpl }),
-    ).rejects.toThrow(message);
+    await expect(executeCloudRunSmokePlan([{ method: 'GET', url }], { fetchImpl })).rejects.toThrow(
+      message,
+    );
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
