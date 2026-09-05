@@ -101,29 +101,36 @@ describe('Cloud Run deployment workflow', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  test('preserves deployment and partial smoke evidence when post-deploy verification fails', async () => {
-    let requestCount = 0;
+  test(
+    'preserves deployment and partial smoke evidence when post-deploy verification fails',
+    async () => {
+      let requestCount = 0;
 
-    await expect(
-      executeCloudRunDeploymentWorkflow(readyPlan(), {
-        execFileImpl: async () => ({ stdout: 'deployed', stderr: 'warning' }),
-        fetchImpl: async () => {
-          requestCount += 1;
-          return requestCount === 1 ? jsonResponse({ ok: true }) : jsonResponse({ error: 'bad gateway' }, 502);
-        },
-      }),
-    ).rejects.toMatchObject({
-      stage: 'smoke',
-      deployment: expect.objectContaining({ stdout: 'deployed', stderr: 'warning' }),
-      smokeResults: [
-        expect.objectContaining({ method: 'GET', status: 200, ok: true }),
-        expect.objectContaining({ method: 'POST', status: 502, ok: false }),
-      ],
-    });
-  });
+      await expect(
+        executeCloudRunDeploymentWorkflow(readyPlan(), {
+          execFileImpl: async () => ({ stdout: 'deployed', stderr: 'warning' }),
+          fetchImpl: async () => {
+            requestCount += 1;
+            return requestCount === 1
+              ? jsonResponse({ ok: true })
+              : jsonResponse({ error: 'bad gateway' }, 502);
+          },
+        }),
+      ).rejects.toMatchObject({
+        stage: 'smoke',
+        deployment: expect.objectContaining({ stdout: 'deployed', stderr: 'warning' }),
+        smokeResults: [
+          expect.objectContaining({ method: 'GET', status: 200, ok: true }),
+          expect.objectContaining({ method: 'POST', status: 502, ok: false }),
+        ],
+      });
+    },
+  );
 
   test('rejects malformed plans and missing process adapters explicitly', async () => {
-    expect(() => assessCloudRunDeploymentReadiness(null)).toThrow('deployment plan must be an object');
+    expect(() => assessCloudRunDeploymentReadiness(null)).toThrow(
+      'deployment plan must be an object',
+    );
     await expect(executeCloudRunDeploymentWorkflow(readyPlan())).rejects.toThrow(
       'execFileImpl must be a function',
     );
