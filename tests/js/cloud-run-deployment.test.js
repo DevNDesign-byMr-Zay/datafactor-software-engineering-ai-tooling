@@ -236,10 +236,11 @@ describe('Cloud Run deployment planning', () => {
       serviceUrl: 'https://service.example.run.app',
       token: 'secret',
     });
-    const fetchImpl = jest
-      .fn()
-      .mockResolvedValueOnce(jsonResponse({ ok: true }))
-      .mockResolvedValueOnce(jsonResponse({ error: 'provider unavailable' }, { status: 503 }));
+    const responses = [
+      jsonResponse({ ok: true }),
+      jsonResponse({ error: 'provider unavailable' }, { status: 503 }),
+    ];
+    const fetchImpl = async () => responses.shift();
 
     await expect(executeCloudRunSmokePlan(plan, { fetchImpl })).rejects.toMatchObject({
       message: expect.stringContaining('returned 503'),
