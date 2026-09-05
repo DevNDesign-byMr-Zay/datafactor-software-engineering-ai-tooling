@@ -16,15 +16,18 @@ describe('manual Cloud Run smoke plan URL safety', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  test.each(['DELETE', 'PATCH', 'TRACE'])('rejects unsupported smoke method %s before transport', async (method) => {
-    const fetchImpl = jest.fn();
+  test.each(['DELETE', 'PATCH', 'TRACE'])(
+    'rejects unsupported smoke method %s before transport',
+    async (method) => {
+      const fetchImpl = jest.fn();
 
-    await expect(
-      executeCloudRunSmokePlan(
-        [{ method, url: 'https://service.example.com/health' }],
-        { fetchImpl },
-      ),
-    ).rejects.toThrow('request method must be GET or POST');
-    expect(fetchImpl).not.toHaveBeenCalled();
-  });
+      await expect(
+        executeCloudRunSmokePlan(
+          [{ method, url: 'https://service.example.com/health' }],
+          { fetchImpl },
+        ),
+      ).rejects.toThrow('request method must be GET or POST');
+      expect(fetchImpl).not.toHaveBeenCalled();
+    },
+  );
 });
