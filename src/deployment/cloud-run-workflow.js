@@ -21,7 +21,9 @@ export function assessCloudRunDeploymentReadiness(plan) {
   }
   if (candidate.environmentReport?.valid !== true) {
     blockers.push(
-      ...(candidate.environmentReport?.errors ?? ['environment is not deployment-ready']),
+      ...(candidate.environmentReport?.errors ?? [
+        'environment is not deployment-ready',
+      ]),
     );
   }
   if (!Array.isArray(candidate.smoke) || candidate.smoke.length === 0) {
@@ -43,7 +45,12 @@ function createDeploymentEvidence(candidate, execution, smoke) {
       stdout: execution?.stdout ?? '',
       stderr: execution?.stderr ?? '',
     },
-    smoke: smoke.map(({ method, url, status, ok }) => ({ method, url, status, ok })),
+    smoke: smoke.map(({ method, url, status, ok }) => ({
+      method,
+      url,
+      status,
+      ok,
+    })),
     verified: smoke.length > 0 && smoke.every(({ ok }) => ok === true),
   };
 }
@@ -59,7 +66,9 @@ export async function executeCloudRunDeploymentWorkflow(
 
   const readiness = assessCloudRunDeploymentReadiness(candidate);
   if (!readiness.ready) {
-    const error = new Error(`deployment plan is not ready: ${readiness.blockers.join('; ')}`);
+    const error = new Error(
+      `deployment plan is not ready: ${readiness.blockers.join('; ')}`,
+    );
     error.blockers = readiness.blockers;
     throw error;
   }
@@ -68,7 +77,10 @@ export async function executeCloudRunDeploymentWorkflow(
   try {
     execution = await execFileImpl(candidate.command, [...candidate.args]);
   } catch (cause) {
-    const error = new Error(`Cloud Run deployment command failed: ${cause.message}`, { cause });
+    const error = new Error(
+      `Cloud Run deployment command failed: ${cause.message}`,
+      { cause },
+    );
     error.stage = 'deploy';
     throw error;
   }
@@ -77,9 +89,10 @@ export async function executeCloudRunDeploymentWorkflow(
   try {
     smoke = await executeCloudRunSmokePlan(candidate.smoke, { fetchImpl });
   } catch (cause) {
-    const error = new Error(`Cloud Run post-deploy verification failed: ${cause.message}`, {
-      cause,
-    });
+    const error = new Error(
+      `Cloud Run post-deploy verification failed: ${cause.message}`,
+      { cause },
+    );
     error.stage = 'smoke';
     error.deployment = {
       command: candidate.command,
