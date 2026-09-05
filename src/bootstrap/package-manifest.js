@@ -9,6 +9,10 @@ function requireNonEmptyString(value, name) {
   return value.trim();
 }
 
+function hasNonEmptyString(value) {
+  return typeof value === 'string' && Boolean(value.trim());
+}
+
 function requiredScriptsForRole(role) {
   if (role === 'backend') return ['start', 'dev'];
   if (role === 'frontend') return ['dev', 'build', 'preview'];
@@ -105,13 +109,13 @@ export function classifyHistoricalPackageRole(input) {
   const scripts = isPlainObject(manifest.scripts) ? manifest.scripts : {};
 
   const hasBackendShape =
-    typeof scripts.start === 'string' &&
-    typeof scripts.dev === 'string' &&
-    typeof manifest.engines?.node === 'string';
+    hasNonEmptyString(scripts.start) &&
+    hasNonEmptyString(scripts.dev) &&
+    hasNonEmptyString(manifest.engines?.node);
   const hasFrontendShape =
-    typeof scripts.dev === 'string' &&
-    typeof scripts.build === 'string' &&
-    typeof scripts.preview === 'string';
+    hasNonEmptyString(scripts.dev) &&
+    hasNonEmptyString(scripts.build) &&
+    hasNonEmptyString(scripts.preview);
 
   if (hasBackendShape && !hasFrontendShape) return 'backend';
   if (hasFrontendShape && !hasBackendShape) return 'frontend';
