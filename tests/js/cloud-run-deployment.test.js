@@ -127,10 +127,7 @@ describe('Cloud Run deployment planning', () => {
 
   test('supports narrower environment requirements for reusable deployment utilities', () => {
     expect(
-      validateCloudRunEnvironment(
-        { SERVICE_MODE: 'worker' },
-        { requiredKeys: ['SERVICE_MODE'] },
-      ),
+      validateCloudRunEnvironment({ SERVICE_MODE: 'worker' }, { requiredKeys: ['SERVICE_MODE'] }),
     ).toEqual({ valid: true, errors: [], envFileSensitiveKeys: [] });
   });
 
