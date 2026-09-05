@@ -11,7 +11,9 @@
     "./backend-config": "./src/reliability/backend-config.js",
     "./progress": "./Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
     "./auth": "./src/auth/token-auth.js",
-    "./cors": "./src/api/cors-policy.js"
+    "./cors": "./src/api/cors-policy.js",
+    "./cloud-run": "./src/deployment/cloud-run.js",
+    "./package-manifest": "./src/bootstrap/package-manifest.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
