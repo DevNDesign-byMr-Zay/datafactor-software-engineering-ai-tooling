@@ -20,7 +20,9 @@ export function assessCloudRunDeploymentReadiness(plan) {
     blockers.push('deployment args must target gcloud run deploy');
   }
   if (candidate.environmentReport?.valid !== true) {
-    blockers.push(...(candidate.environmentReport?.errors ?? ['environment is not deployment-ready']));
+    blockers.push(
+      ...(candidate.environmentReport?.errors ?? ['environment is not deployment-ready']),
+    );
   }
   if (!Array.isArray(candidate.smoke) || candidate.smoke.length === 0) {
     blockers.push('smoke plan must be a non-empty array');
@@ -75,7 +77,9 @@ export async function executeCloudRunDeploymentWorkflow(
   try {
     smoke = await executeCloudRunSmokePlan(candidate.smoke, { fetchImpl });
   } catch (cause) {
-    const error = new Error(`Cloud Run post-deploy verification failed: ${cause.message}`, { cause });
+    const error = new Error(`Cloud Run post-deploy verification failed: ${cause.message}`, {
+      cause,
+    });
     error.stage = 'smoke';
     error.deployment = {
       command: candidate.command,
