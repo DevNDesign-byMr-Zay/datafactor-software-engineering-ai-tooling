@@ -49,6 +49,10 @@ export function validateModulePackage(input, { requiredScripts = [] } = {}) {
   const manifest = parsePackageManifest(input);
   const errors = [];
 
+  if (!Array.isArray(requiredScripts)) {
+    throw new TypeError('requiredScripts must be an array');
+  }
+
   if (typeof manifest.name !== 'string' || !manifest.name.trim()) {
     errors.push('name must be a non-empty string');
   }
