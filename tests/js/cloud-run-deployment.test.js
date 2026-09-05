@@ -68,6 +68,7 @@ describe('Cloud Run deployment planning', () => {
     [{ serviceName: 'svc', region: '' }, 'region'],
     [{ serviceName: 'svc', source: '' }, 'source'],
     [{ serviceName: 'svc', envVarsFile: '' }, 'envVarsFile'],
+    [{ serviceName: 'svc', allowUnauthenticated: 'false' }, 'allowUnauthenticated'],
   ])('rejects invalid deploy input %#', (input, field) => {
     expect(() => buildCloudRunDeployArgs(input)).toThrow(field);
   });
@@ -294,8 +295,14 @@ describe('Cloud Run deployment planning', () => {
       envFileSensitiveKeys: ['ALLOWED_ORIGINS'],
       args: expect.arrayContaining(['deploy', 'service', '--env-vars-file', 'run-env.yaml']),
       smoke: [
-        expect.objectContaining({ method: 'GET', url: 'https://service.example.run.app/health' }),
-        expect.objectContaining({ method: 'POST', url: 'https://service.example.run.app/chat' }),
+        expect.objectContaining({
+          method: 'GET',
+          url: 'https://service.example.run.app/health',
+        }),
+        expect.objectContaining({
+          method: 'POST',
+          url: 'https://service.example.run.app/chat',
+        }),
       ],
     });
   });
