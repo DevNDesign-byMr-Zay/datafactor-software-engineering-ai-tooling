@@ -22,10 +22,9 @@ describe('manual Cloud Run smoke plan URL safety', () => {
       const fetchImpl = jest.fn();
 
       await expect(
-        executeCloudRunSmokePlan(
-          [{ method, url: 'https://service.example.com/health' }],
-          { fetchImpl },
-        ),
+        executeCloudRunSmokePlan([{ method, url: 'https://service.example.com/health' }], {
+          fetchImpl,
+        }),
       ).rejects.toThrow('request method must be GET or POST');
       expect(fetchImpl).not.toHaveBeenCalled();
     },
