@@ -29,13 +29,7 @@ function compactSmokeResults(results) {
  */
 export async function executeReliableCloudRunWorkflow(
   plan,
-  {
-    execFileImpl,
-    fetchImpl = globalThis.fetch,
-    maxAttempts,
-    retryDelayImpl,
-    isRetryable,
-  } = {},
+  { execFileImpl, fetchImpl = globalThis.fetch, maxAttempts, retryDelayImpl, isRetryable } = {},
 ) {
   const candidate = requireReadyPlan(plan);
   const retryOptions = { execFileImpl };
