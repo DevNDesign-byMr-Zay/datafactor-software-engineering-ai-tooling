@@ -7,7 +7,11 @@ function requireDeployPlan(plan) {
   if (plan.command !== 'gcloud') {
     throw new TypeError('deployment command must be gcloud');
   }
-  if (!Array.isArray(plan.args) || plan.args[0] !== 'run' || plan.args[1] !== 'deploy') {
+  if (
+    !Array.isArray(plan.args) ||
+    plan.args[0] !== 'run' ||
+    plan.args[1] !== 'deploy'
+  ) {
     throw new TypeError('deployment args must target gcloud run deploy');
   }
   return plan;
@@ -93,7 +97,9 @@ export async function executeCloudRunDeployWithRetry(
 
   for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
     try {
-      const result = normalizeCloudRunExecutionResult(await execFileImpl(command, [...args]));
+      const result = normalizeCloudRunExecutionResult(
+        await execFileImpl(command, [...args]),
+      );
       attempts.push({ attempt, ok: true, result });
       return {
         command,
@@ -125,7 +131,11 @@ export async function executeCloudRunDeployWithRetry(
         throw error;
       }
 
-      await retryDelayImpl({ attempt, nextAttempt: attempt + 1, error: cause });
+      await retryDelayImpl({
+        attempt,
+        nextAttempt: attempt + 1,
+        error: cause,
+      });
     }
   }
 
