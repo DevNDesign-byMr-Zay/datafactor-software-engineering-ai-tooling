@@ -7,4 +7,6 @@ export * from './frontend/erase-mask.js';
 export * from './reliability/backend-config.js';
 export * from './workflows/cloud-file-workflow.js';
 
-export { createAdaptiveDurationProgressController } from '../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
+export {
+  createAdaptiveDurationProgressController,
+} from '../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
