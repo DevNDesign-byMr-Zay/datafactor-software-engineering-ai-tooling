@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals';
+
 import { createCloudRunDeploymentPlan } from '../../src/deployment/cloud-run.js';
 import {
   executeCloudRunDeployWithRetry,
