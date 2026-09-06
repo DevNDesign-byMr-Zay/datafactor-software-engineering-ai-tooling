@@ -13,6 +13,8 @@
     "./auth": "./src/auth/token-auth.js",
     "./cors": "./src/api/cors-policy.js",
     "./cloud-run": "./src/deployment/cloud-run.js",
+    "./cloud-run-reliability": "./src/deployment/cloud-run-reliability.js",
+    "./cloud-run-workflow": "./src/deployment/cloud-run-reliable-workflow.js",
     "./package-manifest": "./src/bootstrap/package-manifest.js"
   },
   "scripts": {

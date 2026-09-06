@@ -61,6 +61,59 @@
       "confidence": "shared-team",
       "tests": "tests/js/cloud-file-workflow.test.js",
       "review_verification": "Canonical behavior is compared against the already-tested historical route contract; historical file is not modified."
+    },
+    {
+      "change_id": "CRR-001",
+      "component": "Reliability & Infrastructure / Cloud Deployment",
+      "behavior": "Bounded retry-safe execution of deterministic Cloud Run deploy plans with stable process-result normalization and per-attempt failure evidence",
+      "builds_on": {
+        "github_identity": "DevNDesign-Team",
+        "contributor_name": "Jameal",
+        "pull_request": 9,
+        "branch": "jameal/complement-maintained-surface",
+        "commit_sha": "0c75ba2843f385f2a890b76a43b2634c6d33b424",
+        "source_module": "src/deployment/cloud-run.js",
+        "attribution_basis": "PR #9 and its authenticated GitHub head establish Jameal's maintained Cloud Run deployment planner, environment validation, URL safety, and smoke execution contract consumed unchanged by this follow-on reliability layer."
+      },
+      "historical_source": "Cloud Run Environment Deployment trajectory promoted by PR #9",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "canonical_destination": "src/deployment/cloud-run-reliability.js",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "attribution_basis": "The follow-on branch starts from Jameal's exact PR #9 head and reuses his deterministic gcloud run deploy vector without mutating it. This change adds bounded transient retry classification, stable execution-result normalization, and auditable attempt evidence while preserving historical files and Jameal's separate authorship.",
+      "confidence": "verified",
+      "tests": "tests/js/cloud-run-reliability.test.js",
+      "review_verification": "Focused child work is merge-gated on CI and CodeQL and must not be attributed to historical shared-account authorship.",
+      "historical_files_modified": false
+    },
+    {
+      "change_id": "CRR-002",
+      "component": "Reliability & Infrastructure / Cloud Deployment Workflow",
+      "behavior": "Readiness-gated Cloud Run deployment with retry-attempt evidence carried through authenticated smoke verification and preserved on post-deploy failure",
+      "builds_on": {
+        "github_identity": "DevNDesign-Team",
+        "contributor_name": "Jameal",
+        "pull_request": 9,
+        "branch": "jameal/complement-maintained-surface",
+        "commit_sha": "0c75ba2843f385f2a890b76a43b2634c6d33b424",
+        "source_module": "src/deployment/cloud-run.js",
+        "attribution_basis": "Jameal's PR #9 head still exports the deterministic gcloud deploy plan, environment readiness report, and ordered authenticated smoke executor consumed by this workflow without modifying their contract."
+      },
+      "extends_change": "CRR-001",
+      "canonical_destination": "src/deployment/cloud-run-reliable-workflow.js",
+      "historical_source": "Cloud Run Environment Deployment trajectory promoted by PR #9",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "attribution_basis": "This follow-on composes Jameal's authenticated planner/smoke behavior with the separately attributed retry-safe execution layer so one evidence record spans readiness, deployment attempts, and post-deploy verification. Historical corpus files remain untouched and no historical authorship is reassigned.",
+      "confidence": "verified",
+      "tests": "tests/js/cloud-run-reliable-workflow.test.js",
+      "review_verification": "Jameal's PR #9 contract was re-read at head 0c75ba2843f385f2a890b76a43b2634c6d33b424 before implementation; no newer contributor reply or exported-interface change was present.",
+      "historical_files_modified": false
     }
   ]
 }
