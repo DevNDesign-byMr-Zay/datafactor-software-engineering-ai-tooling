@@ -35,12 +35,8 @@ describe('Cloud Run reliability execution', () => {
 
   test('classifies only mechanically recognizable transient failures for retry', () => {
     expect(isRetryableCloudRunFailure({ code: 'ETIMEDOUT' })).toBe(true);
-    expect(
-      isRetryableCloudRunFailure({ message: '503 service unavailable' }),
-    ).toBe(true);
-    expect(isRetryableCloudRunFailure({ message: 'permission denied' })).toBe(
-      false,
-    );
+    expect(isRetryableCloudRunFailure({ message: '503 service unavailable' })).toBe(true);
+    expect(isRetryableCloudRunFailure({ message: 'permission denied' })).toBe(false);
   });
 
   test('retries the exact Jameal deploy vector and returns per-attempt evidence', async () => {
@@ -83,9 +79,7 @@ describe('Cloud Run reliability execution', () => {
     ).rejects.toMatchObject({
       stage: 'deploy',
       retryable: false,
-      attempts: [
-        expect.objectContaining({ attempt: 1, ok: false, retryable: false }),
-      ],
+      attempts: [expect.objectContaining({ attempt: 1, ok: false, retryable: false })],
     });
     expect(execFileImpl).toHaveBeenCalledTimes(1);
   });
@@ -116,10 +110,7 @@ describe('Cloud Run reliability execution', () => {
   test('rejects malformed deployment plans and retry configuration before execution', async () => {
     const execFileImpl = jest.fn();
     await expect(
-      executeCloudRunDeployWithRetry(
-        { command: 'bash', args: [] },
-        { execFileImpl },
-      ),
+      executeCloudRunDeployWithRetry({ command: 'bash', args: [] }, { execFileImpl }),
     ).rejects.toThrow('deployment command must be gcloud');
     await expect(
       executeCloudRunDeployWithRetry(readyPlan(), {
