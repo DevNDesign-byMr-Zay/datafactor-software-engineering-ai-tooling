@@ -61,6 +61,16 @@ function compactFailure(error) {
   };
 }
 
+function requireSuccessfulExecution(result) {
+  if (result.code === 0) return result;
+
+  const error = new Error(`gcloud exited with code ${result.code}`);
+  error.code = result.code;
+  error.stdout = result.stdout;
+  error.stderr = result.stderr;
+  throw error;
+}
+
 /**
  * Execute Jameal's deterministic Cloud Run deployment plan with bounded retry
  * semantics and explicit per-attempt evidence. The same command/argument vector
@@ -93,7 +103,9 @@ export async function executeCloudRunDeployWithRetry(
 
   for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
     try {
-      const result = normalizeCloudRunExecutionResult(await execFileImpl(command, [...args]));
+      const result = requireSuccessfulExecution(
+        normalizeCloudRunExecutionResult(await execFileImpl(command, [...args])),
+      );
       attempts.push({ attempt, ok: true, result });
       return {
         command,
