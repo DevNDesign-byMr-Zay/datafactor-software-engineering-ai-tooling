@@ -97,6 +97,33 @@ describe('Cloud Run reliability execution', () => {
     });
   });
 
+  test('preserves attempt evidence when the retry delay hook fails', async () => {
+    const execFileImpl = jest.fn(async () => {
+      const error = new Error('temporarily unavailable');
+      error.code = 'EAI_AGAIN';
+      throw error;
+    });
+    const retryDelayImpl = jest.fn(async () => {
+      throw new Error('timer unavailable');
+    });
+
+    await expect(
+      executeCloudRunDeployWithRetry(readyPlan(), {
+        execFileImpl,
+        retryDelayImpl,
+      }),
+    ).rejects.toMatchObject({
+      stage: 'retry-delay',
+      retryable: false,
+      message: expect.stringContaining('timer unavailable'),
+      attempts: [expect.objectContaining({ attempt: 1, ok: false, retryable: true })],
+      command: 'gcloud',
+      args: expect.arrayContaining(['run', 'deploy']),
+    });
+    expect(execFileImpl).toHaveBeenCalledTimes(1);
+    expect(retryDelayImpl).toHaveBeenCalledTimes(1);
+  });
+
   test('does not retry permanent deployment failures', async () => {
     const execFileImpl = jest.fn(async () => {
       throw new Error('permission denied');
