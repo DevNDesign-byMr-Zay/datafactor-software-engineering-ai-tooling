@@ -137,11 +137,24 @@ export async function executeCloudRunDeployWithRetry(
         throw error;
       }
 
-      await retryDelayImpl({
-        attempt,
-        nextAttempt: attempt + 1,
-        error: cause,
-      });
+      try {
+        await retryDelayImpl({
+          attempt,
+          nextAttempt: attempt + 1,
+          error: cause,
+        });
+      } catch (delayCause) {
+        const error = new Error(
+          `Cloud Run retry delay failed after attempt ${attempt}: ${delayCause?.message ?? String(delayCause)}`,
+          { cause: delayCause },
+        );
+        error.stage = 'retry-delay';
+        error.retryable = false;
+        error.attempts = [...attempts];
+        error.command = command;
+        error.args = args;
+        throw error;
+      }
     }
   }
 
