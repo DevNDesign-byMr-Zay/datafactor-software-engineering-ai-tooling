@@ -73,7 +73,7 @@ function requireSuccessfulExecution(result) {
 }
 
 /**
- * Execute Jameal's deterministic Cloud Run deployment plan with bounded retry
+ * Execute a deterministic Cloud Run deployment plan with bounded retry
  * semantics and explicit per-attempt evidence. The same command/argument vector
  * is reused on every attempt so retries cannot silently mutate deployment intent.
  */
