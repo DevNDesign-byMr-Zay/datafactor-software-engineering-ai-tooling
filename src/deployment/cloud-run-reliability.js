@@ -57,6 +57,7 @@ function compactFailure(error) {
     name: error?.name ?? 'Error',
     code: error?.code ?? null,
     message: error?.message ?? String(error),
+    stdout: typeof error?.stdout === 'string' ? error.stdout : '',
     stderr: typeof error?.stderr === 'string' ? error.stderr : '',
   };
 }
