@@ -71,6 +71,32 @@ describe('Cloud Run reliability execution', () => {
     ]);
   });
 
+  test('treats resolved nonzero gcloud results as retryable failures when stderr is transient', async () => {
+    const execFileImpl = jest
+      .fn()
+      .mockResolvedValueOnce({ code: 1, stderr: 'service unavailable' })
+      .mockResolvedValueOnce({ code: 0, stdout: 'deployed' });
+
+    const result = await executeCloudRunDeployWithRetry(readyPlan(), { execFileImpl });
+
+    expect(execFileImpl).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({
+      attemptCount: 2,
+      retried: true,
+      result: { code: 0, stdout: 'deployed', stderr: '' },
+    });
+    expect(result.attempts[0]).toMatchObject({
+      attempt: 1,
+      ok: false,
+      retryable: true,
+      error: {
+        code: 1,
+        message: 'gcloud exited with code 1',
+        stderr: 'service unavailable',
+      },
+    });
+  });
+
   test('does not retry permanent deployment failures', async () => {
     const execFileImpl = jest.fn(async () => {
       throw new Error('permission denied');
