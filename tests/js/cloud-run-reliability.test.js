@@ -74,7 +74,11 @@ describe('Cloud Run reliability execution', () => {
   test('treats resolved nonzero gcloud results as retryable failures when stderr is transient', async () => {
     const execFileImpl = jest
       .fn()
-      .mockResolvedValueOnce({ code: 1, stderr: 'service unavailable' })
+      .mockResolvedValueOnce({
+        code: 1,
+        stdout: 'revision created before traffic update failed',
+        stderr: 'service unavailable',
+      })
       .mockResolvedValueOnce({ code: 0, stdout: 'deployed' });
 
     const result = await executeCloudRunDeployWithRetry(readyPlan(), { execFileImpl });
@@ -92,6 +96,7 @@ describe('Cloud Run reliability execution', () => {
       error: {
         code: 1,
         message: 'gcloud exited with code 1',
+        stdout: 'revision created before traffic update failed',
         stderr: 'service unavailable',
       },
     });
