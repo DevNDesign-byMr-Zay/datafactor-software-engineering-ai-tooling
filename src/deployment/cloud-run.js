@@ -230,9 +230,12 @@ export async function executeCloudRunSmokePlan(plan, { fetchImpl = globalThis.fe
     try {
       response = await fetchImpl(url, options);
     } catch (error) {
-      throw new Error(`smoke request failed before response: ${method} ${url}: ${error.message}`, {
-        cause: error,
-      });
+      const transportError = new Error(
+        `smoke request failed before response: ${method} ${url}: ${error.message}`,
+        { cause: error },
+      );
+      transportError.results = [...results];
+      throw transportError;
     }
 
     const result = {
