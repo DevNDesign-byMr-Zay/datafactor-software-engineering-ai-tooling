@@ -1,4 +1,6 @@
-import { executeApplicationBootstrapWithReadiness } from '../bootstrap/application-bootstrap-readiness.js';
+import {
+  executeApplicationBootstrapWithReadiness,
+} from '../bootstrap/application-bootstrap-readiness.js';
 import { inspectCloudRunRelease } from '../deployment/cloud-run-release-evidence.js';
 
 /**
@@ -22,9 +24,10 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
       execFile,
     });
   } catch (cause) {
-    const error = new Error(`application runtime acceptance failed at release evidence: ${cause.message}`, {
-      cause,
-    });
+    const error = new Error(
+      `application runtime acceptance failed at release evidence: ${cause.message}`,
+      { cause },
+    );
     error.stage = 'release-evidence';
     error.bootstrap = bootstrap;
     error.releaseEvidence = cause?.evidence ?? null;
