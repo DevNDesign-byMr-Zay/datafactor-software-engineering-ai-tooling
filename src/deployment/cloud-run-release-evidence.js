@@ -22,6 +22,15 @@ function normalizeProcessResult(result = {}) {
   };
 }
 
+function buildProcessEvidence(stage, args, result) {
+  return {
+    stage,
+    command: 'gcloud',
+    args: [...args],
+    ...normalizeProcessResult(result),
+  };
+}
+
 function parseJsonOutput(stdout, stage) {
   try {
     return JSON.parse(stdout);
@@ -128,33 +137,28 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   try {
     rawResult = await execFile('gcloud', args);
   } catch (error) {
+    const evidence = buildProcessEvidence(stage, args, error);
     const failure = new Error(
-      `${stage} failed before a process result was returned`,
+      evidence.exitCode !== 0
+        ? `${stage} failed with exit code ${evidence.exitCode}`
+        : `${stage} failed before a process result was returned`,
       { cause: error },
-    );
-    failure.stage = stage;
-    failure.command = 'gcloud';
-    failure.args = [...args];
-    throw failure;
-  }
-
-  const result = normalizeProcessResult(rawResult);
-  const evidence = {
-    stage,
-    command: 'gcloud',
-    args: [...args],
-    ...result,
-  };
-
-  if (result.exitCode !== 0) {
-    const failure = new Error(
-      `${stage} failed with exit code ${result.exitCode}`,
     );
     failure.evidence = evidence;
     throw failure;
   }
 
-  const service = parseCloudRunServiceEvidence(result.stdout);
+  const evidence = buildProcessEvidence(stage, args, rawResult);
+
+  if (evidence.exitCode !== 0) {
+    const failure = new Error(
+      `${stage} failed with exit code ${evidence.exitCode}`,
+    );
+    failure.evidence = evidence;
+    throw failure;
+  }
+
+  const service = parseCloudRunServiceEvidence(evidence.stdout);
   return { ...evidence, service };
 }
 
