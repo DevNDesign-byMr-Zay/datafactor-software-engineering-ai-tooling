@@ -4,9 +4,8 @@ import { executeApplicationBootstrapPlan } from './application-bootstrap-executo
  * Execute an application bootstrap plan and verify that every started service
  * reaches its declared runtime readiness boundary.
  *
- * The readiness probe is injected deliberately: repository code can exercise
- * and evidence the handoff without inventing deployment URLs, credentials, or
- * provider-specific health semantics.
+ * Readiness is derived from the executor's authenticated evidence contract
+ * rather than inventing a second representation for started processes.
  */
 export async function executeApplicationBootstrapWithReadiness(plan, options = {}) {
   const probeReadinessImpl = options.probeReadinessImpl;
@@ -16,15 +15,18 @@ export async function executeApplicationBootstrapWithReadiness(plan, options = {
 
   const bootstrap = await executeApplicationBootstrapPlan(plan, options);
   const readiness = [];
+  const startedEvidence = bootstrap.evidence.filter(
+    ({ result }) => result?.state === 'started',
+  );
 
-  for (const started of bootstrap.started) {
+  for (const started of startedEvidence) {
     let result;
     try {
       result = await probeReadinessImpl({
         step: started.step,
-        command: started.command,
-        cwd: started.cwd,
-        pid: started.pid,
+        pid: started.result.pid,
+        stdout: started.result.stdout,
+        stderr: started.result.stderr,
         mode: plan.mode,
         plan,
       });
@@ -44,9 +46,7 @@ export async function executeApplicationBootstrapWithReadiness(plan, options = {
     const evidence = {
       stage: 'readiness',
       step: started.step,
-      command: started.command,
-      cwd: started.cwd,
-      pid: started.pid,
+      pid: started.result.pid,
       ok: result.ok,
       ...(typeof result.status === 'string' ? { status: result.status } : {}),
       ...(typeof result.detail === 'string' ? { detail: result.detail } : {}),
