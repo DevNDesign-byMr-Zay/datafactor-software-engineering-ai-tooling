@@ -23,7 +23,12 @@ const SERVICE_JSON = JSON.stringify({
 
 describe('Cloud Run release evidence', () => {
   test('builds deterministic service describe arguments', () => {
-    expect(buildCloudRunServiceDescribeArgs({ serviceName: 'roary-api', region: 'us-east1' })).toEqual([
+    expect(
+      buildCloudRunServiceDescribeArgs({
+        serviceName: 'roary-api',
+        region: 'us-east1',
+      }),
+    ).toEqual([
       'run',
       'services',
       'describe',
@@ -60,16 +65,31 @@ describe('Cloud Run release evidence', () => {
       latestReadyRevisionName: 'roary-api-00042-abc',
       url: 'https://roary-api.example.run.app',
       traffic: [
-        { revisionName: 'roary-api-00042-abc', percent: 90, tag: null, url: null },
-        { revisionName: 'roary-api-00041-def', percent: 10, tag: 'previous', url: null },
+        {
+          revisionName: 'roary-api-00042-abc',
+          percent: 90,
+          tag: null,
+          url: null,
+        },
+        {
+          revisionName: 'roary-api-00041-def',
+          percent: 10,
+          tag: 'previous',
+          url: null,
+        },
       ],
     });
   });
 
   test('captures revision inspection evidence through injected gcloud execution', async () => {
-    const execFile = jest.fn().mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest
+      .fn()
+      .mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
 
-    const evidence = await inspectCloudRunRelease({ serviceName: 'roary-api', execFile });
+    const evidence = await inspectCloudRunRelease({
+      serviceName: 'roary-api',
+      execFile,
+    });
 
     expect(execFile).toHaveBeenCalledWith('gcloud', [
       'run',
@@ -81,11 +101,15 @@ describe('Cloud Run release evidence', () => {
       '--format=json',
     ]);
     expect(evidence.stage).toBe('revision-inspect');
-    expect(evidence.service.latestReadyRevisionName).toBe('roary-api-00042-abc');
+    expect(evidence.service.latestReadyRevisionName).toBe(
+      'roary-api-00042-abc',
+    );
   });
 
   test('captures explicit traffic-shift evidence without inventing revision state', async () => {
-    const execFile = jest.fn().mockResolvedValue({ code: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest
+      .fn()
+      .mockResolvedValue({ code: 0, stdout: SERVICE_JSON, stderr: '' });
 
     const evidence = await shiftCloudRunTraffic({
       serviceName: 'roary-api',
@@ -100,7 +124,9 @@ describe('Cloud Run release evidence', () => {
   });
 
   test('rollback targets only an explicitly supplied prior revision', async () => {
-    const execFile = jest.fn().mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest
+      .fn()
+      .mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
 
     const evidence = await rollbackCloudRunTraffic({
       serviceName: 'roary-api',
@@ -113,9 +139,15 @@ describe('Cloud Run release evidence', () => {
   });
 
   test('preserves failed process evidence and rejects invalid percentages', async () => {
-    const execFile = jest.fn().mockResolvedValue({ exitCode: 1, stdout: 'partial', stderr: 'denied' });
+    const execFile = jest.fn().mockResolvedValue({
+      exitCode: 1,
+      stdout: 'partial',
+      stderr: 'denied',
+    });
 
-    await expect(inspectCloudRunRelease({ serviceName: 'roary-api', execFile })).rejects.toMatchObject({
+    await expect(
+      inspectCloudRunRelease({ serviceName: 'roary-api', execFile }),
+    ).rejects.toMatchObject({
       evidence: expect.objectContaining({
         stage: 'revision-inspect',
         exitCode: 1,
