@@ -1,6 +1,4 @@
-import {
-  executeApplicationBootstrapWithReadiness,
-} from '../bootstrap/application-bootstrap-readiness.js';
+import { executeApplicationBootstrapWithReadiness } from '../bootstrap/application-bootstrap-readiness.js';
 import { inspectCloudRunRelease } from '../deployment/cloud-run-release-evidence.js';
 
 /**
