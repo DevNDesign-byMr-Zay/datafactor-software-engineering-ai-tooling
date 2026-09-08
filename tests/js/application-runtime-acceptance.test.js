@@ -1,5 +1,9 @@
-import { executeApplicationRuntimeAcceptance } from '../../src/runtime/application-runtime-acceptance.js';
-import { createApplicationBootstrapPlan } from '../../src/bootstrap/package-manifest.js';
+import {
+  executeApplicationRuntimeAcceptance,
+} from '../../src/runtime/application-runtime-acceptance.js';
+import {
+  createApplicationBootstrapPlan,
+} from '../../src/bootstrap/package-manifest.js';
 
 const backendManifest = {
   name: 'ai-service',
@@ -42,58 +46,64 @@ function executeStepImpl(step) {
 }
 
 describe('application runtime acceptance', () => {
-  test('joins bootstrap readiness with mechanically returned Cloud Run release evidence', async () => {
-    const execFile = async (command, args) => {
-      expect(command).toBe('gcloud');
-      expect(args).toContain('roary-api');
-      return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
-    };
+  test(
+    'joins bootstrap readiness with mechanically returned Cloud Run release evidence',
+    async () => {
+      const execFile = async (command, args) => {
+        expect(command).toBe('gcloud');
+        expect(args).toContain('roary-api');
+        return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
+      };
 
-    const result = await executeApplicationRuntimeAcceptance(plan, {
-      serviceName: 'roary-api',
-      executeStepImpl,
-      probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
-      execFile,
-    });
-
-    expect(result.accepted).toBe(true);
-    expect(result.bootstrap).toMatchObject({
-      ready: true,
-      started: ['backend:run'],
-    });
-    expect(result.release).toMatchObject({
-      stage: 'revision-inspect',
-      service: {
-        serviceName: 'roary-api',
-        latestReadyRevisionName: 'roary-api-00042-abc',
-      },
-    });
-  });
-
-  test('preserves completed bootstrap evidence when release inspection fails', async () => {
-    await expect(
-      executeApplicationRuntimeAcceptance(plan, {
+      const result = await executeApplicationRuntimeAcceptance(plan, {
         serviceName: 'roary-api',
         executeStepImpl,
-        probeReadinessImpl: async () => ({ ok: true }),
-        execFile: async () => ({
+        probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
+        execFile,
+      });
+
+      expect(result.accepted).toBe(true);
+      expect(result.bootstrap).toMatchObject({
+        ready: true,
+        started: ['backend:run'],
+      });
+      expect(result.release).toMatchObject({
+        stage: 'revision-inspect',
+        service: {
+          serviceName: 'roary-api',
+          latestReadyRevisionName: 'roary-api-00042-abc',
+        },
+      });
+    },
+  );
+
+  test(
+    'preserves completed bootstrap evidence when release inspection fails',
+    async () => {
+      await expect(
+        executeApplicationRuntimeAcceptance(plan, {
+          serviceName: 'roary-api',
+          executeStepImpl,
+          probeReadinessImpl: async () => ({ ok: true }),
+          execFile: async () => ({
+            exitCode: 1,
+            stdout: 'partial',
+            stderr: 'denied',
+          }),
+        }),
+      ).rejects.toMatchObject({
+        stage: 'release-evidence',
+        bootstrap: expect.objectContaining({
+          ready: true,
+          started: ['backend:run'],
+        }),
+        releaseEvidence: expect.objectContaining({
+          stage: 'revision-inspect',
           exitCode: 1,
           stdout: 'partial',
           stderr: 'denied',
         }),
-      }),
-    ).rejects.toMatchObject({
-      stage: 'release-evidence',
-      bootstrap: expect.objectContaining({
-        ready: true,
-        started: ['backend:run'],
-      }),
-      releaseEvidence: expect.objectContaining({
-        stage: 'revision-inspect',
-        exitCode: 1,
-        stdout: 'partial',
-        stderr: 'denied',
-      }),
-    });
-  });
+      });
+    },
+  );
 });
