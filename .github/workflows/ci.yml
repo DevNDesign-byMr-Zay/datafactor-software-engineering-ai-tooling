@@ -30,7 +30,20 @@ jobs:
       - name: Lint maintained JavaScript
         run: npm run lint
       - name: Check maintained JavaScript formatting
-        run: npm run format:check
+        shell: bash
+        run: |
+          set +e
+          npm run format:check
+          status=$?
+          set -e
+
+          if [ "$status" -ne 0 ]; then
+            npm run format >/dev/null
+            echo "::group::Required Prettier changes"
+            git --no-pager diff -- src tests/js "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+            echo "::endgroup::"
+            exit "$status"
+          fi
       - name: Run JavaScript tests with enforced coverage
         run: npm run test:coverage
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased — maintained-surface promotions
+
+- Added promotion-readiness criteria that require authenticated role, behavioral substance, deidentification safety, Drive-independent execution, non-redundancy, and focused testability before historical artifacts become maintained modules.
+- Promoted authenticated Cloud Run environment-deployment behavior into `src/deployment/cloud-run.js` with credential-free deploy argument planning, comma-delimited env-var risk detection, env-file-sensitive key reporting, and authenticated `/health` + `/chat` smoke-request planning.
+- Added focused Cloud Run deployment tests for default/custom deploy arguments, malformed configuration, historical comma-delimited env-var failure detection, URL normalization, authenticated smoke requests, and combined deployment plans.
+- Promoted corrected package/bootstrap behavior into `src/bootstrap/package-manifest.js` with JSON parsing, ESM manifest validation, required-script checks, historical frontend/backend role classification, npm-script plans, and role-aware bootstrap review output.
+- Added focused package/bootstrap tests against the corrected frontend/backend manifest shapes and malformed/missing bootstrap inputs.
+- Added `./cloud-run` and `./package-manifest` package exports and exposed both maintained modules from `src/index.js`.
+- Kept the Full Stack Workflows shell artifact as historical provenance rather than inventing a maintained abstraction from a minimal install/start wrapper; documented the evidence needed before promotion.
+- Updated the README and maintained-surface inventory to describe eleven behaviorally distinct maintained artifacts across nine engineering areas.
+- Preserved every historical corpus artifact unchanged; all new maintained behavior is derived into `src/` and tested independently of private cloud credentials or Drive access.
+
 ## 1.1.0 — Canonical maintained package
 
 - Added conventional `src/index.js` package entrypoint and explicit package exports.

@@ -1,53 +1,26 @@
-name: Format maintained JavaScript
+name: Verify maintained JavaScript formatting
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/format-maintained-js.yml"
-      - "src/**"
-      - "tests/js/**"
-      - "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
 
 permissions:
-  contents: write
-
-concurrency:
-  group: format-maintained-javascript-${{ github.ref }}
-  cancel-in-progress: true
+  contents: read
 
 jobs:
-  format:
+  format-check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
       - name: Install pinned tooling
         run: npm ci --ignore-scripts
-      - name: Format maintained files
+      - name: Verify maintained files are formatted
         run: >-
-          npx prettier --write
+          npx prettier --check
           src
           tests/js
           'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'
-      - name: Commit formatting
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- src tests/js "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
-          if git diff --cached --quiet; then
-            echo "Maintained JavaScript is already formatted."
-            exit 0
-          fi
-          git commit -m "style: format maintained JavaScript [skip ci]"
-          git fetch origin "$GITHUB_REF_NAME"
-          git rebase "origin/$GITHUB_REF_NAME"
-          git push origin "HEAD:$GITHUB_REF_NAME"
