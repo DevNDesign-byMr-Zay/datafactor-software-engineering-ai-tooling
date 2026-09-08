@@ -23,8 +23,7 @@ function plan(mode = 'production') {
 
 function executorForStartedPids() {
   let pid = 4100;
-  return async (step) =>
-    step.phase === 'run' ? { state: 'started', pid: pid++ } : { code: 0 };
+  return async (step) => (step.phase === 'run' ? { state: 'started', pid: pid++ } : { code: 0 });
 }
 
 describe('application bootstrap readiness handoff', () => {
