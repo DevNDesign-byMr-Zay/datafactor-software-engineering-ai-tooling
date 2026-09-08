@@ -1,9 +1,7 @@
 import {
   executeApplicationRuntimeAcceptance,
 } from '../../src/runtime/application-runtime-acceptance.js';
-import {
-  createApplicationBootstrapPlan,
-} from '../../src/bootstrap/package-manifest.js';
+import { createApplicationBootstrapPlan } from '../../src/bootstrap/package-manifest.js';
 
 const backendManifest = {
   name: 'ai-service',
@@ -40,9 +38,7 @@ const SERVICE_JSON = JSON.stringify({
 });
 
 function executeStepImpl(step) {
-  return Promise.resolve(
-    step.phase === 'run' ? { state: 'started', pid: 4100 } : { code: 0 },
-  );
+  return Promise.resolve(step.phase === 'run' ? { state: 'started', pid: 4100 } : { code: 0 });
 }
 
 describe('application runtime acceptance', () => {
@@ -77,33 +73,30 @@ describe('application runtime acceptance', () => {
     },
   );
 
-  test(
-    'preserves completed bootstrap evidence when release inspection fails',
-    async () => {
-      await expect(
-        executeApplicationRuntimeAcceptance(plan, {
-          serviceName: 'roary-api',
-          executeStepImpl,
-          probeReadinessImpl: async () => ({ ok: true }),
-          execFile: async () => ({
-            exitCode: 1,
-            stdout: 'partial',
-            stderr: 'denied',
-          }),
-        }),
-      ).rejects.toMatchObject({
-        stage: 'release-evidence',
-        bootstrap: expect.objectContaining({
-          ready: true,
-          started: ['backend:run'],
-        }),
-        releaseEvidence: expect.objectContaining({
-          stage: 'revision-inspect',
+  test('preserves completed bootstrap evidence when release inspection fails', async () => {
+    await expect(
+      executeApplicationRuntimeAcceptance(plan, {
+        serviceName: 'roary-api',
+        executeStepImpl,
+        probeReadinessImpl: async () => ({ ok: true }),
+        execFile: async () => ({
           exitCode: 1,
           stdout: 'partial',
           stderr: 'denied',
         }),
-      });
-    },
-  );
+      }),
+    ).rejects.toMatchObject({
+      stage: 'release-evidence',
+      bootstrap: expect.objectContaining({
+        ready: true,
+        started: ['backend:run'],
+      }),
+      releaseEvidence: expect.objectContaining({
+        stage: 'revision-inspect',
+        exitCode: 1,
+        stdout: 'partial',
+        stderr: 'denied',
+      }),
+    });
+  });
 });
