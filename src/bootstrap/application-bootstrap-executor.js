@@ -93,7 +93,10 @@ function indexBootstrapSteps(plan) {
     return stepIndex.get(key);
   });
   const actual = [...new Set(candidate.startupOrder)].sort();
-  if (actual.length !== candidate.startupOrder.length || actual.join('\n') !== expected.join('\n')) {
+  if (
+    actual.length !== candidate.startupOrder.length ||
+    actual.join('\n') !== expected.join('\n')
+  ) {
     throw new Error('startupOrder must include every bootstrap step exactly once');
   }
 
@@ -128,9 +131,12 @@ export async function executeApplicationBootstrapPlan(plan, { executeStepImpl } 
       evidence.push({ step: step.key, ok: true, result });
     } catch (cause) {
       const failed = { step: step.key, ok: false, error: compactFailure(cause) };
-      const error = new Error(`application bootstrap failed at ${step.key}: ${cause?.message ?? cause}`, {
-        cause,
-      });
+      const error = new Error(
+        `application bootstrap failed at ${step.key}: ${cause?.message ?? cause}`,
+        {
+          cause,
+        },
+      );
       error.stage = 'bootstrap';
       error.failedStep = step.key;
       error.evidence = [...evidence, failed];
@@ -171,6 +177,8 @@ export function createNodeBootstrapStepExecutor({
       return normalizeExecutionResult({ ...started, code: started?.code ?? 0, state: 'started' });
     }
 
-    return normalizeExecutionResult(await execFile(candidate.command, [...candidate.args], options));
+    return normalizeExecutionResult(
+      await execFile(candidate.command, [...candidate.args], options),
+    );
   };
 }
