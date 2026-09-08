@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "change_id": "JAM-BOOT-001",
+  "component": "Application Bootstrap / End-to-End Service Startup",
+  "behavior": "Execute Jameal's validated two-package bootstrap plan in its exact declared startup order, route finite install/build phases through an injected execFile adapter, route long-lived run phases through an injected process-start adapter, and preserve ordered stdout/stderr/exit/start evidence with fail-closed semantics.",
+  "builds_on": {
+    "github_identity": "DevNDesign-Team",
+    "contributor_name": "Jameal",
+    "pull_request": 9,
+    "branch": "jameal/complement-maintained-surface",
+    "commit_sha": "b82e724cf49b4d8a1440abdfd7ce290f6309740f",
+    "integrated_branch_head_before_follow_on": "073a9e7c99c4936e96ada35714c5fb46ac842401",
+    "source_module": "src/bootstrap/package-manifest.js",
+    "attribution_basis": "Jameal's authenticated PR #9 branch contains the package-manifest classifier and deterministic application bootstrap plan. This follow-on starts from the branch after the separately attributed smoke-evidence merge and consumes the existing plan contract without modifying Jameal's historical corpus files or reassigning his maintained-surface work."
+  },
+  "canonical_destination": "src/bootstrap/application-bootstrap-executor.js",
+  "maintained_surface_contributor": "Mr. Zay",
+  "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+  "historical_contributor": "shared-team/unknown",
+  "historical_github_identity": null,
+  "legacy_shared_account_identity": "unresolved",
+  "confidence": "verified",
+  "tests": "tests/js/application-bootstrap-executor.test.js",
+  "historical_files_modified": false,
+  "merge_gate": "engineering CI and CodeQL must both be green"
+}
