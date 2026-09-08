@@ -114,6 +114,31 @@
       "tests": "tests/js/cloud-run-reliable-workflow.test.js",
       "review_verification": "Jameal's PR #9 contract was re-read at head 0c75ba2843f385f2a890b76a43b2634c6d33b424 before implementation; no newer contributor reply or exported-interface change was present.",
       "historical_files_modified": false
+    },
+    {
+      "change_id": "JAM-AUD-001",
+      "component": "Reliability & Infrastructure / Cloud Deployment Smoke Evidence",
+      "behavior": "Preserve already-completed smoke results when a later authenticated smoke request fails before receiving an HTTP response, allowing the reliable deployment workflow to retain partial post-deploy evidence instead of collapsing transport failures to an empty result set.",
+      "builds_on": {
+        "github_identity": "DevNDesign-Team",
+        "contributor_name": "Jameal",
+        "pull_request": 9,
+        "branch": "jameal/complement-maintained-surface",
+        "commit_sha": "b82e724cf49b4d8a1440abdfd7ce290f6309740f",
+        "source_module": "src/deployment/cloud-run.js",
+        "attribution_basis": "Audit performed against Jameal's current PR #9 head after his seven post-merge reliability refinements. His latest changes correctly harden nonzero gcloud outcomes and retry-delay failures; this child follow-on closes the remaining partial-smoke-evidence gap in the same exported smoke executor."
+      },
+      "canonical_destination": "src/deployment/cloud-run.js",
+      "maintained_surface_contributor": "Mr. Zay",
+      "maintained_surface_github_identity": "DevNDesign-byMr-Zay",
+      "historical_contributor": "shared-team/unknown",
+      "historical_github_identity": null,
+      "legacy_shared_account_identity": "unresolved",
+      "attribution_basis": "The change is isolated on a child branch created from Jameal's exact b82e724c PR head, modifies only maintained Cloud Run behavior/tests, and preserves historical corpus files and Jameal's separate authorship.",
+      "confidence": "verified",
+      "tests": "tests/js/cloud-run-deployment.test.js",
+      "review_verification": "Focused audit follow-on; merge only after CI and CodeQL are green and Jameal's branch remains the target.",
+      "historical_files_modified": false
     }
   ]
 }
