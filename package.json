@@ -15,6 +15,7 @@
     "./cloud-run": "./src/deployment/cloud-run.js",
     "./cloud-run-reliability": "./src/deployment/cloud-run-reliability.js",
     "./cloud-run-workflow": "./src/deployment/cloud-run-reliable-workflow.js",
+    "./cloud-run-release-evidence": "./src/deployment/cloud-run-release-evidence.js",
     "./package-manifest": "./src/bootstrap/package-manifest.js"
   },
   "scripts": {
