@@ -1,6 +1,4 @@
-import {
-  executeApplicationRuntimeAcceptance,
-} from '../../src/runtime/application-runtime-acceptance.js';
+import { executeApplicationRuntimeAcceptance } from '../../src/runtime/application-runtime-acceptance.js';
 import { createApplicationBootstrapPlan } from '../../src/bootstrap/package-manifest.js';
 
 const backendManifest = {
@@ -42,36 +40,33 @@ function executeStepImpl(step) {
 }
 
 describe('application runtime acceptance', () => {
-  test(
-    'joins bootstrap readiness with mechanically returned Cloud Run release evidence',
-    async () => {
-      const execFile = async (command, args) => {
-        expect(command).toBe('gcloud');
-        expect(args).toContain('roary-api');
-        return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
-      };
+  test('joins bootstrap readiness with mechanically returned Cloud Run release evidence', async () => {
+    const execFile = async (command, args) => {
+      expect(command).toBe('gcloud');
+      expect(args).toContain('roary-api');
+      return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
+    };
 
-      const result = await executeApplicationRuntimeAcceptance(plan, {
+    const result = await executeApplicationRuntimeAcceptance(plan, {
+      serviceName: 'roary-api',
+      executeStepImpl,
+      probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
+      execFile,
+    });
+
+    expect(result.accepted).toBe(true);
+    expect(result.bootstrap).toMatchObject({
+      ready: true,
+      started: ['backend:run'],
+    });
+    expect(result.release).toMatchObject({
+      stage: 'revision-inspect',
+      service: {
         serviceName: 'roary-api',
-        executeStepImpl,
-        probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
-        execFile,
-      });
-
-      expect(result.accepted).toBe(true);
-      expect(result.bootstrap).toMatchObject({
-        ready: true,
-        started: ['backend:run'],
-      });
-      expect(result.release).toMatchObject({
-        stage: 'revision-inspect',
-        service: {
-          serviceName: 'roary-api',
-          latestReadyRevisionName: 'roary-api-00042-abc',
-        },
-      });
-    },
-  );
+        latestReadyRevisionName: 'roary-api-00042-abc',
+      },
+    });
+  });
 
   test('preserves completed bootstrap evidence when release inspection fails', async () => {
     await expect(
