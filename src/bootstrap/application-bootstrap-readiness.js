@@ -8,10 +8,7 @@ import { executeApplicationBootstrapPlan } from './application-bootstrap-executo
  * and evidence the handoff without inventing deployment URLs, credentials, or
  * provider-specific health semantics.
  */
-export async function executeApplicationBootstrapWithReadiness(
-  plan,
-  options = {},
-) {
+export async function executeApplicationBootstrapWithReadiness(plan, options = {}) {
   const probeReadinessImpl = options.probeReadinessImpl;
   if (typeof probeReadinessImpl !== 'function') {
     throw new TypeError('probeReadinessImpl must be a function');
