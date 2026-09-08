@@ -2,9 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createApplicationBootstrapPlan } from '../../src/bootstrap/application-bootstrap.js';
-import {
-  executeApplicationBootstrapWithReadiness,
-} from '../../src/bootstrap/application-bootstrap-readiness.js';
+import { executeApplicationBootstrapWithReadiness } from '../../src/bootstrap/application-bootstrap-readiness.js';
 
 function executorForStartedPids() {
   let pid = 4100;
