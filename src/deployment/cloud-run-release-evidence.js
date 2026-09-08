@@ -39,14 +39,25 @@ function normalizeTraffic(traffic) {
         typeof entry?.revisionName === 'string' && entry.revisionName.trim()
           ? entry.revisionName.trim()
           : null,
-      percent: Number.isFinite(Number(entry?.percent)) ? Number(entry.percent) : null,
-      tag: typeof entry?.tag === 'string' && entry.tag.trim() ? entry.tag.trim() : null,
-      url: typeof entry?.url === 'string' && entry.url.trim() ? entry.url.trim() : null,
+      percent: Number.isFinite(Number(entry?.percent))
+        ? Number(entry.percent)
+        : null,
+      tag:
+        typeof entry?.tag === 'string' && entry.tag.trim()
+          ? entry.tag.trim()
+          : null,
+      url:
+        typeof entry?.url === 'string' && entry.url.trim()
+          ? entry.url.trim()
+          : null,
     }))
     .filter((entry) => entry.revisionName);
 }
 
-export function buildCloudRunServiceDescribeArgs({ serviceName, region = DEFAULT_REGION } = {}) {
+export function buildCloudRunServiceDescribeArgs({
+  serviceName,
+  region = DEFAULT_REGION,
+} = {}) {
   return [
     'run',
     'services',
@@ -80,12 +91,18 @@ export function buildCloudRunTrafficShiftArgs({
 }
 
 export function parseCloudRunServiceEvidence(value) {
-  const service = typeof value === 'string' ? parseJsonOutput(value, 'service describe') : value;
+  const service =
+    typeof value === 'string' ? parseJsonOutput(value, 'service describe') : value;
   if (!service || typeof service !== 'object' || Array.isArray(service)) {
-    throw new TypeError('service evidence must be an object or JSON object string');
+    throw new TypeError(
+      'service evidence must be an object or JSON object string',
+    );
   }
 
-  const serviceName = requireNonEmptyString(service?.metadata?.name, 'metadata.name');
+  const serviceName = requireNonEmptyString(
+    service?.metadata?.name,
+    'metadata.name',
+  );
   const latestReadyRevisionName = requireNonEmptyString(
     service?.status?.latestReadyRevisionName,
     'status.latestReadyRevisionName',
@@ -94,7 +111,10 @@ export function parseCloudRunServiceEvidence(value) {
   return {
     serviceName,
     latestReadyRevisionName,
-    url: typeof service?.status?.url === 'string' && service.status.url.trim() ? service.status.url : null,
+    url:
+      typeof service?.status?.url === 'string' && service.status.url.trim()
+        ? service.status.url
+        : null,
     traffic: normalizeTraffic(service?.status?.traffic),
   };
 }
@@ -108,7 +128,10 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   try {
     rawResult = await execFile('gcloud', args);
   } catch (error) {
-    const failure = new Error(`${stage} failed before a process result was returned`, { cause: error });
+    const failure = new Error(
+      `${stage} failed before a process result was returned`,
+      { cause: error },
+    );
     failure.stage = stage;
     failure.command = 'gcloud';
     failure.args = [...args];
@@ -124,7 +147,9 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   };
 
   if (result.exitCode !== 0) {
-    const failure = new Error(`${stage} failed with exit code ${result.exitCode}`);
+    const failure = new Error(
+      `${stage} failed with exit code ${result.exitCode}`,
+    );
     failure.evidence = evidence;
     throw failure;
   }
@@ -133,7 +158,11 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   return { ...evidence, service };
 }
 
-export async function inspectCloudRunRelease({ serviceName, region = DEFAULT_REGION, execFile } = {}) {
+export async function inspectCloudRunRelease({
+  serviceName,
+  region = DEFAULT_REGION,
+  execFile,
+} = {}) {
   const args = buildCloudRunServiceDescribeArgs({ serviceName, region });
   return executeGcloudJson('revision-inspect', args, { execFile });
 }
@@ -145,7 +174,12 @@ export async function shiftCloudRunTraffic({
   percent = 100,
   execFile,
 } = {}) {
-  const args = buildCloudRunTrafficShiftArgs({ serviceName, revisionName, region, percent });
+  const args = buildCloudRunTrafficShiftArgs({
+    serviceName,
+    revisionName,
+    region,
+    percent,
+  });
   return executeGcloudJson('traffic-shift', args, { execFile });
 }
 
