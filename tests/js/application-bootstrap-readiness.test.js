@@ -2,9 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { createApplicationBootstrapPlan } from '../../src/bootstrap/application-bootstrap.js';
-import {
-  executeApplicationBootstrapWithReadiness,
-} from '../../src/bootstrap/application-bootstrap-readiness.js';
+import { executeApplicationBootstrapWithReadiness } from '../../src/bootstrap/application-bootstrap-readiness.js';
 
 function executorForStartedPids() {
   let pid = 4100;
@@ -46,8 +44,14 @@ test('development bootstrap probes started services in deterministic order', asy
     },
   });
 
-  assert.deepEqual(probedSteps, result.started.map(({ step }) => step));
-  assert.deepEqual(result.readiness.map(({ step }) => step), probedSteps);
+  assert.deepEqual(
+    probedSteps,
+    result.started.map(({ step }) => step),
+  );
+  assert.deepEqual(
+    result.readiness.map(({ step }) => step),
+    probedSteps,
+  );
 });
 
 test('failed readiness preserves completed bootstrap and probe evidence', async () => {
