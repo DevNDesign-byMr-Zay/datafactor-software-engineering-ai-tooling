@@ -25,4 +25,19 @@ describe('bootstrap package surface', () => {
       './src/bootstrap/application-bootstrap-readiness.js',
     );
   });
+
+  test('Node resolves the application bootstrap subpath through the package export map', async () => {
+    const bootstrap = await import(`${packageJson.name}/application-bootstrap`);
+
+    expect(bootstrap.executeApplicationBootstrapPlan).toBe(executeApplicationBootstrapPlan);
+    expect(bootstrap.createNodeBootstrapStepExecutor).toBe(createNodeBootstrapStepExecutor);
+  });
+
+  test('Node resolves the readiness subpath through the package export map', async () => {
+    const readiness = await import(`${packageJson.name}/application-bootstrap-readiness`);
+
+    expect(readiness.executeApplicationBootstrapWithReadiness).toBe(
+      executeApplicationBootstrapWithReadiness,
+    );
+  });
 });
