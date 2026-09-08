@@ -16,7 +16,9 @@
     "./cloud-run-reliability": "./src/deployment/cloud-run-reliability.js",
     "./cloud-run-workflow": "./src/deployment/cloud-run-reliable-workflow.js",
     "./cloud-run-release-evidence": "./src/deployment/cloud-run-release-evidence.js",
-    "./package-manifest": "./src/bootstrap/package-manifest.js"
+    "./package-manifest": "./src/bootstrap/package-manifest.js",
+    "./application-bootstrap": "./src/bootstrap/application-bootstrap-executor.js",
+    "./application-bootstrap-readiness": "./src/bootstrap/application-bootstrap-readiness.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
