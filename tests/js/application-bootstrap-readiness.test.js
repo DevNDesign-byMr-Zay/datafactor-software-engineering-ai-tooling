@@ -46,14 +46,8 @@ test('development bootstrap probes started services in deterministic order', asy
     },
   });
 
-  assert.deepEqual(
-    probedSteps,
-    result.started.map(({ step }) => step),
-  );
-  assert.deepEqual(
-    result.readiness.map(({ step }) => step),
-    probedSteps,
-  );
+  assert.deepEqual(probedSteps, result.started.map(({ step }) => step));
+  assert.deepEqual(result.readiness.map(({ step }) => step), probedSteps);
 });
 
 test('failed readiness preserves completed bootstrap and probe evidence', async () => {
