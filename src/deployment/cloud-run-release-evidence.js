@@ -48,25 +48,14 @@ function normalizeTraffic(traffic) {
         typeof entry?.revisionName === 'string' && entry.revisionName.trim()
           ? entry.revisionName.trim()
           : null,
-      percent: Number.isFinite(Number(entry?.percent))
-        ? Number(entry.percent)
-        : null,
-      tag:
-        typeof entry?.tag === 'string' && entry.tag.trim()
-          ? entry.tag.trim()
-          : null,
-      url:
-        typeof entry?.url === 'string' && entry.url.trim()
-          ? entry.url.trim()
-          : null,
+      percent: Number.isFinite(Number(entry?.percent)) ? Number(entry.percent) : null,
+      tag: typeof entry?.tag === 'string' && entry.tag.trim() ? entry.tag.trim() : null,
+      url: typeof entry?.url === 'string' && entry.url.trim() ? entry.url.trim() : null,
     }))
     .filter((entry) => entry.revisionName);
 }
 
-export function buildCloudRunServiceDescribeArgs({
-  serviceName,
-  region = DEFAULT_REGION,
-} = {}) {
+export function buildCloudRunServiceDescribeArgs({ serviceName, region = DEFAULT_REGION } = {}) {
   return [
     'run',
     'services',
@@ -100,18 +89,12 @@ export function buildCloudRunTrafficShiftArgs({
 }
 
 export function parseCloudRunServiceEvidence(value) {
-  const service =
-    typeof value === 'string' ? parseJsonOutput(value, 'service describe') : value;
+  const service = typeof value === 'string' ? parseJsonOutput(value, 'service describe') : value;
   if (!service || typeof service !== 'object' || Array.isArray(service)) {
-    throw new TypeError(
-      'service evidence must be an object or JSON object string',
-    );
+    throw new TypeError('service evidence must be an object or JSON object string');
   }
 
-  const serviceName = requireNonEmptyString(
-    service?.metadata?.name,
-    'metadata.name',
-  );
+  const serviceName = requireNonEmptyString(service?.metadata?.name, 'metadata.name');
   const latestReadyRevisionName = requireNonEmptyString(
     service?.status?.latestReadyRevisionName,
     'status.latestReadyRevisionName',
@@ -151,9 +134,7 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   const evidence = buildProcessEvidence(stage, args, rawResult);
 
   if (evidence.exitCode !== 0) {
-    const failure = new Error(
-      `${stage} failed with exit code ${evidence.exitCode}`,
-    );
+    const failure = new Error(`${stage} failed with exit code ${evidence.exitCode}`);
     failure.evidence = evidence;
     throw failure;
   }
