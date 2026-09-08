@@ -36,12 +36,7 @@ describe('application bootstrap execution', () => {
       },
     });
 
-    expect(calls).toEqual([
-      'frontend:install',
-      'frontend:build',
-      'backend:install',
-      'backend:run',
-    ]);
+    expect(calls).toEqual(['frontend:install', 'frontend:build', 'backend:install', 'backend:run']);
     expect(result).toMatchObject({
       verified: true,
       started: ['backend:run'],
@@ -145,12 +140,7 @@ describe('application bootstrap execution', () => {
       },
     });
 
-    expect(calls).toEqual([
-      'frontend:install',
-      'backend:install',
-      'backend:run',
-      'frontend:run',
-    ]);
+    expect(calls).toEqual(['frontend:install', 'backend:install', 'backend:run', 'frontend:run']);
     expect(result.started).toEqual(['backend:run', 'frontend:run']);
   });
 
