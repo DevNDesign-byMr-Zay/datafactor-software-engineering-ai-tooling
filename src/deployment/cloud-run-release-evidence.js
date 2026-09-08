@@ -92,9 +92,7 @@ export function buildCloudRunTrafficShiftArgs({
 
 export function parseCloudRunServiceEvidence(value) {
   const service =
-    typeof value === 'string'
-      ? parseJsonOutput(value, 'service describe')
-      : value;
+    typeof value === 'string' ? parseJsonOutput(value, 'service describe') : value;
   if (!service || typeof service !== 'object' || Array.isArray(service)) {
     throw new TypeError(
       'service evidence must be an object or JSON object string',
