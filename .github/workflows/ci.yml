@@ -29,6 +29,9 @@ jobs:
         run: npm audit --audit-level=moderate
       - name: Lint maintained JavaScript
         run: npm run lint
+      - name: Baseline historical JavaScript lint
+        continue-on-error: true
+        run: npm run lint:legacy
       - name: Check maintained JavaScript formatting
         shell: bash
         run: |
