@@ -164,4 +164,36 @@ describe('Cloud Run release evidence', () => {
       }),
     ).toThrow('percent must be an integer between 0 and 100');
   });
+
+  test('preserves conventional rejected execFile process evidence', async () => {
+    const processError = Object.assign(new Error('Command failed: gcloud'), {
+      code: 1,
+      stdout: 'partial describe output',
+      stderr: 'permission denied',
+    });
+    const execFile = jest.fn().mockRejectedValue(processError);
+
+    await expect(
+      inspectCloudRunRelease({ serviceName: 'roary-api', execFile }),
+    ).rejects.toMatchObject({
+      message: 'revision-inspect failed with exit code 1',
+      cause: processError,
+      evidence: {
+        stage: 'revision-inspect',
+        command: 'gcloud',
+        args: [
+          'run',
+          'services',
+          'describe',
+          'roary-api',
+          '--region',
+          'us-central1',
+          '--format=json',
+        ],
+        exitCode: 1,
+        stdout: 'partial describe output',
+        stderr: 'permission denied',
+      },
+    });
+  });
 });
