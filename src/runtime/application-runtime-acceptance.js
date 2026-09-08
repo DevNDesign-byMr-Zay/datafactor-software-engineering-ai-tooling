@@ -1,9 +1,7 @@
 import {
   executeApplicationBootstrapWithReadiness,
 } from '../bootstrap/application-bootstrap-readiness.js';
-import {
-  inspectCloudRunRelease,
-} from '../deployment/cloud-run-release-evidence.js';
+import { inspectCloudRunRelease } from '../deployment/cloud-run-release-evidence.js';
 
 /**
  * Execute the maintained application bootstrap/readiness path, then capture
@@ -16,10 +14,7 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
   const region = options.region;
   const execFile = options.execFile;
 
-  const bootstrap = await executeApplicationBootstrapWithReadiness(
-    plan,
-    options,
-  );
+  const bootstrap = await executeApplicationBootstrapWithReadiness(plan, options);
 
   let release;
   try {
