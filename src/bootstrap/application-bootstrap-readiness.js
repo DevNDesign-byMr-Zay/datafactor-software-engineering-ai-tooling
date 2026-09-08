@@ -15,9 +15,7 @@ export async function executeApplicationBootstrapWithReadiness(plan, options = {
 
   const bootstrap = await executeApplicationBootstrapPlan(plan, options);
   const readiness = [];
-  const startedEvidence = bootstrap.evidence.filter(
-    ({ result }) => result?.state === 'started',
-  );
+  const startedEvidence = bootstrap.evidence.filter(({ result }) => result?.state === 'started');
 
   for (const started of startedEvidence) {
     let result;
