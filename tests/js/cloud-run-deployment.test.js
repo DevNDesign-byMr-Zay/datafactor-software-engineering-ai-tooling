@@ -253,19 +253,26 @@ describe('Cloud Run deployment planning', () => {
     });
   });
 
-  test('distinguishes transport failure from an HTTP failure', async () => {
+  test('preserves completed smoke evidence when a later request fails in transport', async () => {
     const plan = buildCloudRunSmokePlan({
       serviceUrl: 'https://service.example.run.app',
       token: 'secret',
     });
+    let requestCount = 0;
 
     await expect(
       executeCloudRunSmokePlan(plan, {
         fetchImpl: async () => {
+          requestCount += 1;
+          if (requestCount === 1) return jsonResponse({ ok: true });
           throw new Error('connection refused');
         },
       }),
-    ).rejects.toThrow('failed before response');
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('failed before response'),
+      results: [expect.objectContaining({ status: 200, ok: true })],
+    });
+    expect(requestCount).toBe(2);
   });
 
   test('rejects malformed execution dependencies before making requests', async () => {
