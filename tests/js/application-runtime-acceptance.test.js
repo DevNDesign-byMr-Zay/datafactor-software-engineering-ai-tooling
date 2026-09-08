@@ -5,7 +5,10 @@ const backendManifest = {
   name: 'ai-service',
   version: '0.2.0',
   type: 'module',
-  scripts: { start: 'node index.mjs', dev: 'NODE_ENV=development node index.mjs' },
+  scripts: {
+    start: 'node index.mjs',
+    dev: 'NODE_ENV=development node index.mjs',
+  },
   engines: { node: '>=18' },
 };
 
@@ -33,7 +36,9 @@ const SERVICE_JSON = JSON.stringify({
 });
 
 function executeStepImpl(step) {
-  return Promise.resolve(step.phase === 'run' ? { state: 'started', pid: 4100 } : { code: 0 });
+  return Promise.resolve(
+    step.phase === 'run' ? { state: 'started', pid: 4100 } : { code: 0 },
+  );
 }
 
 describe('application runtime acceptance', () => {
@@ -52,7 +57,10 @@ describe('application runtime acceptance', () => {
     });
 
     expect(result.accepted).toBe(true);
-    expect(result.bootstrap).toMatchObject({ ready: true, started: ['backend:run'] });
+    expect(result.bootstrap).toMatchObject({
+      ready: true,
+      started: ['backend:run'],
+    });
     expect(result.release).toMatchObject({
       stage: 'revision-inspect',
       service: {
@@ -68,11 +76,18 @@ describe('application runtime acceptance', () => {
         serviceName: 'roary-api',
         executeStepImpl,
         probeReadinessImpl: async () => ({ ok: true }),
-        execFile: async () => ({ exitCode: 1, stdout: 'partial', stderr: 'denied' }),
+        execFile: async () => ({
+          exitCode: 1,
+          stdout: 'partial',
+          stderr: 'denied',
+        }),
       }),
     ).rejects.toMatchObject({
       stage: 'release-evidence',
-      bootstrap: expect.objectContaining({ ready: true, started: ['backend:run'] }),
+      bootstrap: expect.objectContaining({
+        ready: true,
+        started: ['backend:run'],
+      }),
       releaseEvidence: expect.objectContaining({
         stage: 'revision-inspect',
         exitCode: 1,
