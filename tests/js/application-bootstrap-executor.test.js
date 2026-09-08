@@ -39,7 +39,11 @@ describe('application bootstrap execution', () => {
     });
 
     expect(calls).toEqual(['frontend:install', 'frontend:build', 'backend:install', 'backend:run']);
-    expect(result).toMatchObject({ verified: true, started: ['backend:run'], startupOrder: calls });
+    expect(result).toMatchObject({
+      verified: true,
+      started: ['backend:run'],
+      startupOrder: calls,
+    });
     expect(result.evidence).toHaveLength(4);
     expect(result.evidence[3]).toMatchObject({
       step: 'backend:run',
@@ -52,6 +56,7 @@ describe('application bootstrap execution', () => {
     const plan = productionPlan();
     plan.startupOrder = plan.startupOrder.slice(0, -1);
     const executeStepImpl = jest.fn();
+
     await expect(executeApplicationBootstrapPlan(plan, { executeStepImpl })).rejects.toThrow(
       'startupOrder must include every bootstrap step exactly once',
     );
@@ -79,7 +84,11 @@ describe('application bootstrap execution', () => {
         expect.objectContaining({
           step: 'backend:install',
           ok: false,
-          error: expect.objectContaining({ code: 17, stdout: 'install output', stderr: 'dependency failure' }),
+          error: expect.objectContaining({
+            code: 17,
+            stdout: 'install output',
+            stderr: 'dependency failure',
+          }),
         }),
       ],
     });
@@ -101,23 +110,38 @@ describe('application bootstrap execution', () => {
       },
     });
 
-    const result = await executeApplicationBootstrapPlan(productionPlan(), { executeStepImpl: executor });
+    const result = await executeApplicationBootstrapPlan(productionPlan(), {
+      executeStepImpl: executor,
+    });
+
     expect(execCalls).toHaveLength(3);
     expect(execCalls[0].options).toEqual({ cwd: '/workspace/web' });
     expect(execCalls[2].options).toEqual({ cwd: '/workspace/api' });
-    expect(startCalls).toEqual([{ command: 'npm', args: ['start'], options: { cwd: '/workspace/api' } }]);
+    expect(startCalls).toEqual([
+      {
+        command: 'npm',
+        args: ['start'],
+        options: { cwd: '/workspace/api' },
+      },
+    ]);
     expect(result.evidence[3].result).toMatchObject({ state: 'started', pid: 99 });
   });
 
   test('preserves development ordering while starting backend and frontend processes', async () => {
-    const plan = createApplicationBootstrapPlan({ frontendManifest, backendManifest, mode: 'development' });
+    const plan = createApplicationBootstrapPlan({
+      frontendManifest,
+      backendManifest,
+      mode: 'development',
+    });
     const calls = [];
+
     const result = await executeApplicationBootstrapPlan(plan, {
       executeStepImpl: async (step) => {
         calls.push(step.key);
         return step.phase === 'run' ? { state: 'started', pid: calls.length } : { code: 0 };
       },
     });
+
     expect(calls).toEqual(['frontend:install', 'backend:install', 'backend:run', 'frontend:run']);
     expect(result.started).toEqual(['backend:run', 'frontend:run']);
   });
