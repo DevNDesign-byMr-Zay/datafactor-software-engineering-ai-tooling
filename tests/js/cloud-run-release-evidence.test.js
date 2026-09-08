@@ -82,9 +82,7 @@ describe('Cloud Run release evidence', () => {
   });
 
   test('captures revision inspection evidence through injected gcloud execution', async () => {
-    const execFile = jest
-      .fn()
-      .mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest.fn().mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
 
     const evidence = await inspectCloudRunRelease({
       serviceName: 'roary-api',
@@ -101,15 +99,11 @@ describe('Cloud Run release evidence', () => {
       '--format=json',
     ]);
     expect(evidence.stage).toBe('revision-inspect');
-    expect(evidence.service.latestReadyRevisionName).toBe(
-      'roary-api-00042-abc',
-    );
+    expect(evidence.service.latestReadyRevisionName).toBe('roary-api-00042-abc');
   });
 
   test('captures explicit traffic-shift evidence without inventing revision state', async () => {
-    const execFile = jest
-      .fn()
-      .mockResolvedValue({ code: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest.fn().mockResolvedValue({ code: 0, stdout: SERVICE_JSON, stderr: '' });
 
     const evidence = await shiftCloudRunTraffic({
       serviceName: 'roary-api',
@@ -124,9 +118,7 @@ describe('Cloud Run release evidence', () => {
   });
 
   test('rollback targets only an explicitly supplied prior revision', async () => {
-    const execFile = jest
-      .fn()
-      .mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
+    const execFile = jest.fn().mockResolvedValue({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' });
 
     const evidence = await rollbackCloudRunTraffic({
       serviceName: 'roary-api',
