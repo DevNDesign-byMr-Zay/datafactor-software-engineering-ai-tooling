@@ -12,9 +12,12 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
   try {
     serviceName = requireNonEmptyString(options.serviceName, 'serviceName');
   } catch (cause) {
-    const error = new Error(`application runtime acceptance failed at configuration: ${cause.message}`, {
-      cause,
-    });
+    const error = new Error(
+      `application runtime acceptance failed at configuration: ${cause.message}`,
+      {
+        cause,
+      },
+    );
     error.stage = 'configuration';
     error.field = 'serviceName';
     error.bootstrap = null;
