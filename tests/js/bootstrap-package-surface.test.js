@@ -4,6 +4,7 @@ import {
   createNodeBootstrapStepExecutor,
   executeApplicationBootstrapPlan,
   executeApplicationBootstrapWithReadiness,
+  executeApplicationRuntimeAcceptance,
 } from '../../src/index.js';
 
 const packageJson = JSON.parse(
@@ -15,14 +16,18 @@ describe('bootstrap package surface', () => {
     expect(executeApplicationBootstrapPlan).toEqual(expect.any(Function));
     expect(createNodeBootstrapStepExecutor).toEqual(expect.any(Function));
     expect(executeApplicationBootstrapWithReadiness).toEqual(expect.any(Function));
+    expect(executeApplicationRuntimeAcceptance).toEqual(expect.any(Function));
   });
 
-  test('package exports expose bootstrap execution and readiness subpaths', () => {
+  test('package exports expose bootstrap execution, readiness, and acceptance subpaths', () => {
     expect(packageJson.exports['./application-bootstrap']).toBe(
       './src/bootstrap/application-bootstrap-executor.js',
     );
     expect(packageJson.exports['./application-bootstrap-readiness']).toBe(
       './src/bootstrap/application-bootstrap-readiness.js',
+    );
+    expect(packageJson.exports['./application-runtime-acceptance']).toBe(
+      './src/runtime/application-runtime-acceptance.js',
     );
   });
 
@@ -38,6 +43,14 @@ describe('bootstrap package surface', () => {
 
     expect(readiness.executeApplicationBootstrapWithReadiness).toBe(
       executeApplicationBootstrapWithReadiness,
+    );
+  });
+
+  test('Node resolves the runtime acceptance subpath through the package export map', async () => {
+    const acceptance = await import(`${packageJson.name}/application-runtime-acceptance`);
+
+    expect(acceptance.executeApplicationRuntimeAcceptance).toBe(
+      executeApplicationRuntimeAcceptance,
     );
   });
 });
