@@ -68,6 +68,34 @@ describe('application runtime acceptance', () => {
     });
   });
 
+  test('fails closed on invalid service configuration before bootstrap or release work starts', async () => {
+    let executeCalls = 0;
+    let releaseCalls = 0;
+
+    await expect(
+      executeApplicationRuntimeAcceptance(plan, {
+        serviceName: '   ',
+        executeStepImpl: async (step) => {
+          executeCalls += 1;
+          return executeStepImpl(step);
+        },
+        probeReadinessImpl: async () => ({ ok: true }),
+        execFile: async () => {
+          releaseCalls += 1;
+          return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
+        },
+      }),
+    ).rejects.toMatchObject({
+      message: 'application runtime acceptance failed at configuration: serviceName must be a non-empty string',
+      stage: 'configuration',
+      field: 'serviceName',
+      bootstrap: null,
+    });
+
+    expect(executeCalls).toBe(0);
+    expect(releaseCalls).toBe(0);
+  });
+
   test('preserves bootstrap and readiness evidence when readiness fails', async () => {
     await expect(
       executeApplicationRuntimeAcceptance(plan, {

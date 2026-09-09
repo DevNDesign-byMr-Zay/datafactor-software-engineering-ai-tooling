@@ -8,7 +8,19 @@ import { inspectCloudRunRelease } from '../deployment/cloud-run-release-evidence
  * maintained runtime acceptance boundaries into one evidence record.
  */
 export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
-  const serviceName = requireNonEmptyString(options.serviceName, 'serviceName');
+  let serviceName;
+  try {
+    serviceName = requireNonEmptyString(options.serviceName, 'serviceName');
+  } catch (cause) {
+    const error = new Error(`application runtime acceptance failed at configuration: ${cause.message}`, {
+      cause,
+    });
+    error.stage = 'configuration';
+    error.field = 'serviceName';
+    error.bootstrap = null;
+    throw error;
+  }
+
   const region = options.region;
   const execFile = options.execFile;
 
