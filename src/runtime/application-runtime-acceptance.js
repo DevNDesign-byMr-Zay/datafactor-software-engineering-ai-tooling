@@ -12,7 +12,20 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
   const region = options.region;
   const execFile = options.execFile;
 
-  const bootstrap = await executeApplicationBootstrapWithReadiness(plan, options);
+  let bootstrap;
+  try {
+    bootstrap = await executeApplicationBootstrapWithReadiness(plan, options);
+  } catch (cause) {
+    const error = new Error(
+      `application runtime acceptance failed at ${cause?.stage ?? 'bootstrap'}: ${cause.message}`,
+      { cause },
+    );
+    error.stage = cause?.stage ?? 'bootstrap';
+    error.bootstrap = cause?.bootstrap ?? null;
+    error.readiness = Array.isArray(cause?.readiness) ? [...cause.readiness] : [];
+    error.failedStep = cause?.failedStep ?? null;
+    throw error;
+  }
 
   let release;
   try {
