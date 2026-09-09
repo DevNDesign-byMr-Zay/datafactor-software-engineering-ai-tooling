@@ -68,6 +68,35 @@ describe('application runtime acceptance', () => {
     });
   });
 
+  test('preserves bootstrap and readiness evidence when readiness fails', async () => {
+    await expect(
+      executeApplicationRuntimeAcceptance(plan, {
+        serviceName: 'roary-api',
+        executeStepImpl,
+        probeReadinessImpl: async () => ({
+          ok: false,
+          status: 'not-ready',
+          detail: 'health probe rejected',
+        }),
+        execFile: async () => ({ exitCode: 0, stdout: SERVICE_JSON, stderr: '' }),
+      }),
+    ).rejects.toMatchObject({
+      stage: 'readiness',
+      failedStep: 'backend:run',
+      bootstrap: expect.objectContaining({
+        verified: true,
+        started: ['backend:run'],
+      }),
+      readiness: [
+        expect.objectContaining({
+          step: 'backend:run',
+          ok: false,
+          status: 'not-ready',
+        }),
+      ],
+    });
+  });
+
   test('preserves completed bootstrap evidence when release inspection fails', async () => {
     await expect(
       executeApplicationRuntimeAcceptance(plan, {
