@@ -22,10 +22,14 @@ function normalizeExecutionResult(result = {}) {
   if (!['completed', 'started'].includes(state)) {
     throw new TypeError('bootstrap execution result state must be completed or started');
   }
+  const pid = Number.isInteger(result.pid) ? result.pid : null;
+  if (state === 'started' && (pid === null || pid <= 0)) {
+    throw new TypeError('started bootstrap execution result pid must be a positive integer');
+  }
   return {
     code,
     state,
-    pid: Number.isInteger(result.pid) ? result.pid : null,
+    pid,
     stdout: typeof result.stdout === 'string' ? result.stdout : '',
     stderr: typeof result.stderr === 'string' ? result.stderr : '',
   };
