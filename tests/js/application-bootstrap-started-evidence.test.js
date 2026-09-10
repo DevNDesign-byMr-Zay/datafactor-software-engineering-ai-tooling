@@ -1,25 +1,28 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { executeApplicationBootstrapPlan } from '../../src/bootstrap/application-bootstrap-executor.js';
-import { createApplicationBootstrapPlan } from '../../src/bootstrap/package-manifest.js';
-
-const backendManifest = {
-  name: 'ai-service',
-  version: '0.2.0',
-  type: 'module',
-  scripts: { start: 'node index.mjs' },
-};
-
-const frontendManifest = {
-  name: 'trainer-web',
-  version: '0.0.1',
-  private: true,
-  type: 'module',
-  scripts: { build: 'vite build' },
-};
 
 function productionPlan() {
-  return createApplicationBootstrapPlan({ frontendManifest, backendManifest });
+  return {
+    mode: 'production',
+    startupOrder: ['frontend:install', 'frontend:build', 'backend:install', 'backend:run'],
+    frontend: {
+      role: 'frontend',
+      packageName: 'trainer-web',
+      steps: [
+        { phase: 'install', command: 'npm', args: ['ci'] },
+        { phase: 'build', command: 'npm', args: ['run', 'build'], script: 'build' },
+      ],
+    },
+    backend: {
+      role: 'backend',
+      packageName: 'ai-service',
+      steps: [
+        { phase: 'install', command: 'npm', args: ['ci'] },
+        { phase: 'run', command: 'npm', args: ['run', 'start'], script: 'start' },
+      ],
+    },
+  };
 }
 
 describe('started process evidence', () => {
