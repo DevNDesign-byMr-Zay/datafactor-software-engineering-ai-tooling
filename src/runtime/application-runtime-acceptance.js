@@ -67,9 +67,12 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
 }
 
 function buildConfigurationError(cause, field) {
-  const error = new Error(`application runtime acceptance failed at configuration: ${cause.message}`, {
-    cause,
-  });
+  const error = new Error(
+    `application runtime acceptance failed at configuration: ${cause.message}`,
+    {
+      cause,
+    },
+  );
   error.stage = 'configuration';
   error.field = field;
   error.bootstrap = null;

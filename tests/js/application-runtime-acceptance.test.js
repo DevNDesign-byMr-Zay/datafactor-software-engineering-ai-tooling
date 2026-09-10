@@ -116,7 +116,8 @@ describe('application runtime acceptance', () => {
         },
       }),
     ).rejects.toMatchObject({
-      message: 'application runtime acceptance failed at configuration: region must be a non-empty string',
+      message:
+        'application runtime acceptance failed at configuration: region must be a non-empty string',
       stage: 'configuration',
       field: 'region',
       bootstrap: null,
