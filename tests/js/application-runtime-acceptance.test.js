@@ -97,6 +97,36 @@ describe('application runtime acceptance', () => {
     expect(releaseCalls).toBe(0);
   });
 
+  test('fails closed on an explicitly blank region before bootstrap or release work starts', async () => {
+    let executeCalls = 0;
+    let releaseCalls = 0;
+
+    await expect(
+      executeApplicationRuntimeAcceptance(plan, {
+        serviceName: 'roary-api',
+        region: '   ',
+        executeStepImpl: async (step) => {
+          executeCalls += 1;
+          return executeStepImpl(step);
+        },
+        probeReadinessImpl: async () => ({ ok: true }),
+        execFile: async () => {
+          releaseCalls += 1;
+          return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
+        },
+      }),
+    ).rejects.toMatchObject({
+      message:
+        'application runtime acceptance failed at configuration: region must be a non-empty string',
+      stage: 'configuration',
+      field: 'region',
+      bootstrap: null,
+    });
+
+    expect(executeCalls).toBe(0);
+    expect(releaseCalls).toBe(0);
+  });
+
   test('preserves bootstrap and readiness evidence when readiness fails', async () => {
     await expect(
       executeApplicationRuntimeAcceptance(plan, {

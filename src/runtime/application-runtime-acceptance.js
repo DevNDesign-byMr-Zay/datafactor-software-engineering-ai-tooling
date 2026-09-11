@@ -12,19 +12,18 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
   try {
     serviceName = requireNonEmptyString(options.serviceName, 'serviceName');
   } catch (cause) {
-    const error = new Error(
-      `application runtime acceptance failed at configuration: ${cause.message}`,
-      {
-        cause,
-      },
-    );
-    error.stage = 'configuration';
-    error.field = 'serviceName';
-    error.bootstrap = null;
-    throw error;
+    throw buildConfigurationError(cause, 'serviceName');
   }
 
-  const region = options.region;
+  let region = options.region;
+  if (region !== undefined) {
+    try {
+      region = requireNonEmptyString(region, 'region');
+    } catch (cause) {
+      throw buildConfigurationError(cause, 'region');
+    }
+  }
+
   const execFile = options.execFile;
 
   let bootstrap;
@@ -65,6 +64,19 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
     release,
     accepted: true,
   };
+}
+
+function buildConfigurationError(cause, field) {
+  const error = new Error(
+    `application runtime acceptance failed at configuration: ${cause.message}`,
+    {
+      cause,
+    },
+  );
+  error.stage = 'configuration';
+  error.field = field;
+  error.bootstrap = null;
+  return error;
 }
 
 function requireNonEmptyString(value, name) {
