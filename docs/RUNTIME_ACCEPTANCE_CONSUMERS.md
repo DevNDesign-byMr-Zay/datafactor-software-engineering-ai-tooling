@@ -15,12 +15,15 @@ For a successful run, downstream automation may persist and compare:
 
 1. `receipt` — the sanitized, versioned acceptance facts.
 2. `receiptFingerprint` — the SHA-256 fingerprint of the canonical receipt serialization.
+3. `decideRuntimeAcceptanceChange(receipt, previousFingerprint)` — a pure comparison result: `rejected`, `unchanged`, or `changed`.
 
 A consumer should **not** parse `release.stdout`, `release.stderr`, command arguments, environment dumps, or provider-specific diagnostic output to make an acceptance decision.
 
 ## Comparison model
 
 The fingerprint is intended for equality checks between canonicalized receipts. Equivalent accepted runs should produce the same fingerprint even when unordered traffic observations arrive in a different order. A changed accepted state, service identity, ready revision, routed traffic, readiness state, or release stage/exit code changes the canonical receipt and therefore its fingerprint.
+
+The decision helper intentionally does not choose a follow-up action. `changed` means trusted evidence differs from the previous trusted observation; it does not mean deploy, rollback, alert, or persist.
 
 The fingerprint is not a signature and does not establish external identity or authorization. Consumers that need those properties must layer them on without changing the receipt contract.
 
