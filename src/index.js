@@ -8,6 +8,7 @@ export * from './deployment/cloud-run-reliability.js';
 export * from './deployment/cloud-run-reliable-workflow.js';
 export * from './deployment/cloud-run-release-evidence.js';
 export * from './frontend/erase-mask.js';
+export * from './holo-core/orchestrator.js';
 export * from './holo-core/planner.js';
 export * from './holo-core/scene.js';
 export * from './reliability/backend-config.js';
