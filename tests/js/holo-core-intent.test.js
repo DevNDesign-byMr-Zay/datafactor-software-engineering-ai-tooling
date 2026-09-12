@@ -26,9 +26,11 @@ describe('HoloCore holographic intent', () => {
   });
 
   test('rejects invalid display and malformed asset input', () => {
-    expect(() =>
-      interpretHolographicIntent({ prompt: 'demo', displayType: 'screen' }),
-    ).toThrow(/Unsupported display type/);
-    expect(() => interpretHolographicIntent({ prompt: 'demo', assetIds: [''] })).toThrow(/assetIds/);
+    expect(() => interpretHolographicIntent({ prompt: 'demo', displayType: 'screen' })).toThrow(
+      /Unsupported display type/,
+    );
+    expect(() => interpretHolographicIntent({ prompt: 'demo', assetIds: [''] })).toThrow(
+      /assetIds/,
+    );
   });
 });
