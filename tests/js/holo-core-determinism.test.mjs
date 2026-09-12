@@ -13,10 +13,7 @@ describe('HoloCore capability determinism', () => {
     expect(spec.nodes[0].data.requires).toEqual(['depth']);
     expect(Object.isFrozen(spec.nodes[0].data.requires)).toBe(true);
     expect(
-      negotiate(
-        spec,
-        device({ id: 'projector-1', type: 'projector', capabilities: ['depth'] }),
-      ),
+      negotiate(spec, device({ id: 'projector-1', type: 'projector', capabilities: ['depth'] })),
     ).toEqual({ compatible: true, missing: [] });
   });
 
