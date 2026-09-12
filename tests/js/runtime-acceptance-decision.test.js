@@ -2,6 +2,7 @@ import {
   decideRuntimeAcceptanceChange,
   RUNTIME_ACCEPTANCE_DECISIONS,
 } from '../../src/runtime/runtime-acceptance-decision.js';
+import { fingerprintRuntimeAcceptanceReceipt } from '../../src/runtime/runtime-acceptance-receipt.js';
 
 const receipt = {
   contractVersion: 1,
@@ -25,7 +26,6 @@ const receipt = {
 
 describe('runtime acceptance decision', () => {
   test('returns unchanged when the trusted fingerprint matches', () => {
-    const { fingerprintRuntimeAcceptanceReceipt } = requireReceiptHelpers();
     const fingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
 
     expect(decideRuntimeAcceptanceChange(receipt, fingerprint)).toBe(
@@ -51,7 +51,3 @@ describe('runtime acceptance decision', () => {
     );
   });
 });
-
-async function requireReceiptHelpers() {
-  return import('../../src/runtime/runtime-acceptance-receipt.js');
-}
