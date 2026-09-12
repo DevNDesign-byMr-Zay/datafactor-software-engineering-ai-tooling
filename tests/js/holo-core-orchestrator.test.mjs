@@ -38,6 +38,9 @@ describe('HoloCore multi-device orchestration', () => {
 
   test('requires a valid scene and at least one device', () => {
     assert.throws(() => orchestrateSpatialScene({ sceneSpec: {}, devices: [] }), /HoloCore scene/);
-    assert.throws(() => orchestrateSpatialScene({ sceneSpec: scene({ id: 'x' }), devices: [] }), /device/);
+    assert.throws(
+      () => orchestrateSpatialScene({ sceneSpec: scene({ id: 'x' }), devices: [] }),
+      /device/,
+    );
   });
 });
