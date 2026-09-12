@@ -1,8 +1,10 @@
 import {
   buildRuntimeAcceptanceReceipt,
+  decideRuntimeAcceptanceChange,
   fingerprintRuntimeAcceptanceReceipt,
+  RUNTIME_ACCEPTANCE_DECISIONS,
   serializeRuntimeAcceptanceReceipt,
-} from '../../src/runtime/runtime-acceptance-receipt.js';
+} from '../../src/index.js';
 
 function acceptedTraffic(traffic) {
   return {
@@ -38,12 +40,6 @@ const trafficA = [
 const trafficB = [...trafficA].reverse();
 
 describe('runtime acceptance consumer contract', () => {
-  function decide(receipt, previousFingerprint) {
-    if (receipt.accepted !== true) return 'rejected';
-    const currentFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
-    return currentFingerprint === previousFingerprint ? 'unchanged' : 'changed';
-  }
-
   test('gives equivalent accepted runs the same canonical fingerprint', () => {
     const receiptA = buildRuntimeAcceptanceReceipt({
       acceptance: acceptedTraffic(trafficA),
@@ -92,7 +88,9 @@ describe('runtime acceptance consumer contract', () => {
     });
     const fingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
 
-    expect(decide(receipt, fingerprint)).toBe('unchanged');
+    expect(decideRuntimeAcceptanceChange(receipt, fingerprint)).toBe(
+      RUNTIME_ACCEPTANCE_DECISIONS.UNCHANGED,
+    );
   });
 
   test('lets a consumer distinguish changed trusted evidence', () => {
@@ -110,12 +108,18 @@ describe('runtime acceptance consumer contract', () => {
       region: 'us-central1',
     });
 
-    expect(decide(changed, fingerprintRuntimeAcceptanceReceipt(baseline))).toBe('changed');
+    expect(
+      decideRuntimeAcceptanceChange(
+        changed,
+        fingerprintRuntimeAcceptanceReceipt(baseline),
+      ),
+    ).toBe(RUNTIME_ACCEPTANCE_DECISIONS.CHANGED);
   });
 
   test('keeps rejected acceptance outside the trusted comparison path', () => {
-    const rejected = { accepted: false };
-    expect(decide(rejected, 'anything')).toBe('rejected');
+    expect(decideRuntimeAcceptanceChange({ accepted: false }, 'anything')).toBe(
+      RUNTIME_ACCEPTANCE_DECISIONS.REJECTED,
+    );
   });
 
   test('keeps provider/process noise out of the durable receipt', () => {
