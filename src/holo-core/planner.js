@@ -1,14 +1,29 @@
 import { negotiate, scene, transform } from './scene.js';
+import { interpretHolographicIntent } from './intent.js';
 
-export function planSpatialScene({ intent, assets = [], device }) {
-  if (typeof intent !== 'string' || !intent.trim()) {
-    throw new TypeError('intent is required');
+function normalizeIntent(intent) {
+  if (typeof intent === 'string') {
+    return interpretHolographicIntent({ prompt: intent });
   }
+  if (intent && typeof intent === 'object') {
+    return interpretHolographicIntent(intent);
+  }
+  throw new TypeError('intent is required');
+}
+
+export function planSpatialScene({ intent, assets = [], device } = {}) {
   if (!Array.isArray(assets)) throw new TypeError('assets must be an array');
   if (!device) throw new TypeError('device is required');
 
+  const normalizedIntent = normalizeIntent(intent);
+  if (normalizedIntent.displayType !== device.type) {
+    throw new Error(
+      `Intent display type ${normalizedIntent.displayType} does not match device type ${device.type}.`,
+    );
+  }
+
   const slug =
-    intent
+    normalizedIntent.prompt
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -16,7 +31,14 @@ export function planSpatialScene({ intent, assets = [], device }) {
 
   const sceneSpec = scene({
     id: `plan-${slug}`,
-    metadata: { intent: intent.trim(), planner: 'holo-core-v1' },
+    metadata: {
+      intent: normalizedIntent.prompt,
+      sceneType: normalizedIntent.sceneType,
+      displayType: normalizedIntent.displayType,
+      constraints: normalizedIntent.constraints,
+      animation: normalizedIntent.animation,
+      planner: 'holo-core-v1',
+    },
     nodes: assets.map((asset, index) => ({
       id: String(asset.id ?? `asset-${index + 1}`),
       kind: asset.kind ?? 'content',
@@ -33,5 +55,5 @@ export function planSpatialScene({ intent, assets = [], device }) {
   });
 
   const compatibility = negotiate(sceneSpec, device);
-  return Object.freeze({ scene: sceneSpec, device, compatibility });
+  return Object.freeze({ scene: sceneSpec, device, intent: normalizedIntent, compatibility });
 }
