@@ -1,3 +1,4 @@
+import { normalizeSpatialInteractionIntent } from './interaction.js';
 import { negotiate, scene } from './scene.js';
 
 export function orchestrateSpatialScene({ sceneSpec, devices = [] } = {}) {
@@ -23,4 +24,13 @@ export function orchestrateSpatialScene({ sceneSpec, devices = [] } = {}) {
     routes: Object.freeze(routes),
     ready: routes.some((route) => route.compatible),
   });
+}
+
+export function handoffSpatialInteraction({ interaction, handler } = {}) {
+  if (typeof handler !== 'function') {
+    throw new TypeError('an interaction handler is required');
+  }
+
+  const normalizedInteraction = normalizeSpatialInteractionIntent(interaction);
+  return handler(normalizedInteraction);
 }
