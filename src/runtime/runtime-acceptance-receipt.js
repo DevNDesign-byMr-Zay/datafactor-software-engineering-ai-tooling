@@ -6,11 +6,7 @@ const RECEIPT_VERSION = 1;
  * safe to persist and compare without carrying logs, tokens, or environment
  * details into downstream tooling.
  */
-export function buildRuntimeAcceptanceReceipt({
-  acceptance,
-  serviceName,
-  region,
-} = {}) {
+export function buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region } = {}) {
   if (!acceptance || typeof acceptance !== 'object' || Array.isArray(acceptance)) {
     throw new TypeError('acceptance must be an object');
   }
