@@ -66,6 +66,18 @@ describe('application runtime acceptance', () => {
         latestReadyRevisionName: 'roary-api-00042-abc',
       },
     });
+    expect(result.receipt).toMatchObject({
+      contractVersion: 1,
+      accepted: true,
+      service: {
+        name: 'roary-api',
+        latestReadyRevisionName: 'roary-api-00042-abc',
+      },
+      releaseEvidence: { stage: 'revision-inspect', exitCode: 0 },
+    });
+    expect(result.receiptFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(result.receipt)).not.toContain('stderr');
+    expect(JSON.stringify(result.receipt)).not.toContain('stdout');
   });
 
   test('fails closed on invalid service configuration before bootstrap or release work starts', async () => {
