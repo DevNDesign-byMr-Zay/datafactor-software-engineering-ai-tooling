@@ -16,7 +16,7 @@ export function planSpatialScene({ intent, assets = [], device }) {
 
   const sceneSpec = scene({
     id: `plan-${slug}`,
-    metadata: { intent: intent.trim(), planner: 'datafactor-holo-core-v1' },
+    metadata: { intent: intent.trim(), planner: 'holo-core-v1' },
     nodes: assets.map((asset, index) => ({
       id: String(asset.id ?? `asset-${index + 1}`),
       kind: asset.kind ?? 'content',
