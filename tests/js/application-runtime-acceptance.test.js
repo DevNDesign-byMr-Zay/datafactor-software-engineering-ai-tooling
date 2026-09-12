@@ -40,11 +40,11 @@ function executeStepImpl(step) {
 }
 
 describe('application runtime acceptance', () => {
-  test('joins bootstrap readiness with mechanically returned Cloud Run release evidence', async () => {
+  test('joins bootstrap readiness with release evidence and emits a durable receipt fingerprint', async () => {
     const execFile = async (command, args) => {
       expect(command).toBe('gcloud');
       expect(args).toContain('roary-api');
-      return { exitCode: 0, stdout: SERVICE_JSON, stderr: '' };
+      return { exitCode: 0, stdout: SERVICE_JSON, stderr: 'provider-noise' };
     };
 
     const result = await executeApplicationRuntimeAcceptance(plan, {
@@ -61,11 +61,33 @@ describe('application runtime acceptance', () => {
     });
     expect(result.release).toMatchObject({
       stage: 'revision-inspect',
+      stderr: 'provider-noise',
       service: {
         serviceName: 'roary-api',
         latestReadyRevisionName: 'roary-api-00042-abc',
       },
     });
+    expect(result.receipt).toMatchObject({
+      accepted: true,
+      service: {
+        name: 'roary-api',
+        latestReadyRevisionName: 'roary-api-00042-abc',
+        traffic: [{ revisionName: 'roary-api-00042-abc', percent: 100 }],
+      },
+      bootstrap: {
+        readiness: [{ name: 'backend:run', status: 'ready' }],
+      },
+      releaseEvidence: {
+        stage: 'revision-inspect',
+        exitCode: 0,
+      },
+    });
+    expect(result.receiptFingerprint).toMatch(/^[a-f0-9]{64}$/);
+
+    const durableReceipt = JSON.stringify(result.receipt);
+    expect(durableReceipt).not.toContain('provider-noise');
+    expect(durableReceipt).not.toContain('--format=json');
+    expect(durableReceipt).not.toContain('gcloud');
   });
 
   test('fails closed on invalid service configuration before bootstrap or release work starts', async () => {
@@ -179,6 +201,74 @@ describe('application runtime acceptance', () => {
         exitCode: 1,
         stdout: 'partial',
         stderr: 'denied',
+      }),
+    });
+  });
+
+  test('fails closed after JSON parsing when service traffic cannot prove the ready revision', async () => {
+    const serviceWithoutTraffic = JSON.stringify({
+      metadata: { name: 'roary-api' },
+      status: {
+        latestReadyRevisionName: 'roary-api-00042-abc',
+        traffic: [],
+      },
+    });
+
+    let failure;
+    try {
+      await executeApplicationRuntimeAcceptance(plan, {
+        serviceName: 'roary-api',
+        executeStepImpl,
+        probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
+        execFile: async () => ({
+          exitCode: 0,
+          stdout: serviceWithoutTraffic,
+          stderr: 'shape-debug-evidence',
+        }),
+      });
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toMatchObject({
+      stage: 'release-evidence',
+      releaseEvidence: expect.objectContaining({
+        stage: 'revision-inspect',
+        command: 'gcloud',
+        exitCode: 0,
+        stdout: serviceWithoutTraffic,
+        stderr: 'shape-debug-evidence',
+        args: expect.arrayContaining(['run', 'services', 'describe', 'roary-api']),
+      }),
+    });
+    expect(failure).not.toHaveProperty('receipt');
+    expect(failure).not.toHaveProperty('receiptFingerprint');
+  });
+
+  test('rejects parsed release evidence for a different service before emitting a receipt', async () => {
+    const wrongService = JSON.stringify({
+      metadata: { name: 'other-api' },
+      status: {
+        latestReadyRevisionName: 'other-api-00007-xyz',
+        traffic: [{ revisionName: 'other-api-00007-xyz', percent: 100 }],
+      },
+    });
+
+    await expect(
+      executeApplicationRuntimeAcceptance(plan, {
+        serviceName: 'roary-api',
+        executeStepImpl,
+        probeReadinessImpl: async () => ({ ok: true, status: 'ready' }),
+        execFile: async () => ({ exitCode: 0, stdout: wrongService, stderr: '' }),
+      }),
+    ).rejects.toMatchObject({
+      stage: 'release-evidence',
+      message: expect.stringContaining(
+        'release serviceName other-api does not match requested serviceName roary-api',
+      ),
+      releaseEvidence: expect.objectContaining({
+        exitCode: 0,
+        stdout: wrongService,
       }),
     });
   });
