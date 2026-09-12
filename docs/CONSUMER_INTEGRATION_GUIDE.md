@@ -15,6 +15,10 @@ The runtime acceptance contract is intentionally small. Consumers should treat i
 
 A missing previous fingerprint is a **changed** observation. It means the consumer has no prior trusted observation to compare against; it does not mean the runtime failed.
 
+## Decision ownership
+
+The helper returns only `rejected`, `unchanged`, or `changed`. It does not decide whether to deploy, roll back, alert, retry, or persist. Those are consumer policy decisions and should remain outside the runtime package.
+
 ## Diagnostics
 
 Provider output, command arguments, stdout, stderr, and similar operational diagnostics are not a substitute for receipt evidence. A consumer that needs those values for a policy decision should first identify the missing semantic and propose a contract change.
