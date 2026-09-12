@@ -22,4 +22,34 @@ describe('holo-core spatial acceptance', () => {
     const b = createSpatialAcceptanceReceipt({ intent: plan.intent, sceneSpec: plan.scene, device: target });
     expect(a.fingerprint).toBe(b.fingerprint);
   });
+
+  test('covers projector, HoloMat and 3D-platform acceptance independently', () => {
+    const matrix = [
+      ['projector', ['depth'], 'projector-1'],
+      ['holomat', ['surface-mapping'], 'mat-1'],
+      ['three-d-platform', ['platform-staging'], 'platform-1'],
+    ];
+    for (const [displayType, capabilities, id] of matrix) {
+      const intent = interpretHolographicIntent({ prompt: `${displayType} demo`, sceneType: 'presentation', displayType });
+      const target = device({ id, type: displayType, capabilities });
+      const plan = planSpatialScene({ intent, assets: [{ id: 'hero', requires: capabilities }], device: target });
+      const receipt = createSpatialAcceptanceReceipt({ intent: plan.intent, sceneSpec: plan.scene, device: target });
+      expect(receipt.accepted).toBe(true);
+      expect(receipt.deviceType).toBe(displayType);
+    }
+  });
+
+  test('rejects capability gaps without pretending the hardware is executable', () => {
+    const intent = interpretHolographicIntent({ prompt: 'surface map', sceneType: 'diagram', displayType: 'holomat' });
+    const target = device({ id: 'mat-limited', type: 'holomat', capabilities: [] });
+    const plan = planSpatialScene({ intent, assets: [{ id: 'mesh', requires: ['depth'] }], device: target });
+    const receipt = createSpatialAcceptanceReceipt({ intent: plan.intent, sceneSpec: plan.scene, device: target });
+    expect(receipt.accepted).toBe(false);
+    expect(receipt.compatibility).toEqual({ compatible: false, missing: ['depth'] });
+  });
+
+  test('rejects malformed acceptance boundaries', () => {
+    expect(() => createSpatialAcceptanceReceipt()).toThrow(/normalized intent is required/);
+    expect(() => createSpatialAcceptanceReceipt({ intent: {}, sceneSpec: {}, device: {} })).toThrow();
+  });
 });
