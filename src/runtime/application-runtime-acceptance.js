@@ -77,7 +77,14 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
   let receipt;
   let receiptFingerprint;
   try {
-    receipt = buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region });
+    receipt = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        bootstrap: normalizeBootstrapForReceipt(bootstrap),
+      },
+      serviceName,
+      region,
+    });
     receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
   } catch (cause) {
     const error = new Error(
@@ -94,6 +101,18 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
     ...acceptance,
     receipt,
     receiptFingerprint,
+  };
+}
+
+function normalizeBootstrapForReceipt(bootstrap) {
+  if (!Array.isArray(bootstrap?.readiness)) return bootstrap;
+  return {
+    ...bootstrap,
+    readiness: bootstrap.readiness.map((entry) => {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return entry;
+      if (Object.hasOwn(entry, 'name')) return entry;
+      return { ...entry, name: entry.step };
+    }),
   };
 }
 
