@@ -34,9 +34,11 @@ describe('HoloCore spatial planner', () => {
   test('fails closed when intent targets a different display type', () => {
     const target = device({ id: 'projector-01', type: 'projector' });
 
-    expect(() => planSpatialScene({
-      intent: { prompt: 'Product model', displayType: 'holomat' },
-      device: target,
-    })).toThrow(/does not match device type/);
+    expect(() =>
+      planSpatialScene({
+        intent: { prompt: 'Product model', displayType: 'holomat' },
+        device: target,
+      }),
+    ).toThrow(/does not match device type/);
   });
 });
