@@ -1,12 +1,8 @@
 import { negotiate, scene } from './scene.js';
 
 export function orchestrateSpatialScene({ sceneSpec, devices = [] } = {}) {
-  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1') {
-    throw new TypeError('a HoloCore scene is required');
-  }
-  if (!Array.isArray(devices) || devices.length === 0) {
-    throw new TypeError('at least one device is required');
-  }
+  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1') throw new TypeError('a HoloCore scene is required');
+  if (!Array.isArray(devices) || devices.length === 0) throw new TypeError('at least one device is required');
 
   const normalizedScene = scene(sceneSpec);
   const routes = devices.map((device) => {
