@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
+import { describe, expect, test } from '@jest/globals';
 
 import { orchestrateSpatialScene, scene } from '../../src/index.js';
 
@@ -16,9 +15,9 @@ describe('HoloCore multi-device orchestration', () => {
       ],
     });
 
-    assert.equal(result.sceneId, 'showcase');
-    assert.equal(result.ready, true);
-    assert.deepEqual(result.routes, [
+    expect(result.sceneId).toBe('showcase');
+    expect(result.ready).toBe(true);
+    expect(result.routes).toEqual([
       {
         deviceId: 'projector-1',
         deviceType: 'projector',
@@ -37,9 +36,8 @@ describe('HoloCore multi-device orchestration', () => {
   });
 
   test('requires a valid scene and at least one device', () => {
-    assert.throws(() => orchestrateSpatialScene({ sceneSpec: {}, devices: [] }), /HoloCore scene/);
-    assert.throws(
-      () => orchestrateSpatialScene({ sceneSpec: scene({ id: 'x' }), devices: [] }),
+    expect(() => orchestrateSpatialScene({ sceneSpec: {}, devices: [] })).toThrow(/HoloCore scene/);
+    expect(() => orchestrateSpatialScene({ sceneSpec: scene({ id: 'x' }), devices: [] })).toThrow(
       /device/,
     );
   });
