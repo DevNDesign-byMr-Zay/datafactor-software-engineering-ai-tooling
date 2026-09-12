@@ -9,7 +9,8 @@ function fingerprint(value) {
 
 export function createSpatialAcceptanceReceipt({ intent, sceneSpec, device } = {}) {
   if (!intent || typeof intent !== 'object') throw new TypeError('normalized intent is required');
-  if (!sceneSpec || typeof sceneSpec !== 'object') throw new TypeError('scene specification is required');
+  if (!sceneSpec || typeof sceneSpec !== 'object')
+    throw new TypeError('scene specification is required');
   if (!device || typeof device !== 'object') throw new TypeError('device is required');
 
   const compatibility = negotiate(sceneSpec, device);
