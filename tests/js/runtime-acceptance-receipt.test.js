@@ -121,6 +121,20 @@ describe('runtime acceptance receipt', () => {
     expect(fingerprintRuntimeAcceptanceReceipt(firstReceipt)).toMatch(/^[a-f0-9]{64}$/);
   });
 
+  test('changes the fingerprint when trusted evidence changes', () => {
+    const firstReceipt = buildRuntimeAcceptanceReceipt({ acceptance, region: 'us-central1' });
+    const changedAcceptance = structuredClone(acceptance);
+    changedAcceptance.release.service.latestReadyRevisionName = 'roary-api-00043-new';
+    const changedReceipt = buildRuntimeAcceptanceReceipt({
+      acceptance: changedAcceptance,
+      region: 'us-central1',
+    });
+
+    expect(fingerprintRuntimeAcceptanceReceipt(changedReceipt)).not.toBe(
+      fingerprintRuntimeAcceptanceReceipt(firstReceipt),
+    );
+  });
+
   test('serialization rejects unsupported fields instead of hashing operational noise', () => {
     const receipt = buildRuntimeAcceptanceReceipt({ acceptance, region: 'us-central1' });
     const unsafeReceipt = { ...receipt, stdout: 'raw output must not be copied' };
