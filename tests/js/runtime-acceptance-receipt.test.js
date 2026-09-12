@@ -1,4 +1,8 @@
-import { buildRuntimeAcceptanceReceipt } from '../../src/runtime/runtime-acceptance-receipt.js';
+import {
+  buildRuntimeAcceptanceReceipt,
+  fingerprintRuntimeAcceptanceReceipt,
+  serializeRuntimeAcceptanceReceipt,
+} from '../../src/runtime/runtime-acceptance-receipt.js';
 
 describe('runtime acceptance receipt', () => {
   const acceptance = {
@@ -86,5 +90,53 @@ describe('runtime acceptance receipt', () => {
         },
       }),
     ).toThrow('serviceName must be a non-empty string');
+  });
+
+  test('serializes equivalent traffic evidence deterministically', () => {
+    const firstAcceptance = structuredClone(acceptance);
+    firstAcceptance.release.service.traffic.push({
+      revisionName: 'roary-api-00041-old',
+      percent: 0,
+      tag: null,
+      url: null,
+    });
+    const secondAcceptance = structuredClone(firstAcceptance);
+    secondAcceptance.release.service.traffic.reverse();
+
+    const firstReceipt = buildRuntimeAcceptanceReceipt({
+      acceptance: firstAcceptance,
+      region: 'us-central1',
+    });
+    const secondReceipt = buildRuntimeAcceptanceReceipt({
+      acceptance: secondAcceptance,
+      region: 'us-central1',
+    });
+
+    expect(serializeRuntimeAcceptanceReceipt(firstReceipt)).toBe(
+      serializeRuntimeAcceptanceReceipt(secondReceipt),
+    );
+    expect(fingerprintRuntimeAcceptanceReceipt(firstReceipt)).toBe(
+      fingerprintRuntimeAcceptanceReceipt(secondReceipt),
+    );
+    expect(fingerprintRuntimeAcceptanceReceipt(firstReceipt)).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  test('serialization rejects unsupported fields instead of hashing operational noise', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({ acceptance, region: 'us-central1' });
+    const unsafeReceipt = { ...receipt, stdout: 'raw output must not be copied' };
+
+    expect(() => serializeRuntimeAcceptanceReceipt(unsafeReceipt)).toThrow(
+      'receipt contains unsupported field: stdout',
+    );
+  });
+
+  test('serialized receipt excludes command output, arguments, and readiness detail', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({ acceptance, region: 'us-central1' });
+    const serialized = serializeRuntimeAcceptanceReceipt(receipt);
+
+    expect(serialized).not.toContain('must-not-be-copied');
+    expect(serialized).not.toContain('raw output must not be copied');
+    expect(serialized).not.toContain('sensitive detail');
+    expect(serialized).not.toContain('must-not-leak');
   });
 });
