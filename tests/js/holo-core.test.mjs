@@ -1,8 +1,11 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+
 import { device, negotiate, scene, transform } from '../../src/holo-core/scene.js';
 
 describe('HoloCore scene contracts', () => {
   test('normalizes spatial transforms', () => {
-    expect(transform({ x: 2, z: -1 })).toEqual({
+    assert.deepEqual(transform({ x: 2, z: -1 }), {
       x: 2,
       y: 0,
       z: -1,
@@ -18,9 +21,9 @@ describe('HoloCore scene contracts', () => {
       id: 'product-demo',
       nodes: [{ id: 'hero', kind: 'model' }],
     });
-    expect(spec.schema).toBe('holo.scene.v1');
-    expect(spec.nodes[0].transform.scale).toBe(1);
-    expect(Object.isFrozen(spec)).toBe(true);
+    assert.equal(spec.schema, 'holo.scene.v1');
+    assert.equal(spec.nodes[0].transform.scale, 1);
+    assert.equal(Object.isFrozen(spec), true);
   });
 
   test('negotiates required device capabilities', () => {
@@ -38,7 +41,7 @@ describe('HoloCore scene contracts', () => {
       type: 'projector',
       capabilities: ['depth'],
     });
-    expect(negotiate(spec, target)).toEqual({
+    assert.deepEqual(negotiate(spec, target), {
       compatible: false,
       missing: ['calibration'],
     });
