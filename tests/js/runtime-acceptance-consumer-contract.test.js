@@ -58,6 +58,26 @@ describe('runtime acceptance consumer contract', () => {
     );
   });
 
+  test('changes the fingerprint when a trusted acceptance fact changes', () => {
+    const baseline = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic(trafficA),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+    const changed = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic([
+        { revisionName: 'roary-api-00042-abc', percent: 94, tag: null, url: null },
+        { revisionName: 'roary-api-00041-old', percent: 6, tag: null, url: null },
+      ]),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+
+    expect(fingerprintRuntimeAcceptanceReceipt(changed)).not.toBe(
+      fingerprintRuntimeAcceptanceReceipt(baseline),
+    );
+  });
+
   test('keeps provider/process noise out of the durable receipt', () => {
     const receipt = buildRuntimeAcceptanceReceipt({
       acceptance: acceptedTraffic(trafficA),
