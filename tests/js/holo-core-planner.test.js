@@ -7,13 +7,15 @@ describe('HoloCore spatial planner', () => {
   test('maps intent and assets into a stable scene plan', () => {
     const target = device({ id: 'holomat-01', type: 'holomat', capabilities: ['depth'] });
     const result = planSpatialScene({
-      intent: 'Floating product display',
+      intent: { prompt: 'Floating product display', displayType: 'holomat', sceneType: 'product' },
       assets: [{ id: 'product', requires: ['depth'] }],
       device: target,
     });
 
     expect(result.scene.schema).toBe('holo.scene.v1');
     expect(result.scene.metadata.intent).toBe('Floating product display');
+    expect(result.scene.metadata.displayType).toBe('holomat');
+    expect(result.intent.sceneType).toBe('product');
     expect(result.compatibility).toEqual({ compatible: true, missing: [] });
   });
 
@@ -27,5 +29,14 @@ describe('HoloCore spatial planner', () => {
 
     expect(result.compatibility).toEqual({ compatible: false, missing: ['depth'] });
     expect(result.scene.nodes).toHaveLength(1);
+  });
+
+  test('fails closed when intent targets a different display type', () => {
+    const target = device({ id: 'projector-01', type: 'projector' });
+
+    expect(() => planSpatialScene({
+      intent: { prompt: 'Product model', displayType: 'holomat' },
+      device: target,
+    })).toThrow(/does not match device type/);
   });
 });
