@@ -19,7 +19,9 @@
     "./package-manifest": "./src/bootstrap/package-manifest.js",
     "./application-bootstrap": "./src/bootstrap/application-bootstrap-executor.js",
     "./application-bootstrap-readiness": "./src/bootstrap/application-bootstrap-readiness.js",
-    "./application-runtime-acceptance": "./src/runtime/application-runtime-acceptance.js"
+    "./application-runtime-acceptance": "./src/runtime/application-runtime-acceptance.js",
+    "./runtime-acceptance-receipt": "./src/runtime/runtime-acceptance-receipt.js",
+    "./runtime-acceptance-decision": "./src/runtime/runtime-acceptance-decision.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
