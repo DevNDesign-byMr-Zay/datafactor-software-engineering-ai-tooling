@@ -151,10 +151,7 @@ function validateAcceptedReleaseEvidence(release, expectedServiceName) {
       throw new TypeError(`release.service.traffic[${index}] must be an object`);
     }
 
-    requireNonEmptyString(
-      entry.revisionName,
-      `release.service.traffic[${index}].revisionName`,
-    );
+    requireNonEmptyString(entry.revisionName, `release.service.traffic[${index}].revisionName`);
 
     if (entry.percent === null) {
       if (!entry.tag) {
