@@ -39,6 +39,12 @@ describe('runtime acceptance decision', () => {
     );
   });
 
+  test('treats a missing prior fingerprint as a new trusted observation', () => {
+    expect(decideRuntimeAcceptanceChange(receipt, undefined)).toBe(
+      RUNTIME_ACCEPTANCE_DECISIONS.CHANGED,
+    );
+  });
+
   test('returns rejected before attempting to fingerprint rejected evidence', () => {
     expect(decideRuntimeAcceptanceChange({ accepted: false }, 'anything')).toBe(
       RUNTIME_ACCEPTANCE_DECISIONS.REJECTED,
@@ -49,9 +55,5 @@ describe('runtime acceptance decision', () => {
     expect(() => decideRuntimeAcceptanceChange(null, 'anything')).toThrow(
       'receipt must be an object',
     );
-  });
-
-  test('does not treat an omitted prior fingerprint as an unchanged observation', () => {
-    expect(decideRuntimeAcceptanceChange(receipt)).toBe(RUNTIME_ACCEPTANCE_DECISIONS.CHANGED);
   });
 });
