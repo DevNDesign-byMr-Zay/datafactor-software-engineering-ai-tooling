@@ -91,8 +91,8 @@ function normalizeReceiptForSerialization(receipt) {
 
   const normalizedBootstrap = {
     stage: normalizeNullableString(bootstrap.stage, 'receipt.bootstrap.stage'),
-    readiness: requireArray(bootstrap.readiness, 'receipt.bootstrap.readiness').map(
-      (step, index) => normalizeReceiptReadinessStep(step, index),
+    readiness: requireArray(bootstrap.readiness, 'receipt.bootstrap.readiness').map((step, index) =>
+      normalizeReceiptReadinessStep(step, index),
     ),
   };
 
@@ -156,10 +156,7 @@ function normalizeReceiptReadinessStep(step, index) {
 
   return {
     name: normalizeNullableString(value.name, `receipt.bootstrap.readiness[${index}].name`),
-    status: requireNonEmptyString(
-      value.status,
-      `receipt.bootstrap.readiness[${index}].status`,
-    ),
+    status: requireNonEmptyString(value.status, `receipt.bootstrap.readiness[${index}].status`),
   };
 }
 
