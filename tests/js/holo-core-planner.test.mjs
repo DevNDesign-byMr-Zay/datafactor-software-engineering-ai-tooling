@@ -1,5 +1,4 @@
-import assert from 'node:assert/strict';
-import { describe, test } from 'node:test';
+import { describe, expect, test } from '@jest/globals';
 
 import { device } from '../../src/holo-core/scene.js';
 import { planSpatialScene } from '../../src/holo-core/planner.js';
@@ -13,9 +12,9 @@ describe('HoloCore spatial planner', () => {
       device: target,
     });
 
-    assert.equal(result.scene.schema, 'holo.scene.v1');
-    assert.equal(result.scene.metadata.intent, 'Floating product display');
-    assert.deepEqual(result.compatibility, { compatible: true, missing: [] });
+    expect(result.scene.schema).toBe('holo.scene.v1');
+    expect(result.scene.metadata.intent).toBe('Floating product display');
+    expect(result.compatibility).toEqual({ compatible: true, missing: [] });
   });
 
   test('reports missing capabilities without changing the scene contract', () => {
@@ -26,7 +25,7 @@ describe('HoloCore spatial planner', () => {
       device: target,
     });
 
-    assert.deepEqual(result.compatibility, { compatible: false, missing: ['depth'] });
-    assert.equal(result.scene.nodes.length, 1);
+    expect(result.compatibility).toEqual({ compatible: false, missing: ['depth'] });
+    expect(result.scene.nodes).toHaveLength(1);
   });
 });
