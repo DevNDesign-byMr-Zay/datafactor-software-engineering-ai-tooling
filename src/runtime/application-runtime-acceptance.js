@@ -1,5 +1,9 @@
 import { executeApplicationBootstrapWithReadiness } from '../bootstrap/application-bootstrap-readiness.js';
 import { inspectCloudRunRelease } from '../deployment/cloud-run-release-evidence.js';
+import {
+  buildRuntimeAcceptanceReceipt,
+  fingerprintRuntimeAcceptanceReceipt,
+} from './runtime-acceptance-receipt.js';
 
 /**
  * Execute the maintained application bootstrap/readiness path, then capture
@@ -59,10 +63,17 @@ export async function executeApplicationRuntimeAcceptance(plan, options = {}) {
     throw error;
   }
 
-  return {
+  const acceptance = {
     bootstrap,
     release,
     accepted: true,
+  };
+  const receipt = buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region });
+
+  return {
+    ...acceptance,
+    receipt,
+    receiptFingerprint: fingerprintRuntimeAcceptanceReceipt(receipt),
   };
 }
 
