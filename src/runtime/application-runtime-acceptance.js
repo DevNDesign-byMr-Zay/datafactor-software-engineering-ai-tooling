@@ -147,9 +147,9 @@ function validateAcceptedReleaseEvidence(release, expectedServiceName) {
 
   const latestReadyTraffic = service.traffic.find(
     (entry) =>
-      entry?.revisionName === latestReadyRevisionName
-      && Number.isFinite(Number(entry?.percent))
-      && Number(entry.percent) > 0,
+      entry?.revisionName === latestReadyRevisionName &&
+      Number.isFinite(Number(entry?.percent)) &&
+      Number(entry.percent) > 0,
   );
   if (!latestReadyTraffic) {
     throw new TypeError(
