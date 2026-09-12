@@ -2,9 +2,11 @@ import { readFile } from 'node:fs/promises';
 
 import {
   createNodeBootstrapStepExecutor,
+  decideRuntimeAcceptanceChange,
   executeApplicationBootstrapPlan,
   executeApplicationBootstrapWithReadiness,
   executeApplicationRuntimeAcceptance,
+  RUNTIME_ACCEPTANCE_DECISIONS,
 } from '../../src/index.js';
 
 const packageJson = JSON.parse(
@@ -19,7 +21,16 @@ describe('bootstrap package surface', () => {
     expect(executeApplicationRuntimeAcceptance).toEqual(expect.any(Function));
   });
 
-  test('package exports expose bootstrap execution, readiness, and acceptance subpaths', () => {
+  test('root entrypoint exposes the pure runtime evidence decision contract', () => {
+    expect(decideRuntimeAcceptanceChange).toEqual(expect.any(Function));
+    expect(RUNTIME_ACCEPTANCE_DECISIONS).toEqual({
+      REJECTED: 'rejected',
+      UNCHANGED: 'unchanged',
+      CHANGED: 'changed',
+    });
+  });
+
+  test('package exports expose bootstrap, readiness, acceptance, and evidence subpaths', () => {
     expect(packageJson.exports['./application-bootstrap']).toBe(
       './src/bootstrap/application-bootstrap-executor.js',
     );
@@ -28,6 +39,12 @@ describe('bootstrap package surface', () => {
     );
     expect(packageJson.exports['./application-runtime-acceptance']).toBe(
       './src/runtime/application-runtime-acceptance.js',
+    );
+    expect(packageJson.exports['./runtime-acceptance-receipt']).toBe(
+      './src/runtime/runtime-acceptance-receipt.js',
+    );
+    expect(packageJson.exports['./runtime-acceptance-decision']).toBe(
+      './src/runtime/runtime-acceptance-decision.js',
     );
   });
 
@@ -52,5 +69,12 @@ describe('bootstrap package surface', () => {
     expect(acceptance.executeApplicationRuntimeAcceptance).toBe(
       executeApplicationRuntimeAcceptance,
     );
+  });
+
+  test('Node resolves the evidence decision subpath through the package export map', async () => {
+    const decision = await import(`${packageJson.name}/runtime-acceptance-decision`);
+
+    expect(decision.decideRuntimeAcceptanceChange).toBe(decideRuntimeAcceptanceChange);
+    expect(decision.RUNTIME_ACCEPTANCE_DECISIONS).toBe(RUNTIME_ACCEPTANCE_DECISIONS);
   });
 });
