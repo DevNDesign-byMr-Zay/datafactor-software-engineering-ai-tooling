@@ -64,7 +64,7 @@ describe('application runtime acceptance traffic contract', () => {
     expect(result.receiptFingerprint).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  test('fails closed when parsed traffic percentages cannot represent a complete routing allocation', async () => {
+  test('fails closed when parsed traffic percentages over-allocate routing', async () => {
     const traffic = [
       { revisionName: 'roary-api-00042-abc', percent: 60 },
       { revisionName: 'roary-api-00041-old', percent: 50 },
@@ -90,5 +90,17 @@ describe('application runtime acceptance traffic contract', () => {
     });
     expect(failure).not.toHaveProperty('receipt');
     expect(failure).not.toHaveProperty('receiptFingerprint');
+  });
+
+  test('fails closed when parsed traffic percentages leave routing incomplete', async () => {
+    const traffic = [
+      { revisionName: 'roary-api-00042-abc', percent: 5, tag: 'canary' },
+      { revisionName: 'roary-api-00041-old', percent: 90 },
+    ];
+
+    await expect(executeWithTraffic(traffic)).rejects.toMatchObject({
+      stage: 'release-evidence',
+      message: expect.stringContaining('routed percent must total 100; received 95'),
+    });
   });
 });
