@@ -25,7 +25,8 @@ export function scene({ id, nodes = [], metadata = {} } = {}) {
   if (typeof id !== 'string' || !id.trim()) throw new TypeError('scene id is required');
   if (!Array.isArray(nodes)) throw new TypeError('scene nodes must be an array');
   const normalizedNodes = nodes.map((node, index) => {
-    if (!node || typeof node !== 'object') throw new TypeError(`scene node ${index} must be an object`);
+    if (!node || typeof node !== 'object')
+      throw new TypeError(`scene node ${index} must be an object`);
     const nodeId = String(node.id ?? `node-${index + 1}`).trim();
     if (!nodeId) throw new TypeError(`scene node ${index} id is required`);
     return Object.freeze({
@@ -57,8 +58,10 @@ export function device({ id, type, capabilities = [], simulated = true } = {}) {
 }
 
 export function negotiate(sceneSpec, deviceSpec) {
-  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1') throw new TypeError('invalid scene specification');
-  if (!deviceSpec || !DEVICE_TYPES.has(deviceSpec.type)) throw new TypeError('invalid device specification');
+  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1')
+    throw new TypeError('invalid scene specification');
+  if (!deviceSpec || !DEVICE_TYPES.has(deviceSpec.type))
+    throw new TypeError('invalid device specification');
   const required = sceneSpec.nodes.flatMap((node) => node.data?.requires ?? []);
   const missing = [...new Set(required.map(String))].filter(
     (capability) => !deviceSpec.capabilities.includes(capability),
