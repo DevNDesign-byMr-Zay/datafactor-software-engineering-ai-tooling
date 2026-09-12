@@ -17,9 +17,7 @@ function normalizeNodeData(data, index) {
   }
   return Object.freeze({
     ...data,
-    ...(data.requires === undefined
-      ? {}
-      : { requires: Object.freeze([...data.requires]) }),
+    ...(data.requires === undefined ? {} : { requires: Object.freeze([...data.requires]) }),
   });
 }
 
