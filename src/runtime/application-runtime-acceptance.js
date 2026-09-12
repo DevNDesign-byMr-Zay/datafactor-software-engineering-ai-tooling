@@ -145,6 +145,41 @@ function validateAcceptedReleaseEvidence(release, expectedServiceName) {
     throw new TypeError('release.service.traffic must contain at least one revision');
   }
 
+  let routedPercent = 0;
+  for (const [index, entry] of service.traffic.entries()) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new TypeError(`release.service.traffic[${index}] must be an object`);
+    }
+
+    requireNonEmptyString(
+      entry.revisionName,
+      `release.service.traffic[${index}].revisionName`,
+    );
+
+    if (entry.percent === null) {
+      if (!entry.tag) {
+        throw new TypeError(
+          `release.service.traffic[${index}].percent may be omitted only for tagged traffic`,
+        );
+      }
+      continue;
+    }
+
+    const percent = Number(entry.percent);
+    if (!Number.isInteger(percent) || percent < 0 || percent > 100) {
+      throw new TypeError(
+        `release.service.traffic[${index}].percent must be an integer between 0 and 100`,
+      );
+    }
+    routedPercent += percent;
+  }
+
+  if (routedPercent !== 100) {
+    throw new TypeError(
+      `release.service.traffic routed percent must total 100; received ${routedPercent}`,
+    );
+  }
+
   const latestReadyTraffic = service.traffic.find(
     (entry) =>
       entry?.revisionName === latestReadyRevisionName &&
