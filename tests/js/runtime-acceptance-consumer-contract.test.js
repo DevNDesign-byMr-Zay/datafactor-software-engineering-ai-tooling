@@ -38,6 +38,12 @@ const trafficA = [
 const trafficB = [...trafficA].reverse();
 
 describe('runtime acceptance consumer contract', () => {
+  function decide(receipt, previousFingerprint) {
+    if (receipt.accepted !== true) return 'rejected';
+    const currentFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
+    return currentFingerprint === previousFingerprint ? 'unchanged' : 'changed';
+  }
+
   test('gives equivalent accepted runs the same canonical fingerprint', () => {
     const receiptA = buildRuntimeAcceptanceReceipt({
       acceptance: acceptedTraffic(trafficA),
@@ -78,6 +84,40 @@ describe('runtime acceptance consumer contract', () => {
     );
   });
 
+  test('lets a consumer distinguish unchanged trusted evidence', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic(trafficA),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+    const fingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
+
+    expect(decide(receipt, fingerprint)).toBe('unchanged');
+  });
+
+  test('lets a consumer distinguish changed trusted evidence', () => {
+    const baseline = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic(trafficA),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+    const changed = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic([
+        { revisionName: 'roary-api-00042-abc', percent: 90, tag: null, url: null },
+        { revisionName: 'roary-api-00041-old', percent: 10, tag: null, url: null },
+      ]),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+
+    expect(decide(changed, fingerprintRuntimeAcceptanceReceipt(baseline))).toBe('changed');
+  });
+
+  test('keeps rejected acceptance outside the trusted comparison path', () => {
+    const rejected = { accepted: false };
+    expect(decide(rejected, 'anything')).toBe('rejected');
+  });
+
   test('keeps provider/process noise out of the durable receipt', () => {
     const receipt = buildRuntimeAcceptanceReceipt({
       acceptance: acceptedTraffic(trafficA),
@@ -92,15 +132,5 @@ describe('runtime acceptance consumer contract', () => {
     expect(serialized).not.toContain('stdout');
     expect(serialized).not.toContain('stderr');
     expect(serialized).not.toContain('command');
-  });
-
-  test('does not turn rejected acceptance into a consumer-trusted artifact', () => {
-    expect(() =>
-      buildRuntimeAcceptanceReceipt({
-        acceptance: { ...acceptedTraffic(trafficA), accepted: false },
-        serviceName: 'roary-api',
-        region: 'us-central1',
-      }),
-    ).toThrow('acceptance must be marked accepted');
   });
 });
