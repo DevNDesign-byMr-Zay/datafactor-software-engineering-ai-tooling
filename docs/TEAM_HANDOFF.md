@@ -12,6 +12,10 @@ The runtime acceptance work is being developed as a shared contract between main
 
 The receipt is intentionally versioned and deterministic. Provider/process diagnostics remain outside the durable contract. Consumer tests now exercise the distinction between unchanged trusted evidence, changed trusted evidence, and rejected acceptance.
 
-### What we should do next
+### Review handoff
 
-Before adding persistence, queues, agent frameworks, or more receipt fields, review the consumer tests and ask one question: **what decision remains impossible with the current evidence?** If there is no concrete answer, the contract is doing its job.
+A reviewable slice should show three things together: the contract change, the boundary tests, and the consumer decision it enables. Run the maintained `check` gate before requesting review.
+
+### Next checkpoint
+
+If the consumer can safely distinguish rejected, unchanged, and changed trusted evidence without parsing provider output, do not expand the schema. The next work should only add an abstraction when repeated consumer code demonstrates a real need.
