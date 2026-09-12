@@ -139,7 +139,17 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
     throw failure;
   }
 
-  const service = parseCloudRunServiceEvidence(evidence.stdout);
+  let service;
+  try {
+    service = parseCloudRunServiceEvidence(evidence.stdout);
+  } catch (cause) {
+    const failure = new Error(`${stage} failed to parse service evidence: ${cause.message}`, {
+      cause,
+    });
+    failure.evidence = evidence;
+    throw failure;
+  }
+
   return { ...evidence, service };
 }
 
