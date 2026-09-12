@@ -10,7 +10,7 @@ The runtime acceptance work is being developed as a shared contract between main
 
 ### Current checkpoint
 
-The receipt is intentionally versioned and deterministic. Provider/process diagnostics remain outside the durable contract. Consumer tests now exercise the distinction between unchanged trusted evidence, changed trusted evidence, and rejected acceptance.
+The receipt is intentionally versioned and deterministic. Provider/process diagnostics remain outside the durable contract. Consumer tests exercise the distinction between unchanged trusted evidence, changed trusted evidence, and rejected acceptance. A pure decision helper now keeps that comparison logic in one place.
 
 ### Review handoff
 
