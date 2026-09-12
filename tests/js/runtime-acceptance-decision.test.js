@@ -50,4 +50,8 @@ describe('runtime acceptance decision', () => {
       'receipt must be an object',
     );
   });
+
+  test('does not treat an omitted prior fingerprint as an unchanged observation', () => {
+    expect(decideRuntimeAcceptanceChange(receipt)).toBe(RUNTIME_ACCEPTANCE_DECISIONS.CHANGED);
+  });
 });
