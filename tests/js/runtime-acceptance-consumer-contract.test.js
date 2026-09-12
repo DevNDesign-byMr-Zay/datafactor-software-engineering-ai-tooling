@@ -80,6 +80,16 @@ describe('runtime acceptance consumer contract', () => {
     );
   });
 
+  test('lets a consumer distinguish the first trusted observation', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({
+      acceptance: acceptedTraffic(trafficA),
+      serviceName: 'roary-api',
+      region: 'us-central1',
+    });
+
+    expect(decideRuntimeAcceptanceChange(receipt)).toBe(RUNTIME_ACCEPTANCE_DECISIONS.CHANGED);
+  });
+
   test('lets a consumer distinguish unchanged trusted evidence', () => {
     const receipt = buildRuntimeAcceptanceReceipt({
       acceptance: acceptedTraffic(trafficA),
