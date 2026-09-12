@@ -26,10 +26,12 @@ describe('HoloCore scene contracts', () => {
   test('negotiates required device capabilities', () => {
     const spec = scene({
       id: 'demo',
-      nodes: [{
-        id: 'hero',
-        data: { requires: ['depth', 'calibration'] },
-      }],
+      nodes: [
+        {
+          id: 'hero',
+          data: { requires: ['depth', 'calibration'] },
+        },
+      ],
     });
     const target = device({
       id: 'projector-1',
