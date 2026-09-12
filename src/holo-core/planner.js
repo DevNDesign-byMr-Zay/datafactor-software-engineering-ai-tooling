@@ -37,6 +37,7 @@ export function planSpatialScene({ intent, assets = [], device } = {}) {
       displayType: normalizedIntent.displayType,
       constraints: normalizedIntent.constraints,
       animation: normalizedIntent.animation,
+      interaction: normalizedIntent.interaction,
       planner: 'holo-core-v1',
     },
     nodes: assets.map((asset, index) => ({
