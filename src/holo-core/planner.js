@@ -1,4 +1,4 @@
-import { negotiate, scene, transform } from './scene.js';
+import { device as normalizeDevice, negotiate, scene, transform } from './scene.js';
 
 export function planSpatialScene({ intent, assets = [], device }) {
   if (typeof intent !== 'string' || !intent.trim()) {
@@ -7,6 +7,7 @@ export function planSpatialScene({ intent, assets = [], device }) {
   if (!Array.isArray(assets)) throw new TypeError('assets must be an array');
   if (!device) throw new TypeError('device is required');
 
+  const normalizedDevice = normalizeDevice(device);
   const slug =
     intent
       .trim()
@@ -32,6 +33,6 @@ export function planSpatialScene({ intent, assets = [], device }) {
     })),
   });
 
-  const compatibility = negotiate(sceneSpec, device);
-  return Object.freeze({ scene: sceneSpec, device, compatibility });
+  const compatibility = negotiate(sceneSpec, normalizedDevice);
+  return Object.freeze({ scene: sceneSpec, device: normalizedDevice, compatibility });
 }
