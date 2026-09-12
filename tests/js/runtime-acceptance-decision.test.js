@@ -56,4 +56,8 @@ describe('runtime acceptance decision', () => {
       'receipt must be an object',
     );
   });
+
+  test('keeps decision constants immutable', () => {
+    expect(Object.isFrozen(RUNTIME_ACCEPTANCE_DECISIONS)).toBe(true);
+  });
 });
