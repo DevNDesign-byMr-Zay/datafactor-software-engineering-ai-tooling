@@ -1,4 +1,7 @@
-import { buildHolographicEvidenceEnvelope, validateHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
+import {
+  buildHolographicEvidenceEnvelope,
+  validateHolographicEvidenceEnvelope,
+} from '../../src/holographic/evidence-envelope.js';
 
 describe('holographic evidence envelope', () => {
   const input = {
@@ -21,12 +24,17 @@ describe('holographic evidence envelope', () => {
 
   test('fingerprint is deterministic for equivalent payloads', () => {
     const first = buildHolographicEvidenceEnvelope(input);
-    const second = buildHolographicEvidenceEnvelope({ ...input, payload: { mode: 'attention' } });
+    const second = buildHolographicEvidenceEnvelope({
+      ...input,
+      payload: { mode: 'attention' },
+    });
     expect(first.fingerprint).toBe(second.fingerprint);
   });
 
   test('rejects unsupported targets and authoritative output', () => {
-    expect(() => buildHolographicEvidenceEnvelope({ ...input, target: 'unknown-display' })).toThrow();
+    expect(() =>
+      buildHolographicEvidenceEnvelope({ ...input, target: 'unknown-display' }),
+    ).toThrow();
     expect(() => buildHolographicEvidenceEnvelope({ ...input, advisoryOnly: false })).toThrow();
   });
 });
