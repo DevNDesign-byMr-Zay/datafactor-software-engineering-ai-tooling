@@ -32,10 +32,7 @@ export function consumeRuntimeAcceptanceEvidence({
     return rejected('acceptance rejected');
   }
 
-  if (
-    typeof receiptFingerprint !== 'string' ||
-    !FINGERPRINT_PATTERN.test(receiptFingerprint)
-  ) {
+  if (typeof receiptFingerprint !== 'string' || !FINGERPRINT_PATTERN.test(receiptFingerprint)) {
     return rejected('invalid receipt fingerprint');
   }
 
