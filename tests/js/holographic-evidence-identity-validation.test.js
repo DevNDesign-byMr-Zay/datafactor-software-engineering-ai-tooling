@@ -7,7 +7,11 @@ import {
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]));
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonical(value[key])]),
+    );
   }
   return value;
 }
@@ -44,6 +48,8 @@ describe('holographic evidence identity validation', () => {
     ['provenanceRef', ' receipt-1 '],
     ['renderer', ''],
   ])('rejects re-fingerprinted noncanonical %s', (field, value) => {
-    expect(validateHolographicEvidenceEnvelope(refingerprint(valid, { [field]: value }))).toBe(false);
+    expect(validateHolographicEvidenceEnvelope(refingerprint(valid, { [field]: value }))).toBe(
+      false,
+    );
   });
 });
