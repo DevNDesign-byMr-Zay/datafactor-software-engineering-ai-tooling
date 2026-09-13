@@ -1,4 +1,7 @@
-import { buildHolographicEvidenceEnvelope, validateHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
+import {
+  buildHolographicEvidenceEnvelope,
+  validateHolographicEvidenceEnvelope,
+} from '../../src/holographic/evidence-envelope.js';
 
 describe('holographic evidence envelope', () => {
   const input = {
@@ -26,7 +29,9 @@ describe('holographic evidence envelope', () => {
   });
 
   test('rejects unsupported targets and authoritative output', () => {
-    expect(() => buildHolographicEvidenceEnvelope({ ...input, target: 'unknown-display' })).toThrow();
+    expect(() =>
+      buildHolographicEvidenceEnvelope({ ...input, target: 'unknown-display' }),
+    ).toThrow();
     expect(() => buildHolographicEvidenceEnvelope({ ...input, advisoryOnly: false })).toThrow();
   });
 });
