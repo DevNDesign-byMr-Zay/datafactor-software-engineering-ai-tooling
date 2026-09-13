@@ -1,7 +1,7 @@
 import { consumeRuntimeAcceptanceEvidence } from '../../src/runtime/runtime-acceptance-consumer.js';
 import { RUNTIME_ACCEPTANCE_DECISIONS } from '../../src/runtime/runtime-acceptance-decision.js';
 import { fingerprintRuntimeAcceptanceReceipt } from '../../src/runtime/runtime-acceptance-receipt.js';
-import { buildRuntimeAcceptanceConsumerFixture } from './fixtures/runtime-acceptance-consumer-fixture.js';
+import { buildRuntimeAcceptanceConsumerFixture } from './fixtures/runtime-acceptance-consumer.js';
 
 describe('runtime acceptance evidence consumer', () => {
   test('classifies a verified first trusted receipt as changed', () => {
