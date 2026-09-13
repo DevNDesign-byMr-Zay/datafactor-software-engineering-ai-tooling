@@ -16,11 +16,5 @@ test('fingerprint is stable across object key order', () => {
 test('fingerprint detects scene changes', () => {
   const scene = { sceneId: 's1', nodes: [{ x: 1 }] };
   const fingerprint = fingerprintHolographicScene(scene);
-  assert.equal(
-    verifyHolographicSceneFingerprint(
-      { ...scene, sceneId: 's2' },
-      fingerprint,
-    ),
-    false,
-  );
+  assert.equal(verifyHolographicSceneFingerprint({ ...scene, sceneId: 's2' }, fingerprint), false);
 });
