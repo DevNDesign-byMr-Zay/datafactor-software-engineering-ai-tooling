@@ -21,6 +21,16 @@ function list(value, name) {
   return Object.freeze(value.map((item) => item.trim()));
 }
 
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+}
+
+function immutableCopy(value) {
+  return deepFreeze(structuredClone(value));
+}
+
 export function interpretHolographicIntent({
   prompt,
   sceneType = 'presentation',
@@ -45,8 +55,8 @@ export function interpretHolographicIntent({
     sceneType,
     target,
     assetIds: list(assetIds, 'assetIds'),
-    constraints: Object.freeze({ ...constraints }),
-    animation: Object.freeze({ ...animation }),
+    constraints: immutableCopy(constraints),
+    animation: immutableCopy(animation),
     interaction: interaction === null ? null : normalizeSpatialInteractionIntent(interaction),
   });
 }
