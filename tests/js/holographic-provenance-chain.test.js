@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from '@jest/globals';
 import { buildHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
 import {
   createHolographicProvenanceBinding,
@@ -49,6 +49,7 @@ describe('holographic provenance binding', () => {
     const sceneFingerprint = fingerprintHolographicScene(planned.scene);
 
     expect(planned.scene.snapshotId).toBe('snapshot-bridge-001');
+    expect(planned.evidence.snapshotId).toBe(planned.scene.snapshotId);
     expect(
       validateHolographicProvenanceBinding({
         envelope: planned.evidence,
