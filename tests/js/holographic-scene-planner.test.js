@@ -21,12 +21,14 @@ describe('holographic scene planner', () => {
   });
 
   test('rejects unsupported renderer targets', () => {
-    expect(() => planHolographicScene({
-      snapshotId: 'snapshot-001',
-      provenanceRef: 'receipt-001',
-      intent: 'Show grid',
-      target: 'laser-wall',
-    })).toThrow('unsupported holographic target');
+    expect(() =>
+      planHolographicScene({
+        snapshotId: 'snapshot-001',
+        provenanceRef: 'receipt-001',
+        intent: 'Show grid',
+        target: 'laser-wall',
+      }),
+    ).toThrow('unsupported holographic target');
   });
 
   test('rejects unsafe depth scale', () => {
