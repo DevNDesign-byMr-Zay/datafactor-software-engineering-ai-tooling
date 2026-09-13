@@ -26,10 +26,11 @@ export function planSpatialScene({
     );
   }
 
-  const slug = normalizedIntent.prompt
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') || 'default';
+  const slug =
+    normalizedIntent.prompt
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'default';
 
   const sceneSpec = scene({
     id: `plan-${slug}`,
