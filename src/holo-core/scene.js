@@ -12,6 +12,17 @@ function text(value, name) {
   return value.trim();
 }
 
+function stringSet(value, name) {
+  if (!Array.isArray(value)) throw new TypeError(`${name} must be an array`);
+  const normalized = value.map((item, index) => {
+    if (typeof item !== 'string' || !item.trim()) {
+      throw new TypeError(`${name}[${index}] must be a non-empty string`);
+    }
+    return item.trim();
+  });
+  return Object.freeze([...new Set(normalized)]);
+}
+
 function normalizeNodeData(data, index) {
   if (data === undefined) return Object.freeze({});
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
@@ -24,7 +35,7 @@ function normalizeNodeData(data, index) {
     ...data,
     ...(data.requires === undefined
       ? {}
-      : { requires: Object.freeze([...new Set(data.requires.map(String))]) }),
+      : { requires: stringSet(data.requires, `scene node ${index} data.requires`) }),
   });
 }
 
@@ -74,11 +85,10 @@ export function scene({ id, snapshotId, provenanceRef, nodes = [], metadata = {}
 
 export function device({ id, target, capabilities = [], simulated = true } = {}) {
   if (!TARGETS.includes(target)) throw new TypeError(`unsupported holographic target: ${target}`);
-  if (!Array.isArray(capabilities)) throw new TypeError('device capabilities must be an array');
   return Object.freeze({
     id: text(id, 'device id'),
     target,
-    capabilities: Object.freeze([...new Set(capabilities.map(String))]),
+    capabilities: stringSet(capabilities, 'device capabilities'),
     simulated: Boolean(simulated),
   });
 }
@@ -87,9 +97,23 @@ export function negotiate(sceneSpec, deviceSpec) {
   if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v2') {
     throw new TypeError('invalid scene specification');
   }
+  if (!Array.isArray(sceneSpec.nodes)) throw new TypeError('scene nodes must be an array');
+
   const normalizedDevice = device(deviceSpec);
-  const required = sceneSpec.nodes.flatMap((node) => node.data?.requires ?? []);
-  const missing = [...new Set(required.map(String))].filter(
+  const required = stringSet(
+    sceneSpec.nodes.flatMap((node, index) => {
+      if (!node || typeof node !== 'object' || Array.isArray(node)) {
+        throw new TypeError(`scene node ${index} must be an object`);
+      }
+      const requirements = node.data?.requires ?? [];
+      if (!Array.isArray(requirements)) {
+        throw new TypeError(`scene node ${index} data.requires must be an array`);
+      }
+      return requirements;
+    }),
+    'scene capability requirements',
+  );
+  const missing = required.filter(
     (capability) => !normalizedDevice.capabilities.includes(capability),
   );
   return Object.freeze({
