@@ -82,6 +82,15 @@ describe('runtime acceptance consumer boundary', () => {
     });
   });
 
+  test('treats the first verified accepted receipt as changed without requiring persistence state', () => {
+    const current = buildAcceptedEvidence();
+
+    expect(decideDurableAcceptanceEvidence(current)).toEqual({
+      status: 'changed',
+      fingerprint: current.receiptFingerprint,
+    });
+  });
+
   test('treats a verified new accepted receipt as changed', () => {
     const previous = buildAcceptedEvidence();
     const current = buildAcceptedEvidence({ revision: 'roary-api-00043-def' });
