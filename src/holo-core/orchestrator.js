@@ -32,7 +32,6 @@ export function orchestrateSpatialScene({ sceneSpec, devices = [] } = {}) {
 }
 
 export function handoffSpatialInteraction({ interaction, handler } = {}) {
-  if (typeof handler !== 'function')
-    throw new TypeError('an interaction handler is required');
+  if (typeof handler !== 'function') throw new TypeError('an interaction handler is required');
   return handler(normalizeSpatialInteractionIntent(interaction));
 }
