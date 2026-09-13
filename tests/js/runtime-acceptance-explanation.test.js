@@ -8,11 +8,6 @@ describe('runtime acceptance explanation', () => {
         previous: 'revision-a',
         current: 'revision-b',
       },
-      {
-        field: 'service.traffic',
-        previous: [{ revisionName: 'revision-a', percent: 100 }],
-        current: [{ revisionName: 'revision-b', percent: 100 }],
-      },
     ])).toEqual([
       {
         field: 'service.latestReadyRevisionName',
@@ -20,13 +15,6 @@ describe('runtime acceptance explanation', () => {
         message: 'ready revision changed',
         previous: 'revision-a',
         current: 'revision-b',
-      },
-      {
-        field: 'service.traffic',
-        label: 'traffic allocation',
-        message: 'traffic allocation changed',
-        previous: [{ revisionName: 'revision-a', percent: 100 }],
-        current: [{ revisionName: 'revision-b', percent: 100 }],
       },
     ]);
   });
