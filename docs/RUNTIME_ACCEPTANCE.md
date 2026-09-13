@@ -14,7 +14,7 @@ The runtime acceptance path is the **producer** of durable acceptance evidence. 
 
 A downstream consumer may verify the fingerprint, compare it with a previously trusted fingerprint, and then decide whether accepted evidence is new or unchanged. The runtime library does not own that consumer's database, cache, queue, agent memory, notification policy, or deployment orchestration.
 
-Persistence therefore belongs to the consuming system. Consumers should persist the compact receipt and fingerprint only when their workflow needs durable comparison. A missing previous fingerprint is a valid first-observation state; it does not require this repository to invent a persistence backend.
+Persistence therefore belongs to the consuming system. Consumers should persist the compact receipt and fingerprint only when their workflow needs durable comparison. A missing previous fingerprint is a valid first-observation state; it does not require this repository to invent a persistence backend. Any previous fingerprint is comparison input only; it never establishes the integrity of the current receipt.
 
 Raw `release` evidence remains **diagnostic-only**. It can explain how acceptance was evaluated, but downstream automation must not parse command output, stdout/stderr, provider noise, environment dumps, or other operational diagnostics to recover facts already represented by the durable receipt.
 
