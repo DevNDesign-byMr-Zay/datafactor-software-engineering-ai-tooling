@@ -40,7 +40,12 @@ export function planHolographicScene({
   finite(depthScale, 'depthScale');
   if (depthScale <= 0) throw new TypeError('depthScale must be greater than zero');
 
-  const sceneId = `scene-${cleanSnapshotId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'grid'}`;
+  const sceneId = `scene-${
+    cleanSnapshotId
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'grid'
+  }`;
   const nodes = objects.map((item, index) => {
     const value = object(item, `objects[${index}]`);
     return {
