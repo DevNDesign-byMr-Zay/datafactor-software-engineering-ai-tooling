@@ -3,7 +3,10 @@ import {
   fingerprintRuntimeAcceptanceReceipt,
 } from '../../src/runtime/runtime-acceptance-receipt.js';
 
-function decideDurableAcceptanceEvidence({ receipt, receiptFingerprint } = {}, previousFingerprint) {
+function decideDurableAcceptanceEvidence(
+  { receipt, receiptFingerprint } = {},
+  previousFingerprint,
+) {
   if (!receipt || typeof receiptFingerprint !== 'string' || !receiptFingerprint) {
     return { status: 'rejected', fingerprint: null };
   }
