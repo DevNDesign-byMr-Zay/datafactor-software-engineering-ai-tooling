@@ -12,6 +12,7 @@ export * from './reliability/backend-config.js';
 export * from './runtime/application-runtime-acceptance.js';
 export * from './runtime/runtime-acceptance-decision.js';
 export * from './runtime/runtime-acceptance-diff.js';
+export * from './runtime/runtime-acceptance-explanation.js';
 export * from './runtime/runtime-acceptance-receipt.js';
 export * from './workflows/cloud-file-workflow.js';
 
