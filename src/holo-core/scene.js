@@ -8,8 +8,7 @@ function finite(value, name) {
 }
 
 function text(value, name) {
-  if (typeof value !== 'string' || !value.trim())
-    throw new TypeError(`${name} is required`);
+  if (typeof value !== 'string' || !value.trim()) throw new TypeError(`${name} is required`);
   return value.trim();
 }
 
@@ -43,13 +42,7 @@ export function transform(input = {}) {
   });
 }
 
-export function scene({
-  id,
-  snapshotId,
-  provenanceRef,
-  nodes = [],
-  metadata = {},
-} = {}) {
+export function scene({ id, snapshotId, provenanceRef, nodes = [], metadata = {} } = {}) {
   if (!Array.isArray(nodes)) throw new TypeError('scene nodes must be an array');
   if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
     throw new TypeError('scene metadata must be an object');
@@ -59,10 +52,7 @@ export function scene({
     if (!node || typeof node !== 'object' || Array.isArray(node)) {
       throw new TypeError(`scene node ${index} must be an object`);
     }
-    const nodeId = text(
-      String(node.id ?? `node-${index + 1}`),
-      `scene node ${index} id`,
-    );
+    const nodeId = text(String(node.id ?? `node-${index + 1}`), `scene node ${index} id`);
     return Object.freeze({
       id: nodeId,
       kind: node.kind ?? 'content',
@@ -83,10 +73,8 @@ export function scene({
 }
 
 export function device({ id, target, capabilities = [], simulated = true } = {}) {
-  if (!TARGETS.includes(target))
-    throw new TypeError(`unsupported holographic target: ${target}`);
-  if (!Array.isArray(capabilities))
-    throw new TypeError('device capabilities must be an array');
+  if (!TARGETS.includes(target)) throw new TypeError(`unsupported holographic target: ${target}`);
+  if (!Array.isArray(capabilities)) throw new TypeError('device capabilities must be an array');
   return Object.freeze({
     id: text(id, 'device id'),
     target,
