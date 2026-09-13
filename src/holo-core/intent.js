@@ -12,7 +12,10 @@ function text(value, name) {
 
 function list(value, name) {
   if (value === undefined) return Object.freeze([]);
-  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || item.trim() === '')) {
+  if (
+    !Array.isArray(value) ||
+    value.some((item) => typeof item !== 'string' || item.trim() === '')
+  ) {
     throw new TypeError(`${name} must be an array of non-empty strings.`);
   }
   return Object.freeze(value.map((item) => item.trim()));
