@@ -8,13 +8,7 @@ function normalizeIntent(intent) {
   throw new TypeError('intent is required');
 }
 
-export function planSpatialScene({
-  intent,
-  assets = [],
-  device,
-  snapshotId,
-  provenanceRef,
-} = {}) {
+export function planSpatialScene({ intent, assets = [], device, snapshotId, provenanceRef } = {}) {
   if (!Array.isArray(assets)) throw new TypeError('assets must be an array');
   if (!device) throw new TypeError('device is required');
 
