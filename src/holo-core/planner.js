@@ -1,5 +1,5 @@
-import { negotiate, scene, transform } from './scene.js';
 import { interpretHolographicIntent } from './intent.js';
+import { device as normalizeDevice, negotiate, scene, transform } from './scene.js';
 
 function normalizeIntent(intent) {
   if (typeof intent === 'string') {
@@ -16,9 +16,10 @@ export function planSpatialScene({ intent, assets = [], device } = {}) {
   if (!device) throw new TypeError('device is required');
 
   const normalizedIntent = normalizeIntent(intent);
-  if (normalizedIntent.displayType !== device.type) {
+  const normalizedDevice = normalizeDevice(device);
+  if (normalizedIntent.displayType !== normalizedDevice.type) {
     throw new Error(
-      `Intent display type ${normalizedIntent.displayType} does not match device type ${device.type}.`,
+      `Intent display type ${normalizedIntent.displayType} does not match device type ${normalizedDevice.type}.`,
     );
   }
 
@@ -37,6 +38,7 @@ export function planSpatialScene({ intent, assets = [], device } = {}) {
       displayType: normalizedIntent.displayType,
       constraints: normalizedIntent.constraints,
       animation: normalizedIntent.animation,
+      interaction: normalizedIntent.interaction,
       planner: 'holo-core-v1',
     },
     nodes: assets.map((asset, index) => ({
@@ -54,6 +56,11 @@ export function planSpatialScene({ intent, assets = [], device } = {}) {
     })),
   });
 
-  const compatibility = negotiate(sceneSpec, device);
-  return Object.freeze({ scene: sceneSpec, device, intent: normalizedIntent, compatibility });
+  const compatibility = negotiate(sceneSpec, normalizedDevice);
+  return Object.freeze({
+    scene: sceneSpec,
+    device: normalizedDevice,
+    intent: normalizedIntent,
+    compatibility,
+  });
 }
