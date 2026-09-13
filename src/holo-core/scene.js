@@ -7,6 +7,20 @@ const finite = (value, name) => {
   return value;
 };
 
+function normalizeNodeData(data, index) {
+  if (data === undefined) return Object.freeze({});
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new TypeError(`scene node ${index} data must be an object`);
+  }
+  if (data.requires !== undefined && !Array.isArray(data.requires)) {
+    throw new TypeError(`scene node ${index} data.requires must be an array`);
+  }
+  return Object.freeze({
+    ...data,
+    ...(data.requires === undefined ? {} : { requires: Object.freeze([...data.requires]) }),
+  });
+}
+
 export function transform(input = {}) {
   const scale = finite(input.scale ?? 1, 'scale');
   if (scale <= 0) throw new RangeError('scale must be greater than zero');
@@ -25,8 +39,9 @@ export function scene({ id, nodes = [], metadata = {} } = {}) {
   if (typeof id !== 'string' || !id.trim()) throw new TypeError('scene id is required');
   if (!Array.isArray(nodes)) throw new TypeError('scene nodes must be an array');
   const normalizedNodes = nodes.map((node, index) => {
-    if (!node || typeof node !== 'object')
+    if (!node || typeof node !== 'object' || Array.isArray(node)) {
       throw new TypeError(`scene node ${index} must be an object`);
+    }
     const nodeId = String(node.id ?? `node-${index + 1}`).trim();
     if (!nodeId) throw new TypeError(`scene node ${index} id is required`);
     return Object.freeze({
@@ -34,7 +49,7 @@ export function scene({ id, nodes = [], metadata = {} } = {}) {
       kind: node.kind ?? 'content',
       transform: transform(node.transform),
       visible: node.visible !== false,
-      data: Object.freeze({ ...(node.data ?? {}) }),
+      data: normalizeNodeData(node.data, index),
     });
   });
   return Object.freeze({
@@ -58,13 +73,13 @@ export function device({ id, type, capabilities = [], simulated = true } = {}) {
 }
 
 export function negotiate(sceneSpec, deviceSpec) {
-  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1')
+  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1') {
     throw new TypeError('invalid scene specification');
-  if (!deviceSpec || !DEVICE_TYPES.has(deviceSpec.type))
-    throw new TypeError('invalid device specification');
+  }
+  const normalizedDevice = device(deviceSpec);
   const required = sceneSpec.nodes.flatMap((node) => node.data?.requires ?? []);
   const missing = [...new Set(required.map(String))].filter(
-    (capability) => !deviceSpec.capabilities.includes(capability),
+    (capability) => !normalizedDevice.capabilities.includes(capability),
   );
   return Object.freeze({ compatible: missing.length === 0, missing });
 }
