@@ -1,3 +1,5 @@
+import { normalizeSpatialInteractionIntent } from './interaction.js';
+
 const DISPLAY_TYPES = Object.freeze(['projector', 'holomat', 'three-d-platform']);
 const SCENE_TYPES = Object.freeze(['presentation', 'product', 'diagram', 'environment']);
 
@@ -26,6 +28,7 @@ export function interpretHolographicIntent({
   assetIds = [],
   constraints = {},
   animation = {},
+  interaction = null,
 } = {}) {
   const normalizedPrompt = text(prompt, 'prompt');
   if (!SCENE_TYPES.includes(sceneType)) {
@@ -48,5 +51,6 @@ export function interpretHolographicIntent({
     assetIds: list(assetIds, 'assetIds'),
     constraints: Object.freeze({ ...constraints }),
     animation: Object.freeze({ ...animation }),
+    interaction: interaction === null ? null : normalizeSpatialInteractionIntent(interaction),
   });
 }
