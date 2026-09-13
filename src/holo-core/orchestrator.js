@@ -1,18 +1,21 @@
 import { normalizeSpatialInteractionIntent } from './interaction.js';
-import { negotiate, scene } from './scene.js';
+import { device as normalizeDevice, negotiate, scene } from './scene.js';
 
 export function orchestrateSpatialScene({ sceneSpec, devices = [] } = {}) {
-  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1')
+  if (!sceneSpec || sceneSpec.schema !== 'holo.scene.v1') {
     throw new TypeError('a HoloCore scene is required');
-  if (!Array.isArray(devices) || devices.length === 0)
+  }
+  if (!Array.isArray(devices) || devices.length === 0) {
     throw new TypeError('at least one device is required');
+  }
 
   const normalizedScene = scene(sceneSpec);
-  const routes = devices.map((device) => {
-    const compatibility = negotiate(normalizedScene, device);
+  const routes = devices.map((inputDevice) => {
+    const target = normalizeDevice(inputDevice);
+    const compatibility = negotiate(normalizedScene, target);
     return Object.freeze({
-      deviceId: device.id,
-      deviceType: device.type,
+      deviceId: target.id,
+      deviceType: target.type,
       compatible: compatibility.compatible,
       missing: Object.freeze([...compatibility.missing]),
       status: compatibility.compatible ? 'ready' : 'blocked',
