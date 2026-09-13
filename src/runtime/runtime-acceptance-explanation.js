@@ -31,3 +31,16 @@ export function explainRuntimeAcceptanceDiff(changes) {
     current,
   }));
 }
+
+/**
+ * Produce one deterministic summary suitable for logs, agent context, or UI.
+ * No provider diagnostics or operational recommendation is introduced here.
+ */
+export function summarizeRuntimeAcceptanceExplanation(changes) {
+  const explanations = explainRuntimeAcceptanceDiff(changes);
+  if (explanations.length === 0) {
+    return 'No trusted acceptance changes detected.';
+  }
+
+  return explanations.map(({ message }) => message).join('; ');
+}
