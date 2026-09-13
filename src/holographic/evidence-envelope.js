@@ -13,6 +13,9 @@ function text(value, name) {
     throw new TypeError(`${name} must be a non-empty string`);
   return value.trim();
 }
+function canonicalText(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim();
+}
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object')
@@ -67,10 +70,11 @@ export function validateHolographicEvidenceEnvelope(envelope) {
     const value = object(envelope, 'envelope');
     if (
       value.envelopeVersion !== ENVELOPE_VERSION ||
-      typeof value.snapshotId !== 'string' ||
-      typeof value.sceneId !== 'string' ||
-      typeof value.provenanceRef !== 'string' ||
+      !canonicalText(value.snapshotId) ||
+      !canonicalText(value.sceneId) ||
+      !canonicalText(value.provenanceRef) ||
       !TARGETS.includes(value.target) ||
+      !canonicalText(value.renderer) ||
       value.advisoryOnly !== true ||
       value.safety?.authoritative !== false ||
       value.safety?.physicalActuation !== false ||
