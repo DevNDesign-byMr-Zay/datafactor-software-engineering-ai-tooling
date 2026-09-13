@@ -11,6 +11,10 @@ This is the contract-level view for agents and release automation after the rece
 | valid accepted receipt + matching prior fingerprint | `unchanged` | no new trusted runtime fact |
 | valid accepted receipt + different prior fingerprint | `changed` | inspect receipt and apply consumer policy |
 
+## Verification order
+
+Consumers should validate in one direction only: first require accepted receipt evidence, then recompute and verify the receipt fingerprint, and only then compare that verified fingerprint with any previously trusted value. A prior fingerprint must never make malformed or unverified current evidence trustworthy.
+
 ## Important boundary
 
 The decision boundary fingerprints only the sanitized receipt. Provider stdout, stderr, command arguments, and other operational diagnostics are not decision inputs.
