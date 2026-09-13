@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fingerprintHolographicScene, verifyHolographicSceneFingerprint } from '../../src/holographic/scene-fingerprint.js';
+import {
+  fingerprintHolographicScene,
+  verifyHolographicSceneFingerprint,
+} from '../../src/holographic/scene-fingerprint.js';
 
 test('fingerprint is stable across object key order', () => {
   const a = { sceneId: 's1', nodes: [{ z: 3, x: 1 }] };
@@ -13,5 +16,11 @@ test('fingerprint is stable across object key order', () => {
 test('fingerprint detects scene changes', () => {
   const scene = { sceneId: 's1', nodes: [{ x: 1 }] };
   const fingerprint = fingerprintHolographicScene(scene);
-  assert.equal(verifyHolographicSceneFingerprint({ ...scene, sceneId: 's2' }, fingerprint), false);
+  assert.equal(
+    verifyHolographicSceneFingerprint(
+      { ...scene, sceneId: 's2' },
+      fingerprint,
+    ),
+    false,
+  );
 });
