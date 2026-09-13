@@ -44,7 +44,8 @@ export function planHolographicScene({
   const cleanProvenanceRef = text(provenanceRef, 'provenanceRef');
   const cleanIntent = text(intent, 'intent');
   const cleanTarget = text(target, 'target');
-  if (!TARGETS.has(cleanTarget)) throw new TypeError(`unsupported holographic target: ${cleanTarget}`);
+  if (!TARGETS.has(cleanTarget))
+    throw new TypeError(`unsupported holographic target: ${cleanTarget}`);
   if (!Array.isArray(objects)) throw new TypeError('objects must be an array');
   if (!Array.isArray(alerts)) throw new TypeError('alerts must be an array');
   finite(depthScale, 'depthScale');
