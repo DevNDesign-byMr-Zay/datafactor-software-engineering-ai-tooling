@@ -44,3 +44,23 @@ export function summarizeRuntimeAcceptanceExplanation(changes) {
 
   return explanations.map(({ message }) => message).join('; ');
 }
+
+/**
+ * Produce a compact, structured observation for consumers that want both
+ * machine-readable status and a deterministic human/agent summary.
+ */
+export function buildRuntimeAcceptanceObservation({ decision, changes }) {
+  if (typeof decision !== 'string' || decision.length === 0) {
+    throw new TypeError('decision must be a non-empty string');
+  }
+  if (!Array.isArray(changes)) {
+    throw new TypeError('changes must be an array');
+  }
+
+  return Object.freeze({
+    decision,
+    changed: changes.length > 0,
+    changeCount: changes.length,
+    summary: summarizeRuntimeAcceptanceExplanation(changes),
+  });
+}
