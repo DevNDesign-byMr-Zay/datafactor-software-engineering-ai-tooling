@@ -4,6 +4,7 @@ import {
   createHolographicProvenanceBinding,
   validateHolographicProvenanceBinding,
 } from '../../src/holographic/provenance-chain.js';
+import { planHolographicScene } from '../../src/holographic/scene-planner.js';
 import { fingerprintHolographicScene } from '../../src/holographic/scene-fingerprint.js';
 
 describe('holographic provenance binding', () => {
@@ -35,6 +36,30 @@ describe('holographic provenance binding', () => {
     expect(binding.sceneFingerprint).toBe(fingerprintHolographicScene(scene));
     expect(binding.authoritative).toBe(false);
     expect(binding.physicalActuation).toBe(false);
+  });
+
+  test('binds the maintained scene planner output without reconstructing snapshot identity', () => {
+    const planned = planHolographicScene({
+      snapshotId: 'snapshot-bridge-001',
+      provenanceRef: 'experiment-bridge-001',
+      intent: 'Show renewable flow',
+      target: 'projector',
+      objects: [{ id: 'solar-1', kind: 'generation', x: 1, y: 2, z: 3 }],
+    });
+    const sceneFingerprint = fingerprintHolographicScene(planned.scene);
+
+    expect(planned.scene.snapshotId).toBe('snapshot-bridge-001');
+    expect(planned.evidence.snapshotId).toBe(planned.scene.snapshotId);
+    expect(
+      validateHolographicProvenanceBinding({
+        envelope: planned.evidence,
+        snapshotId: planned.scene.snapshotId,
+        sceneId: planned.scene.sceneId,
+        provenanceRef: 'experiment-bridge-001',
+        scene: planned.scene,
+        sceneFingerprint,
+      }),
+    ).toBe(true);
   });
 
   test('rejects an envelope bound to another snapshot or scene', () => {
