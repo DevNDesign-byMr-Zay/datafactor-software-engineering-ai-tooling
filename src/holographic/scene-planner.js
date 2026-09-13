@@ -19,6 +19,12 @@ function finite(value, name) {
   return value;
 }
 
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+}
+
 /**
  * Turn an AI/operator intent into a deterministic, renderer-neutral scene plan.
  * This is a planning boundary only: it cannot authorize physical actuation.
@@ -60,7 +66,7 @@ export function planHolographicScene({
     };
   });
 
-  const scene = {
+  const scene = deepFreeze({
     sceneVersion: 1,
     sceneId,
     intent: cleanIntent,
@@ -72,7 +78,7 @@ export function planHolographicScene({
       authoritative: false,
       physicalActuation: false,
     },
-  };
+  });
 
   return Object.freeze({
     scene,
