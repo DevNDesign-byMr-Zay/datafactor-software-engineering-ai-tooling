@@ -56,9 +56,7 @@ export function createHolographicProvenanceBinding({
       sceneFingerprint,
     })
   ) {
-    throw new TypeError(
-      'holographic evidence does not match the requested provenance binding',
-    );
+    throw new TypeError('holographic evidence does not match the requested provenance binding');
   }
   return Object.freeze({
     envelopeFingerprint: envelope.fingerprint,
