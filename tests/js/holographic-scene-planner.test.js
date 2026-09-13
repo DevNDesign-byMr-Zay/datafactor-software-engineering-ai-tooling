@@ -20,6 +20,15 @@ describe('holographic scene planner', () => {
     expect(validateHolographicEvidenceEnvelope(result.evidence)).toBe(true);
   });
 
+  test('rejects unsupported renderer targets', () => {
+    expect(() => planHolographicScene({
+      snapshotId: 'snapshot-001',
+      provenanceRef: 'receipt-001',
+      intent: 'Show grid',
+      target: 'laser-wall',
+    })).toThrow('unsupported holographic target');
+  });
+
   test('rejects unsafe depth scale', () => {
     expect(() => planHolographicScene({
       snapshotId: 'snapshot-001',
