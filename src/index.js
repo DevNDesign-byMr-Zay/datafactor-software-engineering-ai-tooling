@@ -9,6 +9,7 @@ export * from './deployment/cloud-run-reliable-workflow.js';
 export * from './deployment/cloud-run-release-evidence.js';
 export * from './frontend/erase-mask.js';
 export * from './holographic/evidence-envelope.js';
+export * from './holo-core/index.js';
 export * from './reliability/backend-config.js';
 export * from './runtime/application-runtime-acceptance.js';
 export * from './runtime/runtime-acceptance-decision.js';
