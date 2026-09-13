@@ -77,6 +77,34 @@ describe('current HoloCore spatial contract', () => {
     expect(result.provenanceRef).toBe('receipt-001');
   });
 
+  test('rejects malformed capability names instead of string-coercing them', () => {
+    expect(() =>
+      planSpatialScene({
+        ...planInput,
+        assets: [{ id: 'asset-1', requires: [42] }],
+      }),
+    ).toThrow(/non-empty string/);
+
+    expect(() =>
+      planSpatialScene({
+        ...planInput,
+        device: { ...device, capabilities: ['depth', false] },
+      }),
+    ).toThrow(/non-empty string/);
+  });
+
+  test('canonicalizes capability whitespace before compatibility checks', () => {
+    const planned = planSpatialScene({
+      ...planInput,
+      assets: [{ id: 'asset-1', requires: [' depth ', 'depth'] }],
+      device: { ...device, capabilities: [' depth ', 'selection'] },
+    });
+
+    expect(planned.scene.nodes[0].data.requires).toEqual(['depth']);
+    expect(planned.device.capabilities).toEqual(['depth', 'selection']);
+    expect(planned.compatibility).toEqual({ compatible: true, missing: [] });
+  });
+
   test('normalizes interaction before downstream handoff', () => {
     const normalized = normalizeSpatialInteractionIntent({
       type: 'orbit',
