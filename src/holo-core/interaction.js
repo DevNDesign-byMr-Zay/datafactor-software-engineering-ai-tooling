@@ -9,8 +9,7 @@ const INTERACTION_TYPES = Object.freeze([
 
 function finite(value, name, fallback = 0) {
   if (value === undefined) return fallback;
-  if (!Number.isFinite(value))
-    throw new TypeError(`${name} must be a finite number.`);
+  if (!Number.isFinite(value)) throw new TypeError(`${name} must be a finite number.`);
   return value;
 }
 
