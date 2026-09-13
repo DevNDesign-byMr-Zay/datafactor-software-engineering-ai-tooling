@@ -21,20 +21,24 @@ describe('holographic scene planner', () => {
   });
 
   test('rejects unsafe depth scale', () => {
-    expect(() => planHolographicScene({
-      snapshotId: 'snapshot-001',
-      provenanceRef: 'receipt-001',
-      intent: 'Show grid',
-      depthScale: 0,
-    })).toThrow('depthScale must be greater than zero');
+    expect(() =>
+      planHolographicScene({
+        snapshotId: 'snapshot-001',
+        provenanceRef: 'receipt-001',
+        intent: 'Show grid',
+        depthScale: 0,
+      }),
+    ).toThrow('depthScale must be greater than zero');
   });
 
   test('rejects malformed spatial nodes', () => {
-    expect(() => planHolographicScene({
-      snapshotId: 'snapshot-001',
-      provenanceRef: 'receipt-001',
-      intent: 'Show grid',
-      objects: [{ id: 'bad', x: Number.NaN }],
-    })).toThrow('objects[0].x must be finite');
+    expect(() =>
+      planHolographicScene({
+        snapshotId: 'snapshot-001',
+        provenanceRef: 'receipt-001',
+        intent: 'Show grid',
+        objects: [{ id: 'bad', x: Number.NaN }],
+      }),
+    ).toThrow('objects[0].x must be finite');
   });
 });
