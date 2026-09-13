@@ -1,5 +1,7 @@
 import { buildHolographicEvidenceEnvelope } from './evidence-envelope.js';
 
+const TARGETS = new Set(['holo-mat', 'projector', 'volumetric-3d', 'ar-vr', 'web-dashboard']);
+
 function object(value, name) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${name} must be an object`);
@@ -35,6 +37,8 @@ export function planHolographicScene({
   const cleanSnapshotId = text(snapshotId, 'snapshotId');
   const cleanProvenanceRef = text(provenanceRef, 'provenanceRef');
   const cleanIntent = text(intent, 'intent');
+  const cleanTarget = text(target, 'target');
+  if (!TARGETS.has(cleanTarget)) throw new TypeError(`unsupported holographic target: ${cleanTarget}`);
   if (!Array.isArray(objects)) throw new TypeError('objects must be an array');
   if (!Array.isArray(alerts)) throw new TypeError('alerts must be an array');
   finite(depthScale, 'depthScale');
@@ -59,7 +63,7 @@ export function planHolographicScene({
     sceneVersion: 1,
     sceneId,
     intent: cleanIntent,
-    target,
+    target: cleanTarget,
     nodes,
     alerts: alerts.map((alert, index) => text(alert, `alerts[${index}]`)),
     safety: {
@@ -75,9 +79,11 @@ export function planHolographicScene({
       snapshotId: cleanSnapshotId,
       sceneId,
       provenanceRef: cleanProvenanceRef,
-      target,
+      target: cleanTarget,
       payload: scene,
       advisoryOnly: true,
     }),
   });
 }
+
+export { TARGETS };
