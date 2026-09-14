@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import { buildHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
 import { fingerprintHolographicScene } from '../../src/holographic/scene-fingerprint.js';
 import { evaluateHolographicAcceptance } from '../../src/holographic/acceptance-gate.js';
