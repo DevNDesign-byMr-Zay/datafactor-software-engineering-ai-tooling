@@ -68,6 +68,7 @@ export function planHolographicScene({
   const scene = {
     sceneVersion: 1,
     sceneId,
+    snapshotId: cleanSnapshotId,
     intent: cleanIntent,
     target: cleanTarget,
     nodes,
