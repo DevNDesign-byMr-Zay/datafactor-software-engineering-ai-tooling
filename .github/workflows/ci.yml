@@ -43,12 +43,14 @@ jobs:
           if [ "$status" -ne 0 ]; then
             npm run format >/dev/null
             echo "::group::Required Prettier changes"
-            git --no-pager diff -- src tests/js "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+            git --no-pager diff -- src tests/js scripts "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
             echo "::endgroup::"
             exit "$status"
           fi
       - name: Run JavaScript tests with enforced coverage
         run: npm run test:coverage
+      - name: Run sustainability evidence demo
+        run: npm run demo:sustainability
 
   python:
     name: Python quality
