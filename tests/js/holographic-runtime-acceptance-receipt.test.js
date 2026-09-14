@@ -34,14 +34,15 @@ test('runtime acceptance receipt binds deployment evidence to a safe holographic
     target: 'web-dashboard',
     objects: [{ id: 'node-1', kind: 'bus', x: 1, y: 2, z: 3 }],
   });
+  const scene = { ...planned.scene, snapshotId: 'snapshot-runtime-1' };
   const receipt = buildHolographicRuntimeAcceptanceReceipt({
     acceptance: acceptanceFixture(),
     serviceName: 'holographic-runtime',
     region: 'us-east1',
     envelope: planned.evidence,
-    scene: planned.scene,
-    snapshotId: planned.scene.snapshotId,
-    sceneId: planned.scene.sceneId,
+    scene,
+    snapshotId: 'snapshot-runtime-1',
+    sceneId: scene.sceneId,
     provenanceRef: 'prov-runtime-1',
   });
 
@@ -56,12 +57,13 @@ test('runtime acceptance receipt rejects tampered scene identity', () => {
     provenanceRef: 'prov-runtime-2',
     intent: 'inspect topology',
   });
+  const scene = { ...planned.scene, snapshotId: 'snapshot-runtime-2' };
   const receipt = buildHolographicRuntimeAcceptanceReceipt({
     acceptance: acceptanceFixture(),
     envelope: planned.evidence,
-    scene: planned.scene,
-    snapshotId: planned.scene.snapshotId,
-    sceneId: planned.scene.sceneId,
+    scene,
+    snapshotId: 'snapshot-runtime-2',
+    sceneId: scene.sceneId,
     provenanceRef: 'prov-runtime-2',
   });
   const tampered = { ...receipt, sceneId: 'scene-tampered' };
