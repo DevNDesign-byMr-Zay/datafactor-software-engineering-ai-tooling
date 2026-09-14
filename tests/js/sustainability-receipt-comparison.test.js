@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@jest/globals';
 import { createSustainabilityReceipt } from '../../src/sustainability/execution-receipt.js';
 import {
@@ -15,6 +16,30 @@ function receipt(overrides = {}) {
   });
 }
 
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonical(value[key])]),
+    );
+  }
+  return value;
+}
+
+function resign(comparison) {
+  const body = Object.fromEntries(
+    Object.entries(comparison).filter(([key]) => key !== 'comparisonFingerprint'),
+  );
+  return {
+    ...comparison,
+    comparisonFingerprint: createHash('sha256')
+      .update(JSON.stringify(canonical(body)), 'utf8')
+      .digest('hex'),
+  };
+}
+
 test('compares validated sustainability receipts without selecting a winner', () => {
   const baseline = receipt();
   const candidate = receipt({
@@ -22,9 +47,7 @@ test('compares validated sustainability receipts without selecting a winner', ()
     estimatedEnergyWh: 16,
     renewableRatio: 0.75,
   });
-
   const comparison = compareSustainabilityReceipts({ baseline, candidate });
-
   expect(validateSustainabilityComparison(comparison)).toBe(true);
   expect(comparison.sameWorkloadEvidence).toBe(true);
   expect(comparison.metrics).toEqual({
@@ -50,10 +73,8 @@ test('compares validated sustainability receipts without selecting a winner', ()
 test('comparison identity is deterministic for the same validated receipts', () => {
   const baseline = receipt();
   const candidate = receipt({ estimatedEnergyWh: 19 });
-
   const first = compareSustainabilityReceipts({ baseline, candidate });
   const second = compareSustainabilityReceipts({ baseline, candidate });
-
   expect(first.comparisonFingerprint).toBe(second.comparisonFingerprint);
   expect(Object.isFrozen(first)).toBe(true);
   expect(Object.isFrozen(first.metrics)).toBe(true);
@@ -65,7 +86,6 @@ test('comparison exposes workload-evidence differences without treating them as 
   const candidate = receipt({
     workload: { name: 'different-workload', model: 'SOLVÆR' },
   });
-
   const comparison = compareSustainabilityReceipts({ baseline, candidate });
   expect(comparison.sameWorkloadEvidence).toBe(false);
   expect(validateSustainabilityComparison(comparison)).toBe(true);
@@ -74,14 +94,12 @@ test('comparison exposes workload-evidence differences without treating them as 
 test('rejects tampered input receipts and tampered comparison authority', () => {
   const baseline = receipt();
   const candidate = receipt({ estimatedEnergyWh: 18 });
-
   expect(() =>
     compareSustainabilityReceipts({
       baseline: { ...baseline, estimatedEnergyWh: 999 },
       candidate,
     }),
   ).toThrow(/baseline sustainability receipt is invalid/);
-
   const comparison = compareSustainabilityReceipts({ baseline, candidate });
   expect(
     validateSustainabilityComparison({
@@ -95,4 +113,25 @@ test('rejects tampered input receipts and tampered comparison authority', () => 
       metrics: { ...comparison.metrics, estimatedEnergyDeltaWh: 99 },
     }),
   ).toBe(false);
+});
+
+test('fails closed on structurally malformed comparison records even when re-signed', () => {
+  const comparison = compareSustainabilityReceipts({
+    baseline: receipt(),
+    candidate: receipt({ estimatedEnergyWh: 18 }),
+  });
+  expect(
+    validateSustainabilityComparison(resign({ ...comparison, sameWorkloadEvidence: 'yes' })),
+  ).toBe(false);
+  expect(
+    validateSustainabilityComparison(
+      resign({
+        ...comparison,
+        metrics: { ...comparison.metrics, estimatedEnergyDirection: 'unchanged' },
+      }),
+    ),
+  ).toBe(false);
+  expect(validateSustainabilityComparison(resign({ ...comparison, preferred: 'candidate' }))).toBe(
+    false,
+  );
 });
