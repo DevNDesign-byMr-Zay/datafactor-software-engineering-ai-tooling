@@ -128,7 +128,9 @@ test('fails closed on structurally malformed comparison records even when re-sig
     candidate: receipt({ estimatedEnergyWh: 18 }),
   });
 
-  expect(validateSustainabilityComparison(resign({ ...comparison, sameWorkloadEvidence: 'yes' }))).toBe(false);
+  expect(
+    validateSustainabilityComparison(resign({ ...comparison, sameWorkloadEvidence: 'yes' })),
+  ).toBe(false);
   expect(
     validateSustainabilityComparison(
       resign({
@@ -137,5 +139,7 @@ test('fails closed on structurally malformed comparison records even when re-sig
       }),
     ),
   ).toBe(false);
-  expect(validateSustainabilityComparison(resign({ ...comparison, preferred: 'candidate' }))).toBe(false);
+  expect(validateSustainabilityComparison(resign({ ...comparison, preferred: 'candidate' }))).toBe(
+    false,
+  );
 });
