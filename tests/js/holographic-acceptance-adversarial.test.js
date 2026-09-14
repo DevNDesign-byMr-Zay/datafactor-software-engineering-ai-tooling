@@ -16,7 +16,10 @@ describe('holographic acceptance adversarial cases', () => {
   const envelope = planned.evidence;
 
   it('rejects a changed scene with the original fingerprint', () => {
-    const changed = { ...scene, nodes: [{ ...scene.nodes[0], position: { ...scene.nodes[0].position, z: 99 } }] };
+    const changed = {
+      ...scene,
+      nodes: [{ ...scene.nodes[0], position: { ...scene.nodes[0].position, z: 99 } }],
+    };
     const result = evaluateHolographicAcceptance({
       envelope,
       scene: changed,
