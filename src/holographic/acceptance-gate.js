@@ -2,7 +2,7 @@ import { validateHolographicProvenanceBinding } from './provenance-chain.js';
 import { verifyHolographicSceneFingerprint } from './scene-fingerprint.js';
 
 export function evaluateHolographicAcceptance({ envelope, scene, sceneFingerprint, snapshotId, sceneId, provenanceRef } = {}) {
-  const provenanceValid = validateHolographicProvenanceBinding({ envelope, snapshotId, sceneId, provenanceRef });
+  const provenanceValid = validateHolographicProvenanceBinding({ envelope, snapshotId, sceneId, provenanceRef, scene, sceneFingerprint });
   const fingerprintValid = verifyHolographicSceneFingerprint(scene, sceneFingerprint);
   const safety = scene?.safety ?? scene?.rendererContract ?? {};
   const safetyValid = safety.authoritative === false
