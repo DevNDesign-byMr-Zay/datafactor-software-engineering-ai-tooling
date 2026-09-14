@@ -88,7 +88,8 @@ export function validateSustainabilityComparisonReport(report, comparison) {
     const actualBody = Object.fromEntries(
       Object.entries(report).filter(([key]) => key !== 'reportFingerprint'),
     );
-    if (JSON.stringify(canonical(actualBody)) !== JSON.stringify(canonical(expectedBody))) return false;
+    if (JSON.stringify(canonical(actualBody)) !== JSON.stringify(canonical(expectedBody)))
+      return false;
     return report.reportFingerprint === fingerprint(expectedBody);
   } catch {
     return false;
