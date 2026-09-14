@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { expect, test } from '@jest/globals';
 import { buildHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
 import { createHolographicProvenanceBinding } from '../../src/holographic/provenance-chain.js';
 import { fingerprintHolographicScene } from '../../src/holographic/scene-fingerprint.js';
@@ -14,6 +13,7 @@ test('verifies scene fingerprint and provenance binding together', () => {
   };
   const envelope = buildHolographicEvidenceEnvelope({
     snapshotId: 'snapshot-verify',
+    sceneId: scene.sceneId,
     provenanceRef: 'prov-verify',
     payload: { metric: 42 },
   });
@@ -32,10 +32,10 @@ test('verifies scene fingerprint and provenance binding together', () => {
     sceneId: binding.sceneId,
     provenanceRef: binding.provenanceRef,
   });
-  assert.equal(result.valid, true);
-  assert.equal(result.bindingValid, true);
-  assert.equal(result.sceneFingerprintValid, true);
-  assert.equal(result.safety.physicalActuation, false);
+  expect(result.valid).toBe(true);
+  expect(result.bindingValid).toBe(true);
+  expect(result.sceneFingerprintValid).toBe(true);
+  expect(result.safety.physicalActuation).toBe(false);
 });
 
 test('rejects a changed scene while preserving provenance validity signal', () => {
@@ -47,6 +47,7 @@ test('rejects a changed scene while preserving provenance validity signal', () =
   };
   const envelope = buildHolographicEvidenceEnvelope({
     snapshotId: 'snapshot-change',
+    sceneId: scene.sceneId,
     provenanceRef: 'prov-change',
     payload: { metric: 42 },
   });
@@ -69,7 +70,7 @@ test('rejects a changed scene while preserving provenance validity signal', () =
     sceneId: binding.sceneId,
     provenanceRef: binding.provenanceRef,
   });
-  assert.equal(result.valid, false);
-  assert.equal(result.bindingValid, true);
-  assert.equal(result.sceneFingerprintValid, false);
+  expect(result.valid).toBe(false);
+  expect(result.bindingValid).toBe(true);
+  expect(result.sceneFingerprintValid).toBe(false);
 });
