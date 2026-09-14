@@ -80,11 +80,11 @@ export function validateSustainabilityComparison(comparison) {
     if (!/^[a-f0-9]{64}$/.test(comparison.comparisonFingerprint)) return false;
     if (comparison.interpretation !== 'observational-only') return false;
     if (
-      comparison.safety?.advisoryOnly !== true
-      || comparison.safety?.authoritative !== false
-      || comparison.safety?.schedulesWorkloads !== false
-      || comparison.safety?.deploysWorkloads !== false
-      || comparison.safety?.physicalActuation !== false
+      comparison.safety?.advisoryOnly !== true ||
+      comparison.safety?.authoritative !== false ||
+      comparison.safety?.schedulesWorkloads !== false ||
+      comparison.safety?.deploysWorkloads !== false ||
+      comparison.safety?.physicalActuation !== false
     ) {
       return false;
     }
