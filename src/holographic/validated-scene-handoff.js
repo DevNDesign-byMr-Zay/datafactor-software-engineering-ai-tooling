@@ -52,11 +52,7 @@ export function createValidatedHolographicSceneHandoff({
 }
 
 export function verifyValidatedHolographicSceneHandoff(handoff) {
-  if (
-    !handoff ||
-    typeof handoff !== 'object' ||
-    typeof handoff.handoffFingerprint !== 'string'
-  )
+  if (!handoff || typeof handoff !== 'object' || typeof handoff.handoffFingerprint !== 'string')
     return false;
   const body = Object.fromEntries(
     Object.entries(handoff).filter(([key]) => key !== 'handoffFingerprint'),
