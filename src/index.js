@@ -13,6 +13,7 @@ export * from './holographic/evidence-envelope.js';
 export * from './holographic/provenance-chain.js';
 export * from './holographic/scene-fingerprint.js';
 export * from './holographic/scene-planner.js';
+export * from './holographic/validated-scene-handoff.js';
 export * from './reliability/backend-config.js';
 export * from './runtime/application-runtime-acceptance.js';
 export * from './runtime/runtime-acceptance-decision.js';
