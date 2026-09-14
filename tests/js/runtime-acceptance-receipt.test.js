@@ -74,6 +74,26 @@ describe('runtime acceptance receipt', () => {
     });
   });
 
+  test('freezes the complete receipt so trusted evidence cannot drift after construction', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({ acceptance, region: 'us-central1' });
+
+    expect(Object.isFrozen(receipt)).toBe(true);
+    expect(Object.isFrozen(receipt.service)).toBe(true);
+    expect(Object.isFrozen(receipt.service.traffic)).toBe(true);
+    expect(Object.isFrozen(receipt.service.traffic[0])).toBe(true);
+    expect(Object.isFrozen(receipt.bootstrap)).toBe(true);
+    expect(Object.isFrozen(receipt.bootstrap.readiness)).toBe(true);
+    expect(Object.isFrozen(receipt.bootstrap.readiness[0])).toBe(true);
+    expect(Object.isFrozen(receipt.releaseEvidence)).toBe(true);
+    expect(() => {
+      receipt.service.latestReadyRevisionName = 'tampered-revision';
+    }).toThrow(TypeError);
+    expect(() => {
+      receipt.service.traffic.push({ revisionName: 'tampered' });
+    }).toThrow(TypeError);
+    expect(fingerprintRuntimeAcceptanceReceipt(receipt)).toMatch(/^[a-f0-9]{64}$/);
+  });
+
   test('rejects an acceptance result that is not successful', () => {
     expect(() => buildRuntimeAcceptanceReceipt({ acceptance: { accepted: false } })).toThrow(
       'acceptance must be marked accepted',
