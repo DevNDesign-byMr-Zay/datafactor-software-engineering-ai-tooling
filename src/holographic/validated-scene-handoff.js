@@ -14,6 +14,20 @@ function canonical(value) {
   return value;
 }
 
+function snapshot(value) {
+  if (Array.isArray(value)) return value.map(snapshot);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, snapshot(child)]));
+  }
+  return value;
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+}
+
 function fingerprintHandoff(value) {
   return createHash('sha256')
     .update(JSON.stringify(canonical(value)), 'utf8')
@@ -28,10 +42,11 @@ export function createValidatedHolographicSceneHandoff({
   sceneId,
   provenanceRef,
 } = {}) {
-  const sceneFingerprint = fingerprintHolographicScene(scene);
+  const capturedScene = deepFreeze(snapshot(scene));
+  const sceneFingerprint = fingerprintHolographicScene(capturedScene);
   const acceptance = evaluateHolographicAcceptance({
     envelope,
-    scene,
+    scene: capturedScene,
     sceneFingerprint,
     snapshotId,
     sceneId,
@@ -39,15 +54,14 @@ export function createValidatedHolographicSceneHandoff({
   });
   if (!acceptance.accepted) throw new TypeError('holographic scene failed acceptance gate');
   const body = {
-    scene,
+    scene: capturedScene,
     sceneFingerprint,
     acceptance,
-    safety: { authoritative: false, physicalActuation: false, advisoryOnly: true },
+    safety: Object.freeze({ authoritative: false, physicalActuation: false, advisoryOnly: true }),
   };
   return Object.freeze({
     ...body,
     handoffFingerprint: fingerprintHandoff(body),
-    safety: Object.freeze(body.safety),
   });
 }
 
