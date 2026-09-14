@@ -33,7 +33,7 @@ export function buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region 
 
   const traffic = normalizeTraffic(service.traffic);
 
-  return {
+  return deepFreeze({
     contractVersion: RECEIPT_VERSION,
     accepted: true,
     service: {
@@ -48,7 +48,7 @@ export function buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region 
       stage: requireNonEmptyString(release.stage, 'release.stage'),
       exitCode: normalizeExitCode(release.exitCode),
     },
-  };
+  });
 }
 
 export function serializeRuntimeAcceptanceReceipt(receipt) {
@@ -271,4 +271,10 @@ function assertAllowedKeys(value, allowedKeys, name) {
 
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const nested of Object.values(value)) deepFreeze(nested);
+  return Object.freeze(value);
 }
