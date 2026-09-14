@@ -29,9 +29,7 @@ function snapshotEvidence(value, name = 'workload', seen = new WeakSet()) {
   seen.add(value);
 
   if (Array.isArray(value)) {
-    const copy = value.map((item, index) =>
-      snapshotEvidence(item, `${name}[${index}]`, seen),
-    );
+    const copy = value.map((item, index) => snapshotEvidence(item, `${name}[${index}]`, seen));
     seen.delete(value);
     return copy;
   }
