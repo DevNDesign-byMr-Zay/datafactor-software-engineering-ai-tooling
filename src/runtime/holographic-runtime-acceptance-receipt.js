@@ -64,7 +64,9 @@ export function validateHolographicRuntimeAcceptanceReceipt(receipt) {
     if (receipt.safety?.authoritative !== false || receipt.safety?.physicalActuation !== false || receipt.safety?.advisoryOnly !== true) return false;
     if (receipt.holographicAcceptance?.accepted !== true) return false;
     if (receipt.runtimeReceiptFingerprint !== fingerprintRuntimeAcceptanceReceipt(receipt.runtimeReceipt)) return false;
-    const { receiptFingerprint: _receiptFingerprint, ...body } = receipt;
+    const body = Object.fromEntries(
+      Object.entries(receipt).filter(([key]) => key !== 'receiptFingerprint'),
+    );
     return receipt.receiptFingerprint === fingerprint(body);
   } catch {
     return false;
