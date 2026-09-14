@@ -1,14 +1,18 @@
 import { consumeRuntimeAcceptanceEvidence } from '../../src/runtime/runtime-acceptance-consumer.js';
 import { RUNTIME_ACCEPTANCE_DECISIONS } from '../../src/runtime/runtime-acceptance-decision.js';
 import { fingerprintRuntimeAcceptanceReceipt } from '../../src/runtime/runtime-acceptance-receipt.js';
-import { buildRuntimeAcceptanceConsumerFixture } from './fixtures/runtime-acceptance-consumer.js';
+import { runtimeAcceptanceConsumerFixture } from './fixtures/runtime-acceptance-consumer.js';
 
 describe('runtime acceptance evidence consumer', () => {
   test('classifies a verified first trusted receipt as changed', () => {
-    const receipt = buildRuntimeAcceptanceConsumerFixture();
-    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
+    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(
+      runtimeAcceptanceConsumerFixture,
+    );
 
-    const result = consumeRuntimeAcceptanceEvidence({ receipt, receiptFingerprint });
+    const result = consumeRuntimeAcceptanceEvidence({
+      receipt: runtimeAcceptanceConsumerFixture,
+      receiptFingerprint,
+    });
 
     expect(result).toEqual({
       status: RUNTIME_ACCEPTANCE_DECISIONS.CHANGED,
@@ -19,11 +23,12 @@ describe('runtime acceptance evidence consumer', () => {
   });
 
   test('classifies the same verified receipt as unchanged', () => {
-    const receipt = buildRuntimeAcceptanceConsumerFixture();
-    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
+    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(
+      runtimeAcceptanceConsumerFixture,
+    );
 
     const result = consumeRuntimeAcceptanceEvidence({
-      receipt,
+      receipt: runtimeAcceptanceConsumerFixture,
       receiptFingerprint,
       previousFingerprint: receiptFingerprint,
     });
@@ -33,15 +38,16 @@ describe('runtime acceptance evidence consumer', () => {
   });
 
   test('rejects a tampered current fingerprint before comparison', () => {
-    const receipt = buildRuntimeAcceptanceConsumerFixture();
-    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(receipt);
+    const receiptFingerprint = fingerprintRuntimeAcceptanceReceipt(
+      runtimeAcceptanceConsumerFixture,
+    );
     const tamperedFingerprint = `${receiptFingerprint.slice(0, -1)}${
       receiptFingerprint.endsWith('0') ? '1' : '0'
     }`;
 
     expect(
       consumeRuntimeAcceptanceEvidence({
-        receipt,
+        receipt: runtimeAcceptanceConsumerFixture,
         receiptFingerprint: tamperedFingerprint,
         previousFingerprint: receiptFingerprint,
       }),
@@ -66,7 +72,7 @@ describe('runtime acceptance evidence consumer', () => {
 
     expect(
       consumeRuntimeAcceptanceEvidence({
-        receipt: { ...buildRuntimeAcceptanceConsumerFixture(), stdout: 'provider output' },
+        receipt: { ...runtimeAcceptanceConsumerFixture, stdout: 'provider output' },
         receiptFingerprint: 'a'.repeat(64),
       }),
     ).toEqual({
