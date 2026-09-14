@@ -135,7 +135,8 @@ export function validateSustainabilityComparison(comparison) {
     ]) {
       if (!Number.isFinite(value)) return false;
     }
-    if (comparison.metrics.durationDirection !== direction(comparison.metrics.durationDeltaMs)) return false;
+    if (comparison.metrics.durationDirection !== direction(comparison.metrics.durationDeltaMs))
+      return false;
     if (
       comparison.metrics.estimatedEnergyDirection !==
       direction(comparison.metrics.estimatedEnergyDeltaWh)
@@ -143,7 +144,8 @@ export function validateSustainabilityComparison(comparison) {
       return false;
     }
     if (
-      comparison.metrics.renewableRatioDirection !== direction(comparison.metrics.renewableRatioDelta)
+      comparison.metrics.renewableRatioDirection !==
+      direction(comparison.metrics.renewableRatioDelta)
     ) {
       return false;
     }
