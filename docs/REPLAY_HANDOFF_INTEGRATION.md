@@ -13,3 +13,15 @@ The verifier owns evidence integrity. The replay layer owns temporal comparison.
 ## Review handoff
 
 Auren, Mr. Zay, and VÆLON can review this seam independently of the implementation. If the acceptance boundary remains unchanged, prefer adding a focused regression over adding a new runtime abstraction.
+
+## Sequence invariant
+
+For a trusted receipt `A`, the canonical decision sequence is:
+
+```text
+A accepted + no prior fingerprint -> changed
+rejection + fingerprint(A)       -> rejected
+A accepted + fingerprint(A)      -> unchanged
+```
+
+The rejection has no fingerprint value and therefore cannot replace the trusted state used by the following accepted observation.
