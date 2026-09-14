@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
+import { expect, test } from '@jest/globals';
 import {
   buildHolographicEvidenceEnvelope,
   validateHolographicEvidenceEnvelope,
@@ -14,7 +13,7 @@ test('holographic evidence envelope validates its fingerprint', () => {
     payload: { nodes: [{ id: 'node-1', x: 1, y: 2, z: 3 }] },
   });
 
-  assert.equal(validateHolographicEvidenceEnvelope(envelope), true);
+  expect(validateHolographicEvidenceEnvelope(envelope)).toBe(true);
 });
 
 test('holographic evidence envelope rejects payload, identity, and safety tampering', () => {
@@ -24,7 +23,14 @@ test('holographic evidence envelope rejects payload, identity, and safety tamper
     provenanceRef: 'provenance-1',
   });
 
-  assert.equal(validateHolographicEvidenceEnvelope({ ...envelope, payload: { changed: true } }), false);
-  assert.equal(validateHolographicEvidenceEnvelope({ ...envelope, sceneId: 'scene-2' }), false);
-  assert.equal(validateHolographicEvidenceEnvelope({ ...envelope, safety: { ...envelope.safety, authoritative: true } }), false);
+  expect(
+    validateHolographicEvidenceEnvelope({ ...envelope, payload: { changed: true } }),
+  ).toBe(false);
+  expect(validateHolographicEvidenceEnvelope({ ...envelope, sceneId: 'scene-2' })).toBe(false);
+  expect(
+    validateHolographicEvidenceEnvelope({
+      ...envelope,
+      safety: { ...envelope.safety, authoritative: true },
+    }),
+  ).toBe(false);
 });
