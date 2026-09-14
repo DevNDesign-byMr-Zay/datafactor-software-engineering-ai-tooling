@@ -35,4 +35,14 @@ describe('runtime acceptance sequence contract', () => {
       RUNTIME_ACCEPTANCE_DECISIONS.UNCHANGED,
     );
   });
+
+  test('classifies a changed accepted receipt against trusted state', () => {
+    const trustedReceipt = buildRuntimeAcceptanceReceipt({ acceptance: acceptance('A') });
+    const changedReceipt = buildRuntimeAcceptanceReceipt({ acceptance: acceptance('B') });
+    const fingerprint = fingerprintRuntimeAcceptanceReceipt(trustedReceipt);
+
+    expect(decideRuntimeAcceptanceChange(changedReceipt, fingerprint)).toBe(
+      RUNTIME_ACCEPTANCE_DECISIONS.CHANGED,
+    );
+  });
 });
