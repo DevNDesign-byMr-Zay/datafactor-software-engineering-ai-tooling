@@ -19,6 +19,10 @@ export * from './runtime/application-runtime-acceptance.js';
 export * from './runtime/runtime-acceptance-decision.js';
 export * from './runtime/runtime-acceptance-receipt.js';
 export * from './runtime/holographic-runtime-acceptance-receipt.js';
+export * from './sustainability/efficiency-score.js';
+export * from './sustainability/sustainability-metadata.js';
+export * from './sustainability/evidence-bundle.js';
+export * from './sustainability/receipt-status.js';
 export * from './workflows/cloud-file-workflow.js';
 
 export { createAdaptiveDurationProgressController } from '../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
