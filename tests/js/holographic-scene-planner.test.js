@@ -15,6 +15,8 @@ describe('holographic scene planner', () => {
     });
 
     expect(result.scene.sceneId).toBe('scene-snapshot-001');
+    expect(result.scene.snapshotId).toBe('snapshot-001');
+    expect(result.evidence.snapshotId).toBe(result.scene.snapshotId);
     expect(result.scene.nodes[0].position).toEqual({ x: 1, y: 2, z: 6 });
     expect(result.scene.safety.physicalActuation).toBe(false);
     expect(validateHolographicEvidenceEnvelope(result.evidence)).toBe(true);
