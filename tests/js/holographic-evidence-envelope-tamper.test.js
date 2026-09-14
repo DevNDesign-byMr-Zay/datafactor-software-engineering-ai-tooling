@@ -23,9 +23,9 @@ test('holographic evidence envelope rejects payload, identity, and safety tamper
     provenanceRef: 'provenance-1',
   });
 
-  expect(
-    validateHolographicEvidenceEnvelope({ ...envelope, payload: { changed: true } }),
-  ).toBe(false);
+  expect(validateHolographicEvidenceEnvelope({ ...envelope, payload: { changed: true } })).toBe(
+    false,
+  );
   expect(validateHolographicEvidenceEnvelope({ ...envelope, sceneId: 'scene-2' })).toBe(false);
   expect(
     validateHolographicEvidenceEnvelope({
