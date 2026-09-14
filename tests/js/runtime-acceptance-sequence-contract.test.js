@@ -45,4 +45,14 @@ describe('runtime acceptance sequence contract', () => {
       RUNTIME_ACCEPTANCE_DECISIONS.CHANGED,
     );
   });
+
+  test('fails closed when trusted state is malformed', () => {
+    const trustedReceipt = buildRuntimeAcceptanceReceipt({ acceptance: acceptance('A') });
+    const fingerprint = fingerprintRuntimeAcceptanceReceipt(trustedReceipt);
+
+    expect(() => decideRuntimeAcceptanceChange(trustedReceipt, `${fingerprint}x`)).not.toThrow();
+    expect(decideRuntimeAcceptanceChange(trustedReceipt, `${fingerprint}x`)).toBe(
+      RUNTIME_ACCEPTANCE_DECISIONS.CHANGED,
+    );
+  });
 });
