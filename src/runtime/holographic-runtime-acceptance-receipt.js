@@ -21,7 +21,9 @@ function canonical(value) {
 }
 
 function fingerprint(value) {
-  return createHash('sha256').update(JSON.stringify(canonical(value)), 'utf8').digest('hex');
+  return createHash('sha256')
+    .update(JSON.stringify(canonical(value)), 'utf8')
+    .digest('hex');
 }
 
 /** Bind deployment acceptance to a validated holographic scene without adding execution authority. */
