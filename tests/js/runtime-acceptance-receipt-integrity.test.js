@@ -35,7 +35,16 @@ test('runtime acceptance receipt fingerprint is deterministic and detects eviden
   expect(fingerprintRuntimeAcceptanceReceipt(first)).toBe(
     fingerprintRuntimeAcceptanceReceipt(second),
   );
+
+  const changedAcceptance = structuredClone(acceptance);
+  changedAcceptance.release.service.latestReadyRevisionName = 'rev-2';
+  changedAcceptance.release.service.traffic = [{ revisionName: 'rev-2', percent: 100 }];
+  const changed = buildRuntimeAcceptanceReceipt({
+    acceptance: changedAcceptance,
+    serviceName: 'holo-runtime',
+    region: 'us-east1',
+  });
   expect(fingerprintRuntimeAcceptanceReceipt(first)).not.toBe(
-    fingerprintRuntimeAcceptanceReceipt({ ...first, accepted: false }),
+    fingerprintRuntimeAcceptanceReceipt(changed),
   );
 });
