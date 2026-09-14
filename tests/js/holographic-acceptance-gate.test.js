@@ -4,14 +4,21 @@ import { fingerprintHolographicScene } from '../../src/holographic/scene-fingerp
 import { evaluateHolographicAcceptance } from '../../src/holographic/acceptance-gate.js';
 
 test('acceptance gate requires provenance, fingerprint, and non-actuating safety', () => {
-  const planned = planHolographicScene({ snapshotId: 'snapshot-1', provenanceRef: 'prov-1', intent: 'inspect topology', target: 'web-dashboard', objects: [{ id: 'node-1', kind: 'bus', x: 1, y: 2, z: 3 }] });
-  const sceneFingerprint = fingerprintHolographicScene(planned.scene);
+  const planned = planHolographicScene({
+    snapshotId: 'snapshot-1',
+    provenanceRef: 'prov-1',
+    intent: 'inspect topology',
+    target: 'web-dashboard',
+    objects: [{ id: 'node-1', kind: 'bus', x: 1, y: 2, z: 3 }],
+  });
+  const scene = { ...planned.scene, snapshotId: 'snapshot-1' };
+  const sceneFingerprint = fingerprintHolographicScene(scene);
   const accepted = evaluateHolographicAcceptance({
     envelope: planned.evidence,
-    scene: planned.scene,
+    scene,
     sceneFingerprint,
     snapshotId: 'snapshot-1',
-    sceneId: planned.scene.sceneId,
+    sceneId: scene.sceneId,
     provenanceRef: 'prov-1',
   });
   expect(accepted.accepted).toBe(true);
@@ -20,8 +27,16 @@ test('acceptance gate requires provenance, fingerprint, and non-actuating safety
 });
 
 test('acceptance gate rejects an authoritative scene', () => {
-  const planned = planHolographicScene({ snapshotId: 'snapshot-2', provenanceRef: 'prov-2', intent: 'inspect topology' });
-  const scene = { ...planned.scene, safety: { ...planned.scene.safety, authoritative: true } };
+  const planned = planHolographicScene({
+    snapshotId: 'snapshot-2',
+    provenanceRef: 'prov-2',
+    intent: 'inspect topology',
+  });
+  const scene = {
+    ...planned.scene,
+    snapshotId: 'snapshot-2',
+    safety: { ...planned.scene.safety, authoritative: true },
+  };
   const accepted = evaluateHolographicAcceptance({
     envelope: planned.evidence,
     scene,
