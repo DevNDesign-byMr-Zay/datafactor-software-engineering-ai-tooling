@@ -56,9 +56,7 @@ test('zero-duration zero-energy evidence has a defined zero average power observ
 
 test('rejects impossible positive-energy zero-duration derivation', () => {
   expect(() =>
-    createSustainabilityEfficiencyObservation(
-      receipt({ durationMs: 0, estimatedEnergyWh: 1 }),
-    ),
+    createSustainabilityEfficiencyObservation(receipt({ durationMs: 0, estimatedEnergyWh: 1 })),
   ).toThrow(/average power cannot be derived/);
 });
 
