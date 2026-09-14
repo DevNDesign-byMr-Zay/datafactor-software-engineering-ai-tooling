@@ -38,7 +38,7 @@ test('verifies scene fingerprint and provenance binding together', () => {
   expect(result.safety.physicalActuation).toBe(false);
 });
 
-test('rejects a changed scene while preserving provenance validity signal', () => {
+test('rejects a changed scene through both provenance binding and fingerprint validation', () => {
   const scene = {
     sceneVersion: 2,
     sceneId: 'scene-change',
@@ -71,6 +71,6 @@ test('rejects a changed scene while preserving provenance validity signal', () =
     provenanceRef: binding.provenanceRef,
   });
   expect(result.valid).toBe(false);
-  expect(result.bindingValid).toBe(true);
+  expect(result.bindingValid).toBe(false);
   expect(result.sceneFingerprintValid).toBe(false);
 });

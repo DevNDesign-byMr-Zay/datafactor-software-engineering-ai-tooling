@@ -14,12 +14,14 @@ export function verifyHolographicEvidence({
     snapshotId,
     sceneId,
     provenanceRef,
+    scene,
+    sceneFingerprint: fingerprint,
   });
   const sceneFingerprintValid = verifyHolographicSceneFingerprint(scene, fingerprint);
   return Object.freeze({
     valid: binding && sceneFingerprintValid,
     bindingValid: binding,
     sceneFingerprintValid,
-    safety: { advisoryOnly: true, authoritative: false, physicalActuation: false },
+    safety: Object.freeze({ advisoryOnly: true, authoritative: false, physicalActuation: false }),
   });
 }
