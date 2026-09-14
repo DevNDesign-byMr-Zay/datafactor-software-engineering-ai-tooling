@@ -6,12 +6,18 @@ import {
 
 test('runtime acceptance receipt fingerprint is deterministic and detects evidence changes', () => {
   const acceptance = {
-    bootstrap: { readiness: [{ name: 'health', status: 'ready' }] },
+    bootstrap: {
+      stage: 'readiness',
+      readiness: [{ name: 'health', status: 'ready' }],
+    },
     release: {
+      stage: 'revision-inspect',
+      exitCode: 0,
       service: {
         serviceName: 'holo-runtime',
         latestReadyRevisionName: 'rev-1',
         traffic: [{ revisionName: 'rev-1', percent: 100 }],
+        url: 'https://holo-runtime.example.run.app',
       },
     },
     accepted: true,
