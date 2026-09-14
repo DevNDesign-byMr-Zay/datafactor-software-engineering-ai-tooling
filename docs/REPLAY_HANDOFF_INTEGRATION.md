@@ -9,3 +9,7 @@ This note defines the smallest integration seam between current-evidence verific
 5. Leave rejected evidence unable to overwrite the last trusted fingerprint.
 
 The verifier owns evidence integrity. The replay layer owns temporal comparison. Neither layer owns deployment, rollback, retry, notification, or escalation policy.
+
+## Review handoff
+
+Auren, Mr. Zay, and VÆLON can review this seam independently of the implementation. If the acceptance boundary remains unchanged, prefer adding a focused regression over adding a new runtime abstraction.
