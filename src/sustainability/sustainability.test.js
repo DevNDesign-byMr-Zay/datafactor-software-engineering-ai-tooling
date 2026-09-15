@@ -110,4 +110,46 @@ describe('sustainability contracts', () => {
       }),
     ).toThrow(/circular references/);
   });
+
+  test('rejects hidden, symbolic, accessor, and sparse evidence without evaluating getters', () => {
+    const metadata = { source: 'runtime' };
+    const efficiency = { energyPerSecondWh: 2 };
+
+    const hidden = { estimatedEnergyWh: 4 };
+    Object.defineProperty(hidden, 'secret', { value: 'hidden', enumerable: false });
+    expect(() =>
+      createSustainabilityEvidenceBundle({ receipt: hidden, metadata, efficiency }),
+    ).toThrow(/enumerable evidence/);
+
+    const symbolic = { estimatedEnergyWh: 4 };
+    symbolic[Symbol('hidden')] = 'secret';
+    expect(() =>
+      createSustainabilityEvidenceBundle({ receipt: symbolic, metadata, efficiency }),
+    ).toThrow(/symbol properties/);
+
+    let getterReads = 0;
+    const accessor = { estimatedEnergyWh: 4 };
+    Object.defineProperty(accessor, 'dynamic', {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return 'unsafe';
+      },
+    });
+    expect(() =>
+      createSustainabilityEvidenceBundle({ receipt: accessor, metadata, efficiency }),
+    ).toThrow(/must not use accessors/);
+    expect(getterReads).toBe(0);
+
+    const sparse = [];
+    sparse.length = 2;
+    sparse[1] = 'present';
+    expect(() =>
+      createSustainabilityEvidenceBundle({
+        receipt: { estimatedEnergyWh: 4 },
+        metadata: { source: 'runtime', sparse },
+        efficiency,
+      }),
+    ).toThrow(/sparse arrays/);
+  });
 });
