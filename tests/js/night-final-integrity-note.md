@@ -1,0 +1,1 @@
+Night handoff note: the final integrity regression batch is intentionally limited to evidence-bound, observational validation. No execution, scheduling, deployment, or authority is introduced. CI is pending for commit 5bedfdfc852518d0f96703acb4723873e3dcf9d5.
