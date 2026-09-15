@@ -159,4 +159,66 @@ describe('runtime acceptance receipt', () => {
     expect(serialized).not.toContain('sensitive detail');
     expect(serialized).not.toContain('must-not-leak');
   });
+
+  test('preserves explicit nulls at the receipt boundary', () => {
+    const receipt = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        release: {
+          ...acceptance.release,
+          service: {
+            ...acceptance.release.service,
+            url: null,
+            traffic: [
+              {
+                revisionName: 'roary-api-00042-abc',
+                percent: 100,
+                tag: null,
+                url: null,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(receipt.service.url).toBeNull();
+    expect(receipt.service.traffic[0].tag).toBeNull();
+    expect(receipt.service.traffic[0].url).toBeNull();
+    expect(() => serializeRuntimeAcceptanceReceipt(receipt)).not.toThrow();
+  });
+
+  test('preserves null release evidence without weakening the fingerprint contract', () => {
+    const first = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        release: {
+          ...acceptance.release,
+          command: null,
+          args: null,
+          stdout: null,
+        },
+      },
+      region: 'us-central1',
+    });
+    const second = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        release: {
+          ...acceptance.release,
+          command: null,
+          args: null,
+          stdout: null,
+        },
+      },
+      region: 'us-central1',
+    });
+
+    expect(serializeRuntimeAcceptanceReceipt(first)).toBe(
+      serializeRuntimeAcceptanceReceipt(second),
+    );
+    expect(fingerprintRuntimeAcceptanceReceipt(first)).toBe(
+      fingerprintRuntimeAcceptanceReceipt(second),
+    );
+  });
 });
