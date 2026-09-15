@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
 import { validateSustainabilityEvidencePackage } from './evidence-package.js';
-import { compareSustainabilityReceipts, validateSustainabilityComparison } from './receipt-comparison.js';
+import {
+  compareSustainabilityReceipts,
+  validateSustainabilityComparison,
+} from './receipt-comparison.js';
 
 const PACKAGE_COMPARISON_VERSION = 1;
 
@@ -98,7 +101,8 @@ export function validateSustainabilityPackageComparison(result, { baseline, cand
     return (
       result.baselinePackageFingerprint === expected.baselinePackageFingerprint &&
       result.candidatePackageFingerprint === expected.candidatePackageFingerprint &&
-      JSON.stringify(canonical(result.comparison)) === JSON.stringify(canonical(expected.comparison)) &&
+      JSON.stringify(canonical(result.comparison)) ===
+        JSON.stringify(canonical(expected.comparison)) &&
       JSON.stringify(canonical(result.safety)) === JSON.stringify(canonical(expected.safety)) &&
       result.packageComparisonFingerprint === expected.packageComparisonFingerprint
     );
