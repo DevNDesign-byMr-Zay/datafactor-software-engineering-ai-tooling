@@ -1,4 +1,4 @@
-function snapshotEvidence(value, path = 'evidence', seen = new WeakSet()) {
+export function snapshotSustainabilityEvidence(value, path = 'evidence', seen = new WeakSet()) {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) throw new TypeError(`${path} numbers must be finite`);
@@ -11,7 +11,11 @@ function snapshotEvidence(value, path = 'evidence', seen = new WeakSet()) {
   seen.add(value);
 
   if (Array.isArray(value)) {
-    return Object.freeze(value.map((item, index) => snapshotEvidence(item, `${path}[${index}]`, seen)));
+    const copy = Object.freeze(
+      value.map((item, index) => snapshotSustainabilityEvidence(item, `${path}[${index}]`, seen)),
+    );
+    seen.delete(value);
+    return copy;
   }
 
   const prototype = Object.getPrototypeOf(value);
@@ -21,8 +25,9 @@ function snapshotEvidence(value, path = 'evidence', seen = new WeakSet()) {
 
   const copy = {};
   for (const [key, nested] of Object.entries(value)) {
-    copy[key] = snapshotEvidence(nested, `${path}.${key}`, seen);
+    copy[key] = snapshotSustainabilityEvidence(nested, `${path}.${key}`, seen);
   }
+  seen.delete(value);
   return Object.freeze(copy);
 }
 
@@ -32,9 +37,9 @@ export function createSustainabilityEvidenceBundle({ receipt, metadata, efficien
   }
 
   return Object.freeze({
-    receipt: snapshotEvidence(receipt, 'receipt'),
-    metadata: snapshotEvidence(metadata, 'metadata'),
-    efficiency: snapshotEvidence(efficiency, 'efficiency'),
+    receipt: snapshotSustainabilityEvidence(receipt, 'receipt'),
+    metadata: snapshotSustainabilityEvidence(metadata, 'metadata'),
+    efficiency: snapshotSustainabilityEvidence(efficiency, 'efficiency'),
     version: 1,
   });
 }
