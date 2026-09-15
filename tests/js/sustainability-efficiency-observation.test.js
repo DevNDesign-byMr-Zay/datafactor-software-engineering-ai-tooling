@@ -132,7 +132,6 @@ test('rejects hidden, symbolic, accessor-backed, and malformed observation evide
   const symbolic = { ...observation };
   symbolic[Symbol('hidden')] = true;
   expect(validateSustainabilityEfficiencyObservation(symbolic, source)).toBe(false);
-
   const metrics = { ...observation.metrics };
   Object.defineProperty(metrics, 'averagePower', {
     enumerable: true,
@@ -141,9 +140,9 @@ test('rejects hidden, symbolic, accessor-backed, and malformed observation evide
       return observation.metrics.averagePower;
     },
   });
-  expect(
-    validateSustainabilityEfficiencyObservation({ ...observation, metrics }, source),
-  ).toBe(false);
+  expect(validateSustainabilityEfficiencyObservation({ ...observation, metrics }, source)).toBe(
+    false,
+  );
   expect(getterReads).toBe(0);
 
   expect(
