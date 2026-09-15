@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
 import { evaluateHolographicAcceptance } from './acceptance-gate.js';
-import { validateHolographicProvenanceBinding } from './provenance-chain.js';
 import { fingerprintHolographicScene } from './scene-fingerprint.js';
 
 function canonical(value) {
