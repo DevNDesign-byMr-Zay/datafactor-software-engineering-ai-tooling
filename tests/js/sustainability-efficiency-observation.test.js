@@ -108,3 +108,60 @@ test('observation identity is deterministic and recursively immutable', () => {
   expect(first).not.toHaveProperty('winner');
   expect(first).not.toHaveProperty('preferred');
 });
+
+test('rejects hidden, symbolic, accessor-backed, and malformed observation evidence', () => {
+  const source = receipt();
+  const observation = createSustainabilityEfficiencyObservation(source);
+  let getterReads = 0;
+
+  const accessor = { ...observation };
+  Object.defineProperty(accessor, 'observationFingerprint', {
+    enumerable: true,
+    get() {
+      getterReads += 1;
+      return observation.observationFingerprint;
+    },
+  });
+  expect(validateSustainabilityEfficiencyObservation(accessor, source)).toBe(false);
+  expect(getterReads).toBe(0);
+
+  const hidden = { ...observation };
+  Object.defineProperty(hidden, 'hidden', { enumerable: false, value: true });
+  expect(validateSustainabilityEfficiencyObservation(hidden, source)).toBe(false);
+
+  const symbolic = { ...observation };
+  symbolic[Symbol('hidden')] = true;
+  expect(validateSustainabilityEfficiencyObservation(symbolic, source)).toBe(false);
+
+  const metrics = { ...observation.metrics };
+  Object.defineProperty(metrics, 'averagePower', {
+    enumerable: true,
+    get() {
+      getterReads += 1;
+      return observation.metrics.averagePower;
+    },
+  });
+  expect(
+    validateSustainabilityEfficiencyObservation({ ...observation, metrics }, source),
+  ).toBe(false);
+  expect(getterReads).toBe(0);
+
+  expect(
+    validateSustainabilityEfficiencyObservation(
+      { ...observation, metrics: { ...observation.metrics, extra: true } },
+      source,
+    ),
+  ).toBe(false);
+  expect(
+    validateSustainabilityEfficiencyObservation(
+      {
+        ...observation,
+        metrics: {
+          ...observation.metrics,
+          averagePower: { ...observation.metrics.averagePower, value: Number.POSITIVE_INFINITY },
+        },
+      },
+      source,
+    ),
+  ).toBe(false);
+});
