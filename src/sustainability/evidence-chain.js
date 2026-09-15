@@ -125,7 +125,10 @@ export function validateSustainabilityEvidenceChain(chain, { receipt, observatio
     if (!values) return false;
     if (values.version !== EVIDENCE_CHAIN_VERSION) return false;
     if (values.interpretation !== 'evidence-chain-only') return false;
-    if (typeof values.chainFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(values.chainFingerprint)) {
+    if (
+      typeof values.chainFingerprint !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(values.chainFingerprint)
+    ) {
       return false;
     }
 
