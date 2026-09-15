@@ -1,4 +1,7 @@
-import { createSustainabilityEvidenceBundle, validateSustainabilityEvidenceBundle } from '../../src/sustainability/evidence-bundle.js';
+import {
+  createSustainabilityEvidenceBundle,
+  validateSustainabilityEvidenceBundle,
+} from '../../src/sustainability/evidence-bundle.js';
 import { createSustainabilityEfficiencyObservation } from '../../src/sustainability/efficiency-observation.js';
 import { createSustainabilityReceipt } from '../../src/sustainability/execution-receipt.js';
 
