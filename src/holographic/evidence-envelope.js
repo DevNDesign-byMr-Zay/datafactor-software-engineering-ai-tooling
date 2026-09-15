@@ -1,7 +1,13 @@
 import { createHash } from 'node:crypto';
 
 const ENVELOPE_VERSION = 2;
-const TARGETS = Object.freeze(['holo-mat', 'projector', 'volumetric-3d', 'ar-vr', 'web-dashboard']);
+const TARGETS = Object.freeze([
+  'holo-mat',
+  'projector',
+  'volumetric-3d',
+  'ar-vr',
+  'web-dashboard',
+]);
 const ENVELOPE_KEYS = Object.freeze([
   'envelopeVersion',
   'snapshotId',
@@ -14,7 +20,11 @@ const ENVELOPE_KEYS = Object.freeze([
   'fingerprint',
   'safety',
 ]);
-const SAFETY_KEYS = Object.freeze(['authoritative', 'physicalActuation', 'provenanceRequired']);
+const SAFETY_KEYS = Object.freeze([
+  'authoritative',
+  'physicalActuation',
+  'provenanceRequired',
+]);
 
 function text(value, name) {
   if (typeof value !== 'string' || !value.trim())
