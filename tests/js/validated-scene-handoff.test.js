@@ -26,11 +26,7 @@ describe('validated holographic scene handoff', () => {
   it('emits a verifiable immutable advisory handoff', () => {
     const handoff = build();
     expect(verifyValidatedHolographicSceneHandoff(handoff)).toBe(true);
-    expect(handoff.safety).toEqual({
-      authoritative: false,
-      physicalActuation: false,
-      advisoryOnly: true,
-    });
+    expect(handoff.safety).toEqual({ authoritative: false, physicalActuation: false, advisoryOnly: true });
     expect(handoff.handoffFingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(handoff.acceptance).toMatchObject({
       accepted: true,
@@ -41,25 +37,25 @@ describe('validated holographic scene handoff', () => {
       physicalActuation: false,
       advisoryOnly: true,
     });
+    expect(handoff.provenanceBinding).toMatchObject({
+      snapshotId: 'snap-handoff-1',
+      sceneId: handoff.scene.sceneId,
+      provenanceRef: 'prov-handoff-1',
+    });
   });
 
   it('rejects scene mutation after handoff construction', () => {
     const handoff = build();
     const tampered = {
       ...handoff,
-      scene: {
-        ...handoff.scene,
-        nodes: [{ ...handoff.scene.nodes[0], position: { x: 99, y: 2, z: 3 } }],
-      },
+      scene: { ...handoff.scene, nodes: [{ ...handoff.scene.nodes[0], position: { x: 99, y: 2, z: 3 } }] },
     };
     expect(verifyValidatedHolographicSceneHandoff(tampered)).toBe(false);
   });
 
   it('rejects forged fingerprints and unsafe authority flags', () => {
     const handoff = build();
-    expect(
-      verifyValidatedHolographicSceneHandoff({ ...handoff, handoffFingerprint: '0'.repeat(64) }),
-    ).toBe(false);
+    expect(verifyValidatedHolographicSceneHandoff({ ...handoff, handoffFingerprint: '0'.repeat(64) })).toBe(false);
     expect(
       verifyValidatedHolographicSceneHandoff({
         ...handoff,
@@ -67,10 +63,7 @@ describe('validated holographic scene handoff', () => {
       }),
     ).toBe(false);
     expect(
-      verifyValidatedHolographicSceneHandoff({
-        ...handoff,
-        acceptance: { ...handoff.acceptance, accepted: false },
-      }),
+      verifyValidatedHolographicSceneHandoff({ ...handoff, acceptance: { ...handoff.acceptance, accepted: false } }),
     ).toBe(false);
   });
 
@@ -90,11 +83,25 @@ describe('validated holographic scene handoff', () => {
 
   it('rejects acceptance objects with non-boolean integrity fields', () => {
     const handoff = build();
-    const withoutFingerprint = {
-      ...handoff,
-      acceptance: { ...handoff.acceptance, safetyValid: 'true' },
-    };
+    const withoutFingerprint = { ...handoff, acceptance: { ...handoff.acceptance, safetyValid: 'true' } };
     delete withoutFingerprint.handoffFingerprint;
     expect(verifyValidatedHolographicSceneHandoff(withoutFingerprint)).toBe(false);
+  });
+
+  it('rejects provenance binding drift even when the outer fingerprint is recomputed', () => {
+    const handoff = build();
+    const forged = {
+      ...handoff,
+      provenanceBinding: { ...handoff.provenanceBinding, provenanceRef: 'prov-handoff-attacker' },
+    };
+    delete forged.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(forged)).toBe(false);
+  });
+
+  it('rejects binding metadata that is not structurally complete', () => {
+    const handoff = build();
+    const forged = { ...handoff, provenanceBinding: { ...handoff.provenanceBinding, sceneId: 42 } };
+    delete forged.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(forged)).toBe(false);
   });
 });
