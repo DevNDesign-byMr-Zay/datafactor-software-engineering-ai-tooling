@@ -20,6 +20,52 @@ function fingerprint(value) {
     .digest('hex');
 }
 
+function snapshotArray(value, path, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+
+  const allowedKeys = new Set(['length']);
+  const copy = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const key = String(index);
+    allowedKeys.add(key);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) throw new TypeError(`${path} must not contain sparse arrays`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}[${index}] must not use accessors`);
+    }
+    copy.push(snapshotSustainabilityEvidence(descriptor.value, `${path}[${index}]`, seen));
+  }
+
+  const unexpectedKey = Reflect.ownKeys(value).find(
+    (key) => typeof key !== 'string' || !allowedKeys.has(key),
+  );
+  if (unexpectedKey !== undefined) {
+    throw new TypeError(`${path} arrays must not contain extra properties`);
+  }
+
+  return Object.freeze(copy);
+}
+
+function snapshotPlainObject(value, path, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable) {
+      throw new TypeError(`${path}.${key} must be enumerable evidence`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}.${key} must not use accessors`);
+    }
+    copy[key] = snapshotSustainabilityEvidence(descriptor.value, `${path}.${key}`, seen);
+  }
+  return Object.freeze(copy);
+}
+
 function snapshotSustainabilityEvidence(value, path = 'evidence', seen = new WeakSet()) {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
   if (typeof value === 'number') {
@@ -32,25 +78,19 @@ function snapshotSustainabilityEvidence(value, path = 'evidence', seen = new Wea
   if (seen.has(value)) throw new TypeError(`${path} must not contain circular references`);
   seen.add(value);
 
+  let copy;
   if (Array.isArray(value)) {
-    const copy = Object.freeze(
-      value.map((item, index) => snapshotSustainabilityEvidence(item, `${path}[${index}]`, seen)),
-    );
-    seen.delete(value);
-    return copy;
+    copy = snapshotArray(value, path, seen);
+  } else {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new TypeError(`${path} must use plain objects`);
+    }
+    copy = snapshotPlainObject(value, path, seen);
   }
 
-  const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) {
-    throw new TypeError(`${path} must use plain objects`);
-  }
-
-  const copy = {};
-  for (const [key, nested] of Object.entries(value)) {
-    copy[key] = snapshotSustainabilityEvidence(nested, `${path}.${key}`, seen);
-  }
   seen.delete(value);
-  return Object.freeze(copy);
+  return copy;
 }
 
 function bundleBody({ receipt, metadata, efficiency }) {
