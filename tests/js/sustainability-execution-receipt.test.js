@@ -177,7 +177,9 @@ test('receipt creation rejects deceptive top-level descriptors without evaluatin
     estimatedEnergyWh: 2.5,
   };
   Object.defineProperty(hidden, 'sourceAuthority', { value: true, enumerable: false });
-  expect(() => createSustainabilityReceipt(hidden)).toThrow(/unsupported field|enumerable evidence/);
+  expect(() => createSustainabilityReceipt(hidden)).toThrow(
+    /unsupported field|enumerable evidence/,
+  );
 
   const symbolic = {
     workload: { name: 'scene-analysis' },
