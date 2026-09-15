@@ -62,9 +62,7 @@ describe('sustainability evidence package', () => {
       ),
     ).toBe(true);
     expect(validateSustainabilityEvidenceBundle(evidencePackage.bundle)).toBe(true);
-    expect(
-      validateSustainabilityEvidenceChain(evidencePackage.chain, evidencePackage),
-    ).toBe(true);
+    expect(validateSustainabilityEvidenceChain(evidencePackage.chain, evidencePackage)).toBe(true);
     expect(
       validateSustainabilityEvidenceExport(evidencePackage.evidenceExport, evidencePackage),
     ).toBe(true);
