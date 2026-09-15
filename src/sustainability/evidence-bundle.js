@@ -63,7 +63,7 @@ function snapshotPlainObject(value, path, seen) {
   const copy = {};
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
     if (!descriptor.enumerable) {
-      throw new TypeError(`${path}.${key} must be enumerable evidence`);
+      throw new TypeError(`${path} must not contain non-enumerable properties`);
     }
     if ('get' in descriptor || 'set' in descriptor) {
       throw new TypeError(`${path}.${key} must not use accessors`);
