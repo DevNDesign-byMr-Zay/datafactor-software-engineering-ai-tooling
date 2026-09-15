@@ -1,4 +1,8 @@
-export function createSustainabilityMetadata({ energyWh, renewableRatio = 0, source = 'runtime' } = {}) {
+export function createSustainabilityMetadata({
+  energyWh,
+  renewableRatio = 0,
+  source = 'runtime',
+} = {}) {
   if (!Number.isFinite(energyWh) || energyWh < 0) {
     throw new TypeError('energyWh must be a non-negative finite number');
   }
