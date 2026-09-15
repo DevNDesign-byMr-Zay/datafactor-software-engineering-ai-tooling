@@ -152,4 +152,39 @@ describe('sustainability contracts', () => {
       }),
     ).toThrow(/sparse arrays/);
   });
+
+  test('validator rejects deceptive top-level bundle fields without invoking accessors', () => {
+    const bundle = createSustainabilityEvidenceBundle({
+      receipt: { estimatedEnergyWh: 4 },
+      metadata: { source: 'runtime' },
+      efficiency: { energyPerSecondWh: 2 },
+    });
+
+    let getterReads = 0;
+    const accessorBundle = { ...bundle };
+    Object.defineProperty(accessorBundle, 'bundleFingerprint', {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return bundle.bundleFingerprint;
+      },
+    });
+    expect(validateSustainabilityEvidenceBundle(accessorBundle)).toBe(false);
+    expect(getterReads).toBe(0);
+
+    const symbolicBundle = { ...bundle };
+    symbolicBundle[Symbol('hidden')] = true;
+    expect(validateSustainabilityEvidenceBundle(symbolicBundle)).toBe(false);
+
+    const hiddenBundle = { ...bundle };
+    Object.defineProperty(hiddenBundle, 'metadata', {
+      value: bundle.metadata,
+      enumerable: false,
+      configurable: true,
+    });
+    expect(validateSustainabilityEvidenceBundle(hiddenBundle)).toBe(false);
+
+    const nullPrototypeBundle = Object.assign(Object.create(null), bundle);
+    expect(validateSustainabilityEvidenceBundle(nullPrototypeBundle)).toBe(false);
+  });
 });
