@@ -2,6 +2,14 @@ import { createHash } from 'node:crypto';
 import { validateSustainabilityReceipt } from './execution-receipt.js';
 
 const OBSERVATION_VERSION = 1;
+const OBSERVATION_KEYS = Object.freeze([
+  'version',
+  'sourceReceiptFingerprint',
+  'metrics',
+  'interpretation',
+  'safety',
+  'observationFingerprint',
+]);
 
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -25,6 +33,39 @@ function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const child of Object.values(value)) deepFreeze(child);
   return Object.freeze(value);
+}
+
+function snapshotObservationEvidence(value, path = 'observation', seen = new WeakSet()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new TypeError(`${path} numbers must be finite`);
+    return value;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${path} must contain plain JSON-compatible evidence`);
+  }
+  if (Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new TypeError(`${path} must use plain objects`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+  if (seen.has(value)) throw new TypeError(`${path} must not contain circular references`);
+  seen.add(value);
+
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable) {
+      throw new TypeError(`${path}.${key} must be enumerable evidence`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}.${key} must not use accessors`);
+    }
+    copy[key] = snapshotObservationEvidence(descriptor.value, `${path}.${key}`, seen);
+  }
+
+  seen.delete(value);
+  return copy;
 }
 
 function observationBody(receipt) {
@@ -79,15 +120,18 @@ export function createSustainabilityEfficiencyObservation(receipt) {
 export function validateSustainabilityEfficiencyObservation(observation, receipt) {
   try {
     if (!observation || typeof observation !== 'object' || Array.isArray(observation)) return false;
-    if (!/^[a-f0-9]{64}$/.test(observation.observationFingerprint)) return false;
+    const normalized = snapshotObservationEvidence(observation);
+    const keys = Object.keys(normalized);
+    if (keys.length !== OBSERVATION_KEYS.length) return false;
+    if (keys.some((key) => !OBSERVATION_KEYS.includes(key))) return false;
+    if (!/^[a-f0-9]{64}$/.test(normalized.observationFingerprint)) return false;
+
     const expectedBody = observationBody(receipt);
-    const actualBody = Object.fromEntries(
-      Object.entries(observation).filter(([key]) => key !== 'observationFingerprint'),
-    );
+    const { observationFingerprint, ...actualBody } = normalized;
     if (JSON.stringify(canonical(actualBody)) !== JSON.stringify(canonical(expectedBody))) {
       return false;
     }
-    return observation.observationFingerprint === fingerprint(expectedBody);
+    return observationFingerprint === fingerprint(expectedBody);
   } catch {
     return false;
   }
