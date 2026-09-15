@@ -6,6 +6,12 @@ import {
   createSustainabilityEfficiencyObservation,
   validateSustainabilityEfficiencyObservation,
 } from '../src/sustainability/efficiency-observation.js';
+import { calculateSustainabilityEfficiency } from '../src/sustainability/efficiency-score.js';
+import { createSustainabilityMetadata } from '../src/sustainability/sustainability-metadata.js';
+import {
+  createSustainabilityEvidenceBundle,
+  validateSustainabilityEvidenceBundle,
+} from '../src/sustainability/evidence-bundle.js';
 
 const receipt = createSustainabilityReceipt({
   workload: {
@@ -37,6 +43,24 @@ if (
   throw new Error('sustainability observation crossed its evidence-only safety boundary');
 }
 
+const metadata = createSustainabilityMetadata({
+  energyWh: receipt.estimatedEnergyWh,
+  renewableRatio: receipt.renewableRatio,
+  source: 'reproducible-demo',
+});
+const efficiency = calculateSustainabilityEfficiency({
+  durationMs: receipt.durationMs,
+  estimatedEnergyWh: receipt.estimatedEnergyWh,
+  renewableRatio: receipt.renewableRatio,
+});
+const bundle = createSustainabilityEvidenceBundle({ receipt, metadata, efficiency });
+if (!validateSustainabilityEvidenceBundle(bundle)) {
+  throw new Error('sustainability evidence bundle failed validation');
+}
+if (bundle.receipt.receiptFingerprint !== receipt.receiptFingerprint) {
+  throw new Error('sustainability evidence bundle lost receipt lineage');
+}
+
 const summary = {
   receiptVersion: receipt.version,
   receiptFingerprint: receipt.receiptFingerprint,
@@ -52,6 +76,11 @@ const summary = {
   interpretation: observation.interpretation,
   advisoryOnly: observation.safety.advisoryOnly,
   authoritative: observation.safety.authoritative,
+  bundleVersion: bundle.version,
+  bundleFingerprint: bundle.bundleFingerprint,
+  bundleSource: bundle.metadata.source,
+  energyPerSecondWh: bundle.efficiency.energyPerSecondWh,
+  renewableAdjustedEnergyWh: bundle.efficiency.renewableAdjustedEnergyWh,
 };
 
 process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
