@@ -66,12 +66,22 @@ export function createValidatedHolographicSceneHandoff({
 }
 
 export function verifyValidatedHolographicSceneHandoff(handoff) {
-  if (!handoff || typeof handoff !== 'object' || typeof handoff.handoffFingerprint !== 'string') return false;
-  const body = Object.fromEntries(Object.entries(handoff).filter(([key]) => key !== 'handoffFingerprint'));
+  if (!handoff || typeof handoff !== 'object' || typeof handoff.handoffFingerprint !== 'string')
+    return false;
+  const body = Object.fromEntries(
+    Object.entries(handoff).filter(([key]) => key !== 'handoffFingerprint'),
+  );
   if (!/^[a-f0-9]{64}$/.test(handoff.handoffFingerprint)) return false;
-  if (!body.scene || typeof body.scene !== 'object' || typeof body.sceneFingerprint !== 'string') return false;
+  if (!body.scene || typeof body.scene !== 'object' || typeof body.sceneFingerprint !== 'string')
+    return false;
   if (!/^[a-f0-9]{64}$/.test(body.sceneFingerprint)) return false;
   if (fingerprintHolographicScene(body.scene) !== body.sceneFingerprint) return false;
-  if (!body.safety || body.safety.authoritative !== false || body.safety.physicalActuation !== false || body.safety.advisoryOnly !== true) return false;
+  if (
+    !body.safety ||
+    body.safety.authoritative !== false ||
+    body.safety.physicalActuation !== false ||
+    body.safety.advisoryOnly !== true
+  )
+    return false;
   return handoff.handoffFingerprint === fingerprintHandoff(body);
 }
