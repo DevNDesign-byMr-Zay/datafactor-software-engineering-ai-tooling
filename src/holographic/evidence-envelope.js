@@ -4,8 +4,14 @@ const ENVELOPE_VERSION = 2;
 const TARGETS = Object.freeze(['holo-mat', 'projector', 'volumetric-3d', 'ar-vr', 'web-dashboard']);
 
 function object(value, name) {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.getPrototypeOf(value) !== Object.prototype)
+  if (
+    !value ||
+    typeof value !== 'object' ||
+    Array.isArray(value) ||
+    Object.getPrototypeOf(value) !== Object.prototype
+  ) {
     throw new TypeError(`${name} must be a plain object`);
+  }
   return value;
 }
 function text(value, name) {
@@ -68,16 +74,36 @@ export function validateHolographicEvidenceEnvelope(envelope) {
     if (
       !Object.hasOwn(value, 'envelopeVersion') ||
       value.envelopeVersion !== ENVELOPE_VERSION ||
-      !Object.hasOwn(value, 'snapshotId') || typeof value.snapshotId !== 'string' || !value.snapshotId.trim() ||
-      !Object.hasOwn(value, 'sceneId') || typeof value.sceneId !== 'string' || !value.sceneId.trim() ||
-      !Object.hasOwn(value, 'provenanceRef') || typeof value.provenanceRef !== 'string' || !value.provenanceRef.trim() ||
-      !Object.hasOwn(value, 'target') || !TARGETS.includes(value.target) ||
-      !Object.hasOwn(value, 'renderer') || typeof value.renderer !== 'string' || !value.renderer.trim() ||
-      !Object.hasOwn(value, 'advisoryOnly') || value.advisoryOnly !== true ||
-      !Object.hasOwn(value, 'safety') || !value.safety || typeof value.safety !== 'object' || Array.isArray(value.safety) || Object.getPrototypeOf(value.safety) !== Object.prototype ||
-      !Object.hasOwn(value.safety, 'authoritative') || !Object.hasOwn(value.safety, 'physicalActuation') || !Object.hasOwn(value.safety, 'provenanceRequired') ||
-      value.safety.authoritative !== false || value.safety.physicalActuation !== false || value.safety.provenanceRequired !== true ||
-      !Object.hasOwn(value, 'fingerprint') || typeof value.fingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(value.fingerprint)
+      !Object.hasOwn(value, 'snapshotId') ||
+      typeof value.snapshotId !== 'string' ||
+      !value.snapshotId.trim() ||
+      !Object.hasOwn(value, 'sceneId') ||
+      typeof value.sceneId !== 'string' ||
+      !value.sceneId.trim() ||
+      !Object.hasOwn(value, 'provenanceRef') ||
+      typeof value.provenanceRef !== 'string' ||
+      !value.provenanceRef.trim() ||
+      !Object.hasOwn(value, 'target') ||
+      !TARGETS.includes(value.target) ||
+      !Object.hasOwn(value, 'renderer') ||
+      typeof value.renderer !== 'string' ||
+      !value.renderer.trim() ||
+      !Object.hasOwn(value, 'advisoryOnly') ||
+      value.advisoryOnly !== true ||
+      !Object.hasOwn(value, 'safety') ||
+      !value.safety ||
+      typeof value.safety !== 'object' ||
+      Array.isArray(value.safety) ||
+      Object.getPrototypeOf(value.safety) !== Object.prototype ||
+      !Object.hasOwn(value.safety, 'authoritative') ||
+      !Object.hasOwn(value.safety, 'physicalActuation') ||
+      !Object.hasOwn(value.safety, 'provenanceRequired') ||
+      value.safety.authoritative !== false ||
+      value.safety.physicalActuation !== false ||
+      value.safety.provenanceRequired !== true ||
+      !Object.hasOwn(value, 'fingerprint') ||
+      typeof value.fingerprint !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(value.fingerprint)
     )
       return false;
     const unsigned = {

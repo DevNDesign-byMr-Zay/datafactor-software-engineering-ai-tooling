@@ -1,13 +1,9 @@
 import {
-  createSustainabilityReceipt,
-  validateSustainabilityReceipt,
-} from '../src/sustainability/execution-receipt.js';
-import {
-  createSustainabilityEfficiencyObservation,
-  validateSustainabilityEfficiencyObservation,
-} from '../src/sustainability/efficiency-observation.js';
+  createSustainabilityEvidencePackageFromExecution,
+  validateSustainabilityEvidencePackage,
+} from '../src/index.js';
 
-const receipt = createSustainabilityReceipt({
+const evidencePackage = createSustainabilityEvidencePackageFromExecution({
   workload: {
     name: 'demo-scene-analysis',
     model: 'SOLVÆR',
@@ -16,42 +12,21 @@ const receipt = createSustainabilityReceipt({
   durationMs: 3_600_000,
   estimatedEnergyWh: 20,
   renewableRatio: 0.25,
+  source: 'reproducible-demo',
 });
 
-if (!validateSustainabilityReceipt(receipt)) {
-  throw new Error('sustainability receipt failed validation');
-}
-
-const observation = createSustainabilityEfficiencyObservation(receipt);
-if (!validateSustainabilityEfficiencyObservation(observation, receipt)) {
-  throw new Error('sustainability efficiency observation failed validation');
+if (!validateSustainabilityEvidencePackage(evidencePackage)) {
+  throw new Error('sustainability evidence package failed validation');
 }
 if (
-  observation.safety.advisoryOnly !== true ||
-  observation.safety.authoritative !== false ||
-  observation.safety.recommendsAction !== false ||
-  observation.safety.schedulesWorkloads !== false ||
-  observation.safety.deploysWorkloads !== false ||
-  observation.safety.physicalActuation !== false
+  evidencePackage.safety.advisoryOnly !== true ||
+  evidencePackage.safety.authoritative !== false ||
+  evidencePackage.safety.recommendsAction !== false ||
+  evidencePackage.safety.schedulesWorkloads !== false ||
+  evidencePackage.safety.deploysWorkloads !== false ||
+  evidencePackage.safety.physicalActuation !== false
 ) {
-  throw new Error('sustainability observation crossed its evidence-only safety boundary');
+  throw new Error('sustainability package crossed its evidence-only safety boundary');
 }
 
-const summary = {
-  receiptVersion: receipt.version,
-  receiptFingerprint: receipt.receiptFingerprint,
-  workload: receipt.workload,
-  durationMs: receipt.durationMs,
-  estimatedEnergyWh: receipt.estimatedEnergyWh,
-  reportedRenewableRatio: receipt.renewableRatio,
-  observationVersion: observation.version,
-  observationFingerprint: observation.observationFingerprint,
-  sourceReceiptFingerprint: observation.sourceReceiptFingerprint,
-  averagePower: observation.metrics.averagePower,
-  estimatedNonRenewableShareEnergy: observation.metrics.estimatedNonRenewableShareEnergy,
-  interpretation: observation.interpretation,
-  advisoryOnly: observation.safety.advisoryOnly,
-  authoritative: observation.safety.authoritative,
-};
-
-process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify(evidencePackage, null, 2)}\n`);
