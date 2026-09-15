@@ -98,3 +98,78 @@ test('fails closed when sustainability evidence is tampered', () => {
     }),
   ).toBe(false);
 });
+
+test('rejects deceptive workload evidence without evaluating getters', () => {
+  let getterReads = 0;
+  const accessorWorkload = { name: 'scene-analysis' };
+  Object.defineProperty(accessorWorkload, 'dynamic', {
+    enumerable: true,
+    get() {
+      getterReads += 1;
+      return 'unsafe';
+    },
+  });
+
+  expect(() =>
+    createSustainabilityReceipt({
+      workload: accessorWorkload,
+      durationMs: 100,
+      estimatedEnergyWh: 2.5,
+      renewableRatio: 0.5,
+    }),
+  ).toThrow(/must not use accessors/);
+  expect(getterReads).toBe(0);
+
+  const hiddenWorkload = { name: 'scene-analysis' };
+  Object.defineProperty(hiddenWorkload, 'secret', { value: true, enumerable: false });
+  expect(() =>
+    createSustainabilityReceipt({
+      workload: hiddenWorkload,
+      durationMs: 100,
+      estimatedEnergyWh: 2.5,
+      renewableRatio: 0.5,
+    }),
+  ).toThrow(/enumerable evidence/);
+
+  const symbolicWorkload = { name: 'scene-analysis' };
+  symbolicWorkload[Symbol('hidden')] = true;
+  expect(() =>
+    createSustainabilityReceipt({
+      workload: symbolicWorkload,
+      durationMs: 100,
+      estimatedEnergyWh: 2.5,
+      renewableRatio: 0.5,
+    }),
+  ).toThrow(/symbol properties/);
+});
+
+test('receipt validator rejects deceptive descriptors without evaluating getters', () => {
+  const receipt = createSustainabilityReceipt({
+    workload: { name: 'scene-analysis' },
+    durationMs: 100,
+    estimatedEnergyWh: 2.5,
+    renewableRatio: 0.5,
+  });
+
+  let getterReads = 0;
+  const accessorReceipt = { ...receipt };
+  Object.defineProperty(accessorReceipt, 'receiptFingerprint', {
+    enumerable: true,
+    get() {
+      getterReads += 1;
+      return receipt.receiptFingerprint;
+    },
+  });
+  expect(validateSustainabilityReceipt(accessorReceipt)).toBe(false);
+  expect(getterReads).toBe(0);
+
+  const extraReceipt = { ...receipt, unexpected: true };
+  expect(validateSustainabilityReceipt(extraReceipt)).toBe(false);
+
+  const symbolicReceipt = { ...receipt };
+  symbolicReceipt[Symbol('hidden')] = true;
+  expect(validateSustainabilityReceipt(symbolicReceipt)).toBe(false);
+
+  const nullPrototypeReceipt = Object.assign(Object.create(null), receipt);
+  expect(validateSustainabilityReceipt(nullPrototypeReceipt)).toBe(false);
+});
