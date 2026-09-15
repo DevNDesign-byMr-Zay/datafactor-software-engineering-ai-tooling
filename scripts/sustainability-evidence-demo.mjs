@@ -12,6 +12,14 @@ import {
   createSustainabilityEvidenceBundle,
   validateSustainabilityEvidenceBundle,
 } from '../src/sustainability/evidence-bundle.js';
+import {
+  createSustainabilityEvidenceChain,
+  validateSustainabilityEvidenceChain,
+} from '../src/sustainability/evidence-chain.js';
+import {
+  createSustainabilityEvidenceExport,
+  validateSustainabilityEvidenceExport,
+} from '../src/sustainability/evidence-export.js';
 
 const receipt = createSustainabilityReceipt({
   workload: {
@@ -57,30 +65,16 @@ const bundle = createSustainabilityEvidenceBundle({ receipt, metadata, efficienc
 if (!validateSustainabilityEvidenceBundle(bundle)) {
   throw new Error('sustainability evidence bundle failed validation');
 }
-if (bundle.receipt.receiptFingerprint !== receipt.receiptFingerprint) {
-  throw new Error('sustainability evidence bundle lost receipt lineage');
+
+const artifacts = { receipt, observation, bundle };
+const chain = createSustainabilityEvidenceChain(artifacts);
+if (!validateSustainabilityEvidenceChain(chain, artifacts)) {
+  throw new Error('sustainability evidence chain failed validation');
 }
 
-const summary = {
-  receiptVersion: receipt.version,
-  receiptFingerprint: receipt.receiptFingerprint,
-  workload: receipt.workload,
-  durationMs: receipt.durationMs,
-  estimatedEnergyWh: receipt.estimatedEnergyWh,
-  reportedRenewableRatio: receipt.renewableRatio,
-  observationVersion: observation.version,
-  observationFingerprint: observation.observationFingerprint,
-  sourceReceiptFingerprint: observation.sourceReceiptFingerprint,
-  averagePower: observation.metrics.averagePower,
-  estimatedNonRenewableShareEnergy: observation.metrics.estimatedNonRenewableShareEnergy,
-  interpretation: observation.interpretation,
-  advisoryOnly: observation.safety.advisoryOnly,
-  authoritative: observation.safety.authoritative,
-  bundleVersion: bundle.version,
-  bundleFingerprint: bundle.bundleFingerprint,
-  bundleSource: bundle.metadata.source,
-  energyPerSecondWh: bundle.efficiency.energyPerSecondWh,
-  renewableAdjustedEnergyWh: bundle.efficiency.renewableAdjustedEnergyWh,
-};
+const evidenceExport = createSustainabilityEvidenceExport({ ...artifacts, chain });
+if (!validateSustainabilityEvidenceExport(evidenceExport, { ...artifacts, chain })) {
+  throw new Error('sustainability evidence export failed validation');
+}
 
-process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify(evidenceExport, null, 2)}\n`);
