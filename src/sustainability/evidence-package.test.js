@@ -164,9 +164,9 @@ describe('sustainability evidence package', () => {
     expect(() => createSustainabilityEvidencePackage(deceptive)).toThrow(/must not use accessors/);
     expect(getterReads).toBe(0);
 
-    expect(() =>
-      createSustainabilityEvidencePackage({ ...artifacts, unexpected: true }),
-    ).toThrow(/unsupported field/);
+    expect(() => createSustainabilityEvidencePackage({ ...artifacts, unexpected: true })).toThrow(
+      /unsupported field/,
+    );
 
     const symbolic = { ...artifacts };
     symbolic[Symbol('authority')] = true;
@@ -204,7 +204,9 @@ describe('sustainability evidence package', () => {
     const inherited = Object.create({ durationMs: 1_800_000 });
     inherited.workload = { name: 'package-test' };
     inherited.estimatedEnergyWh = 12;
-    expect(() => createSustainabilityEvidencePackageFromExecution(inherited)).toThrow(/plain object/);
+    expect(() => createSustainabilityEvidencePackageFromExecution(inherited)).toThrow(
+      /plain object/,
+    );
   });
 
   test('one-shot package creation keeps optional defaults deterministic', () => {
