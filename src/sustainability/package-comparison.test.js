@@ -128,6 +128,57 @@ describe('sustainability package comparison', () => {
     ).toBe(false);
   });
 
+  test('rejects deceptive top-level descriptors without executing getters', () => {
+    const baseline = createPackage('baseline', {
+      durationMs: 2000,
+      estimatedEnergyWh: 10,
+      renewableRatio: 0.25,
+    });
+    const candidate = createPackage('candidate', {
+      durationMs: 1500,
+      estimatedEnergyWh: 8,
+      renewableRatio: 0.5,
+    });
+    const result = compareSustainabilityEvidencePackages({ baseline, candidate });
+    let getterCalls = 0;
+
+    const deceptive = { ...result };
+    Object.defineProperty(deceptive, 'comparison', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return result.comparison;
+      },
+    });
+
+    expect(validateSustainabilityPackageComparison(deceptive, { baseline, candidate })).toBe(false);
+    expect(getterCalls).toBe(0);
+  });
+
+  test('rejects hidden and symbol fields around an otherwise valid comparison', () => {
+    const baseline = createPackage('baseline', {
+      durationMs: 2000,
+      estimatedEnergyWh: 10,
+      renewableRatio: 0.25,
+    });
+    const candidate = createPackage('candidate', {
+      durationMs: 1500,
+      estimatedEnergyWh: 8,
+      renewableRatio: 0.5,
+    });
+    const result = compareSustainabilityEvidencePackages({ baseline, candidate });
+
+    const hidden = { ...result };
+    Object.defineProperty(hidden, 'shadowAuthority', {
+      enumerable: false,
+      value: true,
+    });
+    expect(validateSustainabilityPackageComparison(hidden, { baseline, candidate })).toBe(false);
+
+    const symbolic = { ...result, [Symbol('shadow')]: true };
+    expect(validateSustainabilityPackageComparison(symbolic, { baseline, candidate })).toBe(false);
+  });
+
   test('refuses loose or tampered package inputs before comparing receipts', () => {
     const baseline = createPackage('baseline', {
       durationMs: 2000,
