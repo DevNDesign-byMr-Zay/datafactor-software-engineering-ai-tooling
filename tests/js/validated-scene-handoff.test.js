@@ -32,6 +32,15 @@ describe('validated holographic scene handoff', () => {
       advisoryOnly: true,
     });
     expect(handoff.handoffFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(handoff.acceptance).toMatchObject({
+      accepted: true,
+      provenanceValid: true,
+      fingerprintValid: true,
+      safetyValid: true,
+      authoritative: false,
+      physicalActuation: false,
+      advisoryOnly: true,
+    });
   });
 
   it('rejects scene mutation after handoff construction', () => {
@@ -55,6 +64,12 @@ describe('validated holographic scene handoff', () => {
       verifyValidatedHolographicSceneHandoff({
         ...handoff,
         safety: { authoritative: true, physicalActuation: false, advisoryOnly: true },
+      }),
+    ).toBe(false);
+    expect(
+      verifyValidatedHolographicSceneHandoff({
+        ...handoff,
+        acceptance: { ...handoff.acceptance, accepted: false },
       }),
     ).toBe(false);
   });
