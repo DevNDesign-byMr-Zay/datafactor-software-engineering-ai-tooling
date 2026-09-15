@@ -61,4 +61,10 @@ describe('runtime acceptance consumer decision', () => {
       'receipt must be an object',
     );
   });
+
+  test('rejects arrays as consumer input', () => {
+    expect(() => decideRuntimeAcceptanceChange([], undefined)).toThrow(
+      'receipt must be an object',
+    );
+  });
 });
