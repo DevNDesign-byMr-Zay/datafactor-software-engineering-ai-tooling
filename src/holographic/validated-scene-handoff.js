@@ -134,8 +134,7 @@ export function verifyValidatedHolographicSceneHandoff(handoff, { envelope = nul
     typeof binding.provenanceRef !== 'string'
   )
     return false;
-  if (!body.provenanceCommitment || !/^[a-f0-9]{64}$/.test(body.provenanceCommitment))
-    return false;
+  if (!body.provenanceCommitment || !/^[a-f0-9]{64}$/.test(body.provenanceCommitment)) return false;
   if (body.provenanceCommitment !== fingerprintProvenanceBinding(binding)) return false;
   if (body.scene.snapshotId !== binding.snapshotId || body.scene.sceneId !== binding.sceneId)
     return false;
