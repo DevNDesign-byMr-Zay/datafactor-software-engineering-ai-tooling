@@ -155,6 +155,96 @@ describe('sustainability package comparison', () => {
     expect(getterCalls).toBe(0);
   });
 
+  test('rejects deceptive nested comparison descriptors without executing getters', () => {
+    const baseline = createPackage('baseline', {
+      durationMs: 2000,
+      estimatedEnergyWh: 10,
+      renewableRatio: 0.25,
+    });
+    const candidate = createPackage('candidate', {
+      durationMs: 1500,
+      estimatedEnergyWh: 8,
+      renewableRatio: 0.5,
+    });
+    const result = compareSustainabilityEvidencePackages({ baseline, candidate });
+    let getterCalls = 0;
+
+    const deceptiveMetrics = { ...result.comparison.metrics };
+    Object.defineProperty(deceptiveMetrics, 'durationDeltaMs', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return result.comparison.metrics.durationDeltaMs;
+      },
+    });
+    const deceptiveComparison = {
+      ...result.comparison,
+      metrics: deceptiveMetrics,
+    };
+
+    expect(
+      validateSustainabilityPackageComparison(
+        { ...result, comparison: deceptiveComparison },
+        { baseline, candidate },
+      ),
+    ).toBe(false);
+    expect(getterCalls).toBe(0);
+  });
+
+  test('rejects hidden, symbolic, and alternate-prototype nested evidence', () => {
+    const baseline = createPackage('baseline', {
+      durationMs: 2000,
+      estimatedEnergyWh: 10,
+      renewableRatio: 0.25,
+    });
+    const candidate = createPackage('candidate', {
+      durationMs: 1500,
+      estimatedEnergyWh: 8,
+      renewableRatio: 0.5,
+    });
+    const result = compareSustainabilityEvidencePackages({ baseline, candidate });
+
+    const hiddenSafety = { ...result.comparison.safety };
+    Object.defineProperty(hiddenSafety, 'shadowAuthority', {
+      enumerable: false,
+      value: true,
+    });
+    expect(
+      validateSustainabilityPackageComparison(
+        {
+          ...result,
+          comparison: { ...result.comparison, safety: hiddenSafety },
+        },
+        { baseline, candidate },
+      ),
+    ).toBe(false);
+
+    const symbolicMetrics = {
+      ...result.comparison.metrics,
+      [Symbol('shadow')]: true,
+    };
+    expect(
+      validateSustainabilityPackageComparison(
+        {
+          ...result,
+          comparison: { ...result.comparison, metrics: symbolicMetrics },
+        },
+        { baseline, candidate },
+      ),
+    ).toBe(false);
+
+    const alternatePrototype = Object.assign(
+      Object.create({ inheritedAuthority: true }),
+      result.comparison,
+    );
+    expect(
+      validateSustainabilityPackageComparison(
+        { ...result, comparison: alternatePrototype },
+        { baseline, candidate },
+      ),
+    ).toBe(false);
+  });
+
   test('rejects hidden and symbol fields around an otherwise valid comparison', () => {
     const baseline = createPackage('baseline', {
       durationMs: 2000,
