@@ -2,23 +2,96 @@ import { createHash } from 'node:crypto';
 
 const ENVELOPE_VERSION = 2;
 const TARGETS = Object.freeze(['holo-mat', 'projector', 'volumetric-3d', 'ar-vr', 'web-dashboard']);
+const ENVELOPE_KEYS = Object.freeze([
+  'envelopeVersion',
+  'snapshotId',
+  'sceneId',
+  'provenanceRef',
+  'target',
+  'renderer',
+  'payload',
+  'advisoryOnly',
+  'fingerprint',
+  'safety',
+]);
+const SAFETY_KEYS = Object.freeze(['authoritative', 'physicalActuation', 'provenanceRequired']);
 
-function object(value, name) {
-  if (
-    !value ||
-    typeof value !== 'object' ||
-    Array.isArray(value) ||
-    Object.getPrototypeOf(value) !== Object.prototype
-  ) {
-    throw new TypeError(`${name} must be a plain object`);
-  }
-  return value;
-}
 function text(value, name) {
   if (typeof value !== 'string' || !value.trim())
     throw new TypeError(`${name} must be a non-empty string`);
   return value.trim();
 }
+
+function snapshotArray(value, path, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+  const allowedKeys = new Set(['length']);
+  const copy = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const key = String(index);
+    allowedKeys.add(key);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) throw new TypeError(`${path} must not contain sparse arrays`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}[${index}] must not use accessors`);
+    }
+    copy.push(snapshotEvidence(descriptor.value, `${path}[${index}]`, seen));
+  }
+  if (Reflect.ownKeys(value).some((key) => typeof key !== 'string' || !allowedKeys.has(key))) {
+    throw new TypeError(`${path} arrays must not contain extra properties`);
+  }
+  return copy;
+}
+
+function snapshotObject(value, path, seen) {
+  if (Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new TypeError(`${path} must use plain objects`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable) throw new TypeError(`${path}.${key} must be enumerable evidence`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}.${key} must not use accessors`);
+    }
+    copy[key] = snapshotEvidence(descriptor.value, `${path}.${key}`, seen);
+  }
+  return copy;
+}
+
+function snapshotEvidence(value, path = 'envelope', seen = new WeakSet()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new TypeError(`${path} numbers must be finite`);
+    return value;
+  }
+  if (!value || typeof value !== 'object') {
+    throw new TypeError(`${path} must contain JSON-compatible evidence`);
+  }
+  if (seen.has(value)) throw new TypeError(`${path} must not contain circular references`);
+  seen.add(value);
+  const copy = Array.isArray(value)
+    ? snapshotArray(value, path, seen)
+    : snapshotObject(value, path, seen);
+  seen.delete(value);
+  return copy;
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  for (const child of Object.values(value)) deepFreeze(child);
+  return Object.freeze(value);
+}
+
+function hasExactKeys(value, expectedKeys) {
+  const keys = Object.keys(value).sort();
+  const expected = [...expectedKeys].sort();
+  return keys.length === expected.length && keys.every((key, index) => key === expected[index]);
+}
+
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object')
@@ -44,6 +117,7 @@ export function buildHolographicEvidenceEnvelope({
   payload = null,
   advisoryOnly = true,
 } = {}) {
+  const capturedPayload = deepFreeze(snapshotEvidence(payload, 'payload'));
   const envelope = {
     envelopeVersion: ENVELOPE_VERSION,
     snapshotId: text(snapshotId, 'snapshotId'),
@@ -51,7 +125,7 @@ export function buildHolographicEvidenceEnvelope({
     provenanceRef: text(provenanceRef, 'provenanceRef'),
     target: text(target, 'target'),
     renderer: text(renderer, 'renderer'),
-    payload,
+    payload: capturedPayload,
     advisoryOnly: advisoryOnly === true,
   };
   if (!TARGETS.includes(envelope.target))
@@ -70,40 +144,29 @@ export function buildHolographicEvidenceEnvelope({
 
 export function validateHolographicEvidenceEnvelope(envelope) {
   try {
-    const value = object(envelope, 'envelope');
+    const value = snapshotEvidence(envelope);
+    if (!hasExactKeys(value, ENVELOPE_KEYS)) return false;
     if (
-      !Object.hasOwn(value, 'envelopeVersion') ||
       value.envelopeVersion !== ENVELOPE_VERSION ||
-      !Object.hasOwn(value, 'snapshotId') ||
       typeof value.snapshotId !== 'string' ||
       !value.snapshotId.trim() ||
-      !Object.hasOwn(value, 'sceneId') ||
       typeof value.sceneId !== 'string' ||
       !value.sceneId.trim() ||
-      !Object.hasOwn(value, 'provenanceRef') ||
       typeof value.provenanceRef !== 'string' ||
       !value.provenanceRef.trim() ||
-      !Object.hasOwn(value, 'target') ||
       !TARGETS.includes(value.target) ||
-      !Object.hasOwn(value, 'renderer') ||
       typeof value.renderer !== 'string' ||
       !value.renderer.trim() ||
-      !Object.hasOwn(value, 'advisoryOnly') ||
       value.advisoryOnly !== true ||
-      !Object.hasOwn(value, 'safety') ||
-      !value.safety ||
-      typeof value.safety !== 'object' ||
-      Array.isArray(value.safety) ||
-      Object.getPrototypeOf(value.safety) !== Object.prototype ||
-      !Object.hasOwn(value.safety, 'authoritative') ||
-      !Object.hasOwn(value.safety, 'physicalActuation') ||
-      !Object.hasOwn(value.safety, 'provenanceRequired') ||
-      value.safety.authoritative !== false ||
-      value.safety.physicalActuation !== false ||
-      value.safety.provenanceRequired !== true ||
-      !Object.hasOwn(value, 'fingerprint') ||
       typeof value.fingerprint !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.fingerprint)
+    )
+      return false;
+    if (!hasExactKeys(value.safety, SAFETY_KEYS)) return false;
+    if (
+      value.safety.authoritative !== false ||
+      value.safety.physicalActuation !== false ||
+      value.safety.provenanceRequired !== true
     )
       return false;
     const unsigned = {
