@@ -1,6 +1,13 @@
 import { createHash } from 'node:crypto';
 
 const EVIDENCE_BUNDLE_VERSION = 1;
+const EVIDENCE_BUNDLE_KEYS = Object.freeze([
+  'receipt',
+  'metadata',
+  'efficiency',
+  'version',
+  'bundleFingerprint',
+]);
 
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -102,6 +109,26 @@ function bundleBody({ receipt, metadata, efficiency }) {
   });
 }
 
+function readBundleData(bundle) {
+  if (Object.getPrototypeOf(bundle) !== Object.prototype) return null;
+  if (Object.getOwnPropertySymbols(bundle).length > 0) return null;
+
+  const descriptors = Object.getOwnPropertyDescriptors(bundle);
+  const keys = Object.keys(descriptors);
+  if (keys.length !== EVIDENCE_BUNDLE_KEYS.length) return null;
+  if (keys.some((key) => !EVIDENCE_BUNDLE_KEYS.includes(key))) return null;
+
+  const values = {};
+  for (const key of EVIDENCE_BUNDLE_KEYS) {
+    const descriptor = descriptors[key];
+    if (!descriptor || !descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+      return null;
+    }
+    values[key] = descriptor.value;
+  }
+  return values;
+}
+
 export function createSustainabilityEvidenceBundle({ receipt, metadata, efficiency }) {
   if (!receipt || !metadata || !efficiency) {
     throw new Error('Sustainability evidence bundle requires complete inputs');
@@ -117,16 +144,17 @@ export function createSustainabilityEvidenceBundle({ receipt, metadata, efficien
 export function validateSustainabilityEvidenceBundle(bundle) {
   try {
     if (!bundle || typeof bundle !== 'object' || Array.isArray(bundle)) return false;
-    if (bundle.version !== EVIDENCE_BUNDLE_VERSION) return false;
-    if (!/^[a-f0-9]{64}$/.test(bundle.bundleFingerprint)) return false;
+    const data = readBundleData(bundle);
+    if (!data) return false;
+    if (data.version !== EVIDENCE_BUNDLE_VERSION) return false;
+    if (!/^[a-f0-9]{64}$/.test(data.bundleFingerprint)) return false;
 
     const body = bundleBody({
-      receipt: bundle.receipt,
-      metadata: bundle.metadata,
-      efficiency: bundle.efficiency,
+      receipt: data.receipt,
+      metadata: data.metadata,
+      efficiency: data.efficiency,
     });
-    if (Object.keys(bundle).length !== Object.keys(body).length + 1) return false;
-    return bundle.bundleFingerprint === fingerprint(body);
+    return data.bundleFingerprint === fingerprint(body);
   } catch {
     return false;
   }
