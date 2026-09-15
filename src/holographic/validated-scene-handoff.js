@@ -34,6 +34,27 @@ function fingerprintHandoff(value) {
     .digest('hex');
 }
 
+function verifyAcceptance(acceptance) {
+  if (!acceptance || typeof acceptance !== 'object' || Array.isArray(acceptance)) return false;
+  const requiredBooleans = [
+    'accepted',
+    'provenanceValid',
+    'fingerprintValid',
+    'safetyValid',
+    'authoritative',
+    'physicalActuation',
+    'advisoryOnly',
+  ];
+  if (requiredBooleans.some((key) => typeof acceptance[key] !== 'boolean')) return false;
+  return (
+    acceptance.accepted ===
+      (acceptance.provenanceValid && acceptance.fingerprintValid && acceptance.safetyValid) &&
+    acceptance.authoritative === false &&
+    acceptance.physicalActuation === false &&
+    acceptance.advisoryOnly === true
+  );
+}
+
 /** Build the final advisory handoff only after provenance, fingerprint, and safety checks pass. */
 export function createValidatedHolographicSceneHandoff({
   envelope,
@@ -76,6 +97,7 @@ export function verifyValidatedHolographicSceneHandoff(handoff) {
     return false;
   if (!/^[a-f0-9]{64}$/.test(body.sceneFingerprint)) return false;
   if (fingerprintHolographicScene(body.scene) !== body.sceneFingerprint) return false;
+  if (!verifyAcceptance(body.acceptance)) return false;
   if (
     !body.safety ||
     body.safety.authoritative !== false ||
