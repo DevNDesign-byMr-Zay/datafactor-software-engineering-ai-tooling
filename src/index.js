@@ -24,6 +24,7 @@ export * from './sustainability/efficiency-observation.js';
 export * from './sustainability/sustainability-metadata.js';
 export * from './sustainability/evidence-bundle.js';
 export * from './sustainability/evidence-chain.js';
+export * from './sustainability/evidence-export.js';
 export * from './sustainability/receipt-status.js';
 export * from './workflows/cloud-file-workflow.js';
 
