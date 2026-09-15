@@ -114,6 +114,20 @@ describe('sustainability evidence package', () => {
     ).toBe(false);
   });
 
+  test('rejects substitution of every independently valid lineage artifact', () => {
+    const original = createSustainabilityEvidencePackage(createArtifacts('run-package-1'));
+    const substitute = createSustainabilityEvidencePackage(createArtifacts('run-package-2'));
+
+    for (const key of ['receipt', 'observation', 'bundle', 'evidenceExport']) {
+      expect(
+        validateSustainabilityEvidencePackage({
+          ...original,
+          [key]: substitute[key],
+        }),
+      ).toBe(false);
+    }
+  });
+
   test('rejects manifest replay and authority widening', () => {
     const evidencePackage = createSustainabilityEvidencePackage(createArtifacts());
 
