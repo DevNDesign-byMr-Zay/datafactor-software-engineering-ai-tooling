@@ -1,5 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { planHolographicScene } from '../../src/holographic/scene-planner.js';
+import { validateHolographicProvenanceBinding } from '../../src/holographic/provenance-chain.js';
+import { fingerprintHolographicScene } from '../../src/holographic/scene-fingerprint.js';
 import {
   createValidatedHolographicSceneHandoff,
   verifyValidatedHolographicSceneHandoff,
@@ -271,6 +273,31 @@ describe('validated holographic scene handoff', () => {
       verifyValidatedHolographicSceneHandoff({
         ...handoff,
         scene: { ...handoff.scene, nodes },
+      }),
+    ).toBe(false);
+  });
+
+  it('rejects provenance scenes whose identity is inherited instead of owned', () => {
+    const planned = plannedFixture({
+      snapshotId: 'snap-prototype-scene',
+      provenanceRef: 'prov-prototype-scene',
+      nodeId: 'node-prototype-scene',
+    });
+    const prototype = { ...planned.scene };
+    delete prototype.sceneId;
+    delete prototype.snapshotId;
+    const forgedScene = Object.create(prototype);
+    Object.assign(forgedScene, { nodes: planned.scene.nodes });
+    const fingerprint = fingerprintHolographicScene(forgedScene);
+
+    expect(
+      validateHolographicProvenanceBinding({
+        envelope: planned.evidence,
+        snapshotId: 'snap-prototype-scene',
+        sceneId: planned.scene.sceneId,
+        provenanceRef: 'prov-prototype-scene',
+        scene: forgedScene,
+        sceneFingerprint: fingerprint,
       }),
     ).toBe(false);
   });
