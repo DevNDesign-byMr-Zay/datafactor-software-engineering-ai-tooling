@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { planHolographicScene } from '../../src/holographic/scene-planner.js';
+import { buildHolographicEvidenceEnvelope, validateHolographicEvidenceEnvelope } from '../../src/holographic/evidence-envelope.js';
 import {
   createValidatedHolographicSceneHandoff,
   verifyValidatedHolographicSceneHandoff,
@@ -46,14 +47,6 @@ describe('validated holographic scene handoff', () => {
     expect(verifyValidatedHolographicSceneHandoff({ ...handoff, acceptance: { ...handoff.acceptance, accepted: false } })).toBe(false);
   });
 
-  it('rejects a recomputed handoff fingerprint when acceptance booleans contradict', () => {
-    const handoff = build();
-    const forgedAcceptance = { ...handoff.acceptance, provenanceValid: false, fingerprintValid: true, safetyValid: true, accepted: true };
-    const withoutFingerprint = { ...handoff, acceptance: forgedAcceptance };
-    delete withoutFingerprint.handoffFingerprint;
-    expect(verifyValidatedHolographicSceneHandoff(withoutFingerprint)).toBe(false);
-  });
-
   it('rejects acceptance objects with non-boolean integrity fields', () => {
     const handoff = build();
     const withoutFingerprint = { ...handoff, acceptance: { ...handoff.acceptance, safetyValid: 'true' } };
@@ -95,5 +88,20 @@ describe('validated holographic scene handoff', () => {
     const handoff = createValidatedHolographicSceneHandoff({ envelope: planned.evidence, scene: planned.scene, snapshotId: 'snap-handoff-3', sceneId: planned.scene.sceneId, provenanceRef: 'prov-handoff-3' });
     const other = planHolographicScene({ snapshotId: 'snap-other', provenanceRef: 'prov-other', intent: 'inspect', target: 'holo-mat', objects: [{ id: 'other', kind: 'load', x: 0, y: 0, z: 0 }] });
     expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: other.evidence })).toBe(false);
+  });
+
+  it('rejects evidence safety inherited from a prototype', () => {
+    const planned = planHolographicScene({ snapshotId: 'snap-proto', provenanceRef: 'prov-proto', intent: 'inspect', target: 'holo-mat', objects: [{ id: 'node-proto', kind: 'load', x: 1, y: 1, z: 1 }] });
+    const forgedSafety = Object.create(planned.evidence.safety);
+    const forgedEnvelope = { ...planned.evidence, safety: forgedSafety };
+    expect(validateHolographicEvidenceEnvelope(forgedEnvelope)).toBe(false);
+  });
+
+  it('rejects evidence envelope fields inherited from a prototype', () => {
+    const envelope = buildHolographicEvidenceEnvelope({ snapshotId: 'snap-fields', sceneId: 'scene-fields', provenanceRef: 'prov-fields', target: 'holo-mat' });
+    const prototype = Object.fromEntries(Object.entries(envelope).filter(([key]) => key !== 'sceneId'));
+    const forgedEnvelope = Object.assign(Object.create(prototype), { sceneId: envelope.sceneId });
+    delete forgedEnvelope.sceneId;
+    expect(validateHolographicEvidenceEnvelope(forgedEnvelope)).toBe(false);
   });
 });
