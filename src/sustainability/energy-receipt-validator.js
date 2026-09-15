@@ -7,8 +7,10 @@ export function validateEnergyReceipt(receipt) {
     throw new Error('Invalid energy estimate');
   }
 
-  if (receipt.renewableRatio !== undefined &&
-      (receipt.renewableRatio < 0 || receipt.renewableRatio > 1)) {
+  if (
+    receipt.renewableRatio !== undefined &&
+    (receipt.renewableRatio < 0 || receipt.renewableRatio > 1)
+  ) {
     throw new Error('Invalid renewable ratio');
   }
 
