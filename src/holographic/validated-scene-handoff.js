@@ -4,6 +4,32 @@ import { validateHolographicEvidenceEnvelope } from './evidence-envelope.js';
 import { fingerprintHolographicScene } from './scene-fingerprint.js';
 import { validateHolographicProvenanceBinding } from './provenance-chain.js';
 
+const HANDOFF_KEYS = Object.freeze([
+  'scene',
+  'sceneFingerprint',
+  'acceptance',
+  'provenanceBinding',
+  'provenanceCommitment',
+  'safety',
+  'handoffFingerprint',
+]);
+const ACCEPTANCE_KEYS = Object.freeze([
+  'accepted',
+  'provenanceValid',
+  'fingerprintValid',
+  'safetyValid',
+  'authoritative',
+  'physicalActuation',
+  'advisoryOnly',
+]);
+const PROVENANCE_BINDING_KEYS = Object.freeze([
+  'envelopeFingerprint',
+  'snapshotId',
+  'sceneId',
+  'provenanceRef',
+]);
+const SAFETY_KEYS = Object.freeze(['authoritative', 'physicalActuation', 'advisoryOnly']);
+
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
@@ -16,12 +42,62 @@ function canonical(value) {
   return value;
 }
 
-function snapshot(value) {
-  if (Array.isArray(value)) return value.map(snapshot);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, snapshot(child)]));
+function snapshotArray(value, path, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
   }
-  return value;
+  const allowedKeys = new Set(['length']);
+  const copy = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const key = String(index);
+    allowedKeys.add(key);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) throw new TypeError(`${path} must not contain sparse arrays`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}[${index}] must not use accessors`);
+    }
+    copy.push(snapshotEvidence(descriptor.value, `${path}[${index}]`, seen));
+  }
+  if (Reflect.ownKeys(value).some((key) => typeof key !== 'string' || !allowedKeys.has(key))) {
+    throw new TypeError(`${path} arrays must not contain extra properties`);
+  }
+  return copy;
+}
+
+function snapshotObject(value, path, seen) {
+  if (Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new TypeError(`${path} must use plain objects`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable) throw new TypeError(`${path}.${key} must be enumerable evidence`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}.${key} must not use accessors`);
+    }
+    copy[key] = snapshotEvidence(descriptor.value, `${path}.${key}`, seen);
+  }
+  return copy;
+}
+
+function snapshotEvidence(value, path = 'handoff', seen = new WeakSet()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) throw new TypeError(`${path} numbers must be finite`);
+    return value;
+  }
+  if (!value || typeof value !== 'object') {
+    throw new TypeError(`${path} must contain JSON-compatible evidence`);
+  }
+  if (seen.has(value)) throw new TypeError(`${path} must not contain circular references`);
+  seen.add(value);
+  const copy = Array.isArray(value)
+    ? snapshotArray(value, path, seen)
+    : snapshotObject(value, path, seen);
+  seen.delete(value);
+  return copy;
 }
 
 function deepFreeze(value) {
@@ -42,18 +118,16 @@ function fingerprintProvenanceBinding(value) {
     .digest('hex');
 }
 
+function hasExactKeys(value, expectedKeys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value).sort();
+  const expected = [...expectedKeys].sort();
+  return keys.length === expected.length && keys.every((key, index) => key === expected[index]);
+}
+
 function verifyAcceptance(acceptance) {
-  if (!acceptance || typeof acceptance !== 'object' || Array.isArray(acceptance)) return false;
-  const requiredBooleans = [
-    'accepted',
-    'provenanceValid',
-    'fingerprintValid',
-    'safetyValid',
-    'authoritative',
-    'physicalActuation',
-    'advisoryOnly',
-  ];
-  if (requiredBooleans.some((key) => typeof acceptance[key] !== 'boolean')) return false;
+  if (!hasExactKeys(acceptance, ACCEPTANCE_KEYS)) return false;
+  if (ACCEPTANCE_KEYS.some((key) => typeof acceptance[key] !== 'boolean')) return false;
   return (
     acceptance.accepted ===
       (acceptance.provenanceValid && acceptance.fingerprintValid && acceptance.safetyValid) &&
@@ -71,13 +145,14 @@ export function createValidatedHolographicSceneHandoff({
   sceneId,
   provenanceRef,
 } = {}) {
-  const capturedScene = deepFreeze(snapshot(scene));
+  const capturedEnvelope = deepFreeze(snapshotEvidence(envelope, 'envelope'));
+  const capturedScene = deepFreeze(snapshotEvidence(scene, 'scene'));
   const normalizedSnapshotId = String(snapshotId).trim();
   const normalizedSceneId = String(sceneId).trim();
   const normalizedProvenanceRef = String(provenanceRef).trim();
   const sceneFingerprint = fingerprintHolographicScene(capturedScene);
   const acceptance = evaluateHolographicAcceptance({
-    envelope,
+    envelope: capturedEnvelope,
     scene: capturedScene,
     sceneFingerprint,
     snapshotId: normalizedSnapshotId,
@@ -87,7 +162,7 @@ export function createValidatedHolographicSceneHandoff({
   if (!acceptance.accepted) throw new TypeError('holographic scene failed acceptance gate');
 
   const provenanceBinding = {
-    envelopeFingerprint: envelope.fingerprint,
+    envelopeFingerprint: capturedEnvelope.fingerprint,
     snapshotId: normalizedSnapshotId,
     sceneId: normalizedSceneId,
     provenanceRef: normalizedProvenanceRef,
@@ -101,7 +176,7 @@ export function createValidatedHolographicSceneHandoff({
     provenanceCommitment,
     safety: Object.freeze({ authoritative: false, physicalActuation: false, advisoryOnly: true }),
   };
-  return Object.freeze({
+  return deepFreeze({
     ...body,
     handoffFingerprint: fingerprintHandoff(body),
   });
@@ -109,59 +184,60 @@ export function createValidatedHolographicSceneHandoff({
 
 /** Verify a handoff structurally; pass the source envelope to re-run the independent provenance gate. */
 export function verifyValidatedHolographicSceneHandoff(handoff, { envelope = null } = {}) {
-  if (!handoff || typeof handoff !== 'object' || typeof handoff.handoffFingerprint !== 'string')
-    return false;
-  const body = Object.fromEntries(
-    Object.entries(handoff).filter(([key]) => key !== 'handoffFingerprint'),
-  );
-  if (!/^[a-f0-9]{64}$/.test(handoff.handoffFingerprint)) return false;
-  if (!body.scene || typeof body.scene !== 'object' || typeof body.sceneFingerprint !== 'string')
-    return false;
-  if (!/^[a-f0-9]{64}$/.test(body.sceneFingerprint)) return false;
-  if (fingerprintHolographicScene(body.scene) !== body.sceneFingerprint) return false;
-  if (!verifyAcceptance(body.acceptance)) return false;
+  try {
+    const normalized = snapshotEvidence(handoff, 'handoff');
+    if (!hasExactKeys(normalized, HANDOFF_KEYS)) return false;
+    if (!/^[a-f0-9]{64}$/.test(normalized.handoffFingerprint)) return false;
+    if (!normalized.scene || typeof normalized.scene !== 'object') return false;
+    if (!/^[a-f0-9]{64}$/.test(normalized.sceneFingerprint)) return false;
+    if (fingerprintHolographicScene(normalized.scene) !== normalized.sceneFingerprint) return false;
+    if (!verifyAcceptance(normalized.acceptance)) return false;
 
-  const binding = body.provenanceBinding;
-  if (!binding || typeof binding !== 'object' || Array.isArray(binding)) return false;
-  if (
-    typeof binding.envelopeFingerprint !== 'string' ||
-    !/^[a-f0-9]{64}$/.test(binding.envelopeFingerprint)
-  )
-    return false;
-  if (
-    typeof binding.snapshotId !== 'string' ||
-    typeof binding.sceneId !== 'string' ||
-    typeof binding.provenanceRef !== 'string'
-  )
-    return false;
-  if (!body.provenanceCommitment || !/^[a-f0-9]{64}$/.test(body.provenanceCommitment)) return false;
-  if (body.provenanceCommitment !== fingerprintProvenanceBinding(binding)) return false;
-  if (body.scene.snapshotId !== binding.snapshotId || body.scene.sceneId !== binding.sceneId)
-    return false;
-  if (!body.acceptance.provenanceValid) return false;
-  if (
-    !body.safety ||
-    body.safety.authoritative !== false ||
-    body.safety.physicalActuation !== false ||
-    body.safety.advisoryOnly !== true
-  )
-    return false;
-
-  if (envelope != null) {
-    if (!validateHolographicEvidenceEnvelope(envelope)) return false;
-    if (envelope.fingerprint !== binding.envelopeFingerprint) return false;
+    const binding = normalized.provenanceBinding;
+    if (!hasExactKeys(binding, PROVENANCE_BINDING_KEYS)) return false;
+    if (!/^[a-f0-9]{64}$/.test(binding.envelopeFingerprint)) return false;
     if (
-      !validateHolographicProvenanceBinding({
-        envelope,
-        snapshotId: binding.snapshotId,
-        sceneId: binding.sceneId,
-        provenanceRef: binding.provenanceRef,
-        scene: body.scene,
-        sceneFingerprint: body.sceneFingerprint,
-      })
+      typeof binding.snapshotId !== 'string' ||
+      typeof binding.sceneId !== 'string' ||
+      typeof binding.provenanceRef !== 'string'
     )
       return false;
-  }
+    if (!/^[a-f0-9]{64}$/.test(normalized.provenanceCommitment)) return false;
+    if (normalized.provenanceCommitment !== fingerprintProvenanceBinding(binding)) return false;
+    if (
+      normalized.scene.snapshotId !== binding.snapshotId ||
+      normalized.scene.sceneId !== binding.sceneId
+    )
+      return false;
+    if (!normalized.acceptance.provenanceValid) return false;
+    if (!hasExactKeys(normalized.safety, SAFETY_KEYS)) return false;
+    if (
+      normalized.safety.authoritative !== false ||
+      normalized.safety.physicalActuation !== false ||
+      normalized.safety.advisoryOnly !== true
+    )
+      return false;
 
-  return handoff.handoffFingerprint === fingerprintHandoff(body);
+    if (envelope != null) {
+      const capturedEnvelope = snapshotEvidence(envelope, 'envelope');
+      if (!validateHolographicEvidenceEnvelope(capturedEnvelope)) return false;
+      if (capturedEnvelope.fingerprint !== binding.envelopeFingerprint) return false;
+      if (
+        !validateHolographicProvenanceBinding({
+          envelope: capturedEnvelope,
+          snapshotId: binding.snapshotId,
+          sceneId: binding.sceneId,
+          provenanceRef: binding.provenanceRef,
+          scene: normalized.scene,
+          sceneFingerprint: normalized.sceneFingerprint,
+        })
+      )
+        return false;
+    }
+
+    const { handoffFingerprint, ...body } = normalized;
+    return handoffFingerprint === fingerprintHandoff(body);
+  } catch {
+    return false;
+  }
 }
