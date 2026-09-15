@@ -52,9 +52,9 @@ describe('sustainability public consumer API', () => {
 
     expect(api.validateSustainabilityEvidencePackage(baseline)).toBe(true);
     expect(api.validateSustainabilityEvidencePackage(candidate)).toBe(true);
-    expect(
-      api.validateSustainabilityPackageComparison(comparison, { baseline, candidate }),
-    ).toBe(true);
+    expect(api.validateSustainabilityPackageComparison(comparison, { baseline, candidate })).toBe(
+      true,
+    );
     expect(comparison.baselinePackageFingerprint).toBe(baseline.packageFingerprint);
     expect(comparison.candidatePackageFingerprint).toBe(candidate.packageFingerprint);
   });
