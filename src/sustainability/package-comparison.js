@@ -6,6 +6,15 @@ import {
 } from './receipt-comparison.js';
 
 const PACKAGE_COMPARISON_VERSION = 1;
+const PACKAGE_COMPARISON_KEYS = Object.freeze([
+  'baselinePackageFingerprint',
+  'candidatePackageFingerprint',
+  'comparison',
+  'interpretation',
+  'packageComparisonFingerprint',
+  'safety',
+  'version',
+]);
 
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -23,6 +32,32 @@ function fingerprint(value) {
   return createHash('sha256')
     .update(JSON.stringify(canonical(value)), 'utf8')
     .digest('hex');
+}
+
+function readExactComparisonObject(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  if (Object.getPrototypeOf(value) !== Object.prototype) return null;
+  if (Object.getOwnPropertySymbols(value).length > 0) return null;
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = Object.keys(descriptors).sort();
+  const expectedKeys = [...PACKAGE_COMPARISON_KEYS].sort();
+  if (
+    keys.length !== expectedKeys.length ||
+    keys.some((key, index) => key !== expectedKeys[index])
+  ) {
+    return null;
+  }
+
+  const copy = {};
+  for (const key of expectedKeys) {
+    const descriptor = descriptors[key];
+    if (!descriptor || !descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+      return null;
+    }
+    copy[key] = descriptor.value;
+  }
+  return copy;
 }
 
 function exactSafety() {
@@ -71,40 +106,22 @@ export function validateSustainabilityPackageComparison(result, { baseline, cand
   try {
     if (!validateSustainabilityEvidencePackage(baseline)) return false;
     if (!validateSustainabilityEvidencePackage(candidate)) return false;
-    if (!result || typeof result !== 'object' || Array.isArray(result)) return false;
-    if (Object.getPrototypeOf(result) !== Object.prototype) return false;
-    if (Object.getOwnPropertySymbols(result).length > 0) return false;
 
-    const keys = Object.keys(result).sort();
-    const expectedKeys = [
-      'baselinePackageFingerprint',
-      'candidatePackageFingerprint',
-      'comparison',
-      'interpretation',
-      'packageComparisonFingerprint',
-      'safety',
-      'version',
-    ].sort();
-    if (
-      keys.length !== expectedKeys.length ||
-      keys.some((key, index) => key !== expectedKeys[index])
-    ) {
-      return false;
-    }
-
-    if (result.version !== PACKAGE_COMPARISON_VERSION) return false;
-    if (result.interpretation !== 'verified-package-comparison') return false;
-    if (!/^[a-f0-9]{64}$/.test(result.packageComparisonFingerprint)) return false;
-    if (!validateSustainabilityComparison(result.comparison)) return false;
+    const values = readExactComparisonObject(result);
+    if (!values) return false;
+    if (values.version !== PACKAGE_COMPARISON_VERSION) return false;
+    if (values.interpretation !== 'verified-package-comparison') return false;
+    if (!/^[a-f0-9]{64}$/.test(values.packageComparisonFingerprint)) return false;
+    if (!validateSustainabilityComparison(values.comparison)) return false;
 
     const expected = compareSustainabilityEvidencePackages({ baseline, candidate });
     return (
-      result.baselinePackageFingerprint === expected.baselinePackageFingerprint &&
-      result.candidatePackageFingerprint === expected.candidatePackageFingerprint &&
-      JSON.stringify(canonical(result.comparison)) ===
+      values.baselinePackageFingerprint === expected.baselinePackageFingerprint &&
+      values.candidatePackageFingerprint === expected.candidatePackageFingerprint &&
+      JSON.stringify(canonical(values.comparison)) ===
         JSON.stringify(canonical(expected.comparison)) &&
-      JSON.stringify(canonical(result.safety)) === JSON.stringify(canonical(expected.safety)) &&
-      result.packageComparisonFingerprint === expected.packageComparisonFingerprint
+      JSON.stringify(canonical(values.safety)) === JSON.stringify(canonical(expected.safety)) &&
+      values.packageComparisonFingerprint === expected.packageComparisonFingerprint
     );
   } catch {
     return false;
