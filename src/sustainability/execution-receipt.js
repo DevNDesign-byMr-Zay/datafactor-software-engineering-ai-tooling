@@ -1,6 +1,14 @@
 import { createHash } from 'node:crypto';
 
 const RECEIPT_VERSION = 1;
+const RECEIPT_KEYS = Object.freeze([
+  'version',
+  'workload',
+  'durationMs',
+  'estimatedEnergyWh',
+  'renewableRatio',
+  'receiptFingerprint',
+]);
 
 function finiteNonNegative(value, name) {
   if (!Number.isFinite(value) || value < 0) {
@@ -16,6 +24,52 @@ function finiteRatio(value, name) {
   return value;
 }
 
+function snapshotArray(value, name, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${name} must not contain symbol properties`);
+  }
+
+  const allowedKeys = new Set(['length']);
+  const copy = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const key = String(index);
+    allowedKeys.add(key);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) throw new TypeError(`${name} must not contain sparse arrays`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${name}[${index}] must not use accessors`);
+    }
+    copy.push(snapshotEvidence(descriptor.value, `${name}[${index}]`, seen));
+  }
+
+  const unexpectedKey = Reflect.ownKeys(value).find(
+    (key) => typeof key !== 'string' || !allowedKeys.has(key),
+  );
+  if (unexpectedKey !== undefined) {
+    throw new TypeError(`${name} arrays must not contain extra properties`);
+  }
+
+  return copy;
+}
+
+function snapshotPlainObject(value, name, seen) {
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${name} must not contain symbol properties`);
+  }
+
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable) {
+      throw new TypeError(`${name}.${key} must be enumerable evidence`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${name}.${key} must not use accessors`);
+    }
+    copy[key] = snapshotEvidence(descriptor.value, `${name}.${key}`, seen);
+  }
+  return copy;
+}
+
 function snapshotEvidence(value, name = 'workload', seen = new WeakSet()) {
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
   if (typeof value === 'number') {
@@ -28,18 +82,17 @@ function snapshotEvidence(value, name = 'workload', seen = new WeakSet()) {
   if (seen.has(value)) throw new TypeError(`${name} must not contain circular references`);
   seen.add(value);
 
+  let copy;
   if (Array.isArray(value)) {
-    const copy = value.map((item, index) => snapshotEvidence(item, `${name}[${index}]`, seen));
-    seen.delete(value);
-    return copy;
+    copy = snapshotArray(value, name, seen);
+  } else {
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== null) {
+      throw new TypeError(`${name} must use plain objects`);
+    }
+    copy = snapshotPlainObject(value, name, seen);
   }
 
-  const copy = Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [
-      key,
-      snapshotEvidence(child, `${name}.${key}`, seen),
-    ]),
-  );
   seen.delete(value);
   return copy;
 }
@@ -68,6 +121,26 @@ function fingerprint(value) {
     .digest('hex');
 }
 
+function readReceiptData(receipt) {
+  if (Object.getPrototypeOf(receipt) !== Object.prototype) return null;
+  if (Object.getOwnPropertySymbols(receipt).length > 0) return null;
+
+  const descriptors = Object.getOwnPropertyDescriptors(receipt);
+  const keys = Object.keys(descriptors);
+  if (keys.length !== RECEIPT_KEYS.length) return null;
+  if (keys.some((key) => !RECEIPT_KEYS.includes(key))) return null;
+
+  const values = {};
+  for (const key of RECEIPT_KEYS) {
+    const descriptor = descriptors[key];
+    if (!descriptor || !descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+      return null;
+    }
+    values[key] = descriptor.value;
+  }
+  return values;
+}
+
 export function createSustainabilityReceipt({
   workload,
   durationMs,
@@ -88,16 +161,22 @@ export function createSustainabilityReceipt({
 export function validateSustainabilityReceipt(receipt) {
   try {
     if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) return false;
-    if (receipt.version !== RECEIPT_VERSION) return false;
-    if (!/^[a-f0-9]{64}$/.test(receipt.receiptFingerprint)) return false;
-    finiteNonNegative(receipt.durationMs, 'durationMs');
-    finiteNonNegative(receipt.estimatedEnergyWh, 'estimatedEnergyWh');
-    finiteRatio(receipt.renewableRatio, 'renewableRatio');
-    snapshotEvidence(receipt.workload);
-    const body = Object.fromEntries(
-      Object.entries(receipt).filter(([key]) => key !== 'receiptFingerprint'),
-    );
-    return receipt.receiptFingerprint === fingerprint(body);
+    const data = readReceiptData(receipt);
+    if (!data) return false;
+    if (data.version !== RECEIPT_VERSION) return false;
+    if (typeof data.receiptFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(data.receiptFingerprint)) {
+      return false;
+    }
+
+    const workload = snapshotEvidence(data.workload);
+    const body = {
+      version: RECEIPT_VERSION,
+      workload,
+      durationMs: finiteNonNegative(data.durationMs, 'durationMs'),
+      estimatedEnergyWh: finiteNonNegative(data.estimatedEnergyWh, 'estimatedEnergyWh'),
+      renewableRatio: finiteRatio(data.renewableRatio, 'renewableRatio'),
+    };
+    return data.receiptFingerprint === fingerprint(body);
   } catch {
     return false;
   }
