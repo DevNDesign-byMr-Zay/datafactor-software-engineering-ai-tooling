@@ -97,7 +97,8 @@ function exportBody({ receipt, observation, bundle, chain }) {
   const averagePowerWatts = observation.metrics?.averagePower?.value;
   const estimatedNonRenewableShareEnergyWh =
     observation.metrics?.estimatedNonRenewableShareEnergy?.value;
-  if (!finiteNonNegative(receipt.durationMs)) throw new TypeError('durationMs must be non-negative');
+  if (!finiteNonNegative(receipt.durationMs))
+    throw new TypeError('durationMs must be non-negative');
   if (!finiteNonNegative(receipt.estimatedEnergyWh)) {
     throw new TypeError('estimatedEnergyWh must be non-negative');
   }
