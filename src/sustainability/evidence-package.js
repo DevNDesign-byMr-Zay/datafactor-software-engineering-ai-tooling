@@ -1,9 +1,26 @@
 import { createHash } from 'node:crypto';
-import { validateSustainabilityReceipt } from './execution-receipt.js';
-import { validateSustainabilityEfficiencyObservation } from './efficiency-observation.js';
-import { validateSustainabilityEvidenceBundle } from './evidence-bundle.js';
-import { validateSustainabilityEvidenceChain } from './evidence-chain.js';
-import { validateSustainabilityEvidenceExport } from './evidence-export.js';
+import { calculateSustainabilityEfficiency } from './efficiency-score.js';
+import {
+  createSustainabilityEfficiencyObservation,
+  validateSustainabilityEfficiencyObservation,
+} from './efficiency-observation.js';
+import {
+  createSustainabilityEvidenceBundle,
+  validateSustainabilityEvidenceBundle,
+} from './evidence-bundle.js';
+import {
+  createSustainabilityEvidenceChain,
+  validateSustainabilityEvidenceChain,
+} from './evidence-chain.js';
+import {
+  createSustainabilityEvidenceExport,
+  validateSustainabilityEvidenceExport,
+} from './evidence-export.js';
+import {
+  createSustainabilityReceipt,
+  validateSustainabilityReceipt,
+} from './execution-receipt.js';
+import { createSustainabilityMetadata } from './sustainability-metadata.js';
 
 const EVIDENCE_PACKAGE_VERSION = 1;
 const PACKAGE_KEYS = Object.freeze([
@@ -152,6 +169,48 @@ export function createSustainabilityEvidencePackage(input = {}) {
   return Object.freeze({
     ...body,
     packageFingerprint: fingerprint(packageIdentity(body)),
+  });
+}
+
+export function createSustainabilityEvidencePackageFromExecution({
+  workload,
+  durationMs,
+  estimatedEnergyWh,
+  renewableRatio = 0,
+  source = 'runtime',
+} = {}) {
+  const receipt = createSustainabilityReceipt({
+    workload,
+    durationMs,
+    estimatedEnergyWh,
+    renewableRatio,
+  });
+  const observation = createSustainabilityEfficiencyObservation(receipt);
+  const metadata = createSustainabilityMetadata({
+    energyWh: receipt.estimatedEnergyWh,
+    renewableRatio: receipt.renewableRatio,
+    source,
+  });
+  const efficiency = calculateSustainabilityEfficiency({
+    durationMs: receipt.durationMs,
+    estimatedEnergyWh: receipt.estimatedEnergyWh,
+    renewableRatio: receipt.renewableRatio,
+  });
+  const bundle = createSustainabilityEvidenceBundle({ receipt, metadata, efficiency });
+  const chain = createSustainabilityEvidenceChain({ receipt, observation, bundle });
+  const evidenceExport = createSustainabilityEvidenceExport({
+    receipt,
+    observation,
+    bundle,
+    chain,
+  });
+
+  return createSustainabilityEvidencePackage({
+    receipt,
+    observation,
+    bundle,
+    chain,
+    evidenceExport,
   });
 }
 
