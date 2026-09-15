@@ -2,6 +2,31 @@ import { createHash } from 'node:crypto';
 import { validateSustainabilityReceipt } from './execution-receipt.js';
 
 const COMPARISON_VERSION = 1;
+const COMPARISON_KEYS = Object.freeze([
+  'version',
+  'baselineFingerprint',
+  'candidateFingerprint',
+  'sameWorkloadEvidence',
+  'metrics',
+  'interpretation',
+  'safety',
+  'comparisonFingerprint',
+]);
+const METRIC_KEYS = Object.freeze([
+  'durationDeltaMs',
+  'durationDirection',
+  'estimatedEnergyDeltaWh',
+  'estimatedEnergyDirection',
+  'renewableRatioDelta',
+  'renewableRatioDirection',
+]);
+const SAFETY_KEYS = Object.freeze([
+  'advisoryOnly',
+  'authoritative',
+  'schedulesWorkloads',
+  'deploysWorkloads',
+  'physicalActuation',
+]);
 
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -30,11 +55,30 @@ function sameWorkloadEvidence(left, right) {
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right));
 }
 
-function hasExactKeys(value, keys) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const actual = Object.keys(value).sort();
-  const expected = [...keys].sort();
-  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
+function readExactDataObject(value, expectedKeys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  if (Object.getPrototypeOf(value) !== Object.prototype) return null;
+  if (Object.getOwnPropertySymbols(value).length > 0) return null;
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const actualKeys = Object.keys(descriptors).sort();
+  const sortedExpected = [...expectedKeys].sort();
+  if (
+    actualKeys.length !== sortedExpected.length ||
+    actualKeys.some((key, index) => key !== sortedExpected[index])
+  ) {
+    return null;
+  }
+
+  const copy = {};
+  for (const key of sortedExpected) {
+    const descriptor = descriptors[key];
+    if (!descriptor || !descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+      return null;
+    }
+    copy[key] = descriptor.value;
+  }
+  return copy;
 }
 
 export function compareSustainabilityReceipts({ baseline, candidate } = {}) {
@@ -80,79 +124,50 @@ export function compareSustainabilityReceipts({ baseline, candidate } = {}) {
 
 export function validateSustainabilityComparison(comparison) {
   try {
+    const values = readExactDataObject(comparison, COMPARISON_KEYS);
+    if (!values) return false;
+    if (values.version !== COMPARISON_VERSION) return false;
+    if (!/^[a-f0-9]{64}$/.test(values.baselineFingerprint)) return false;
+    if (!/^[a-f0-9]{64}$/.test(values.candidateFingerprint)) return false;
+    if (!/^[a-f0-9]{64}$/.test(values.comparisonFingerprint)) return false;
+    if (typeof values.sameWorkloadEvidence !== 'boolean') return false;
+    if (values.interpretation !== 'observational-only') return false;
+
+    const safety = readExactDataObject(values.safety, SAFETY_KEYS);
     if (
-      !hasExactKeys(comparison, [
-        'version',
-        'baselineFingerprint',
-        'candidateFingerprint',
-        'sameWorkloadEvidence',
-        'metrics',
-        'interpretation',
-        'safety',
-        'comparisonFingerprint',
-      ])
+      !safety ||
+      safety.advisoryOnly !== true ||
+      safety.authoritative !== false ||
+      safety.schedulesWorkloads !== false ||
+      safety.deploysWorkloads !== false ||
+      safety.physicalActuation !== false
     ) {
       return false;
     }
-    if (comparison.version !== COMPARISON_VERSION) return false;
-    if (!/^[a-f0-9]{64}$/.test(comparison.baselineFingerprint)) return false;
-    if (!/^[a-f0-9]{64}$/.test(comparison.candidateFingerprint)) return false;
-    if (!/^[a-f0-9]{64}$/.test(comparison.comparisonFingerprint)) return false;
-    if (typeof comparison.sameWorkloadEvidence !== 'boolean') return false;
-    if (comparison.interpretation !== 'observational-only') return false;
-    if (
-      !hasExactKeys(comparison.safety, [
-        'advisoryOnly',
-        'authoritative',
-        'schedulesWorkloads',
-        'deploysWorkloads',
-        'physicalActuation',
-      ]) ||
-      comparison.safety.advisoryOnly !== true ||
-      comparison.safety.authoritative !== false ||
-      comparison.safety.schedulesWorkloads !== false ||
-      comparison.safety.deploysWorkloads !== false ||
-      comparison.safety.physicalActuation !== false
-    ) {
-      return false;
-    }
-    if (
-      !hasExactKeys(comparison.metrics, [
-        'durationDeltaMs',
-        'durationDirection',
-        'estimatedEnergyDeltaWh',
-        'estimatedEnergyDirection',
-        'renewableRatioDelta',
-        'renewableRatioDirection',
-      ])
-    ) {
-      return false;
-    }
+
+    const metrics = readExactDataObject(values.metrics, METRIC_KEYS);
+    if (!metrics) return false;
     for (const value of [
-      comparison.metrics.durationDeltaMs,
-      comparison.metrics.estimatedEnergyDeltaWh,
-      comparison.metrics.renewableRatioDelta,
+      metrics.durationDeltaMs,
+      metrics.estimatedEnergyDeltaWh,
+      metrics.renewableRatioDelta,
     ]) {
       if (!Number.isFinite(value)) return false;
     }
-    if (comparison.metrics.durationDirection !== direction(comparison.metrics.durationDeltaMs))
-      return false;
-    if (
-      comparison.metrics.estimatedEnergyDirection !==
-      direction(comparison.metrics.estimatedEnergyDeltaWh)
-    ) {
-      return false;
-    }
-    if (
-      comparison.metrics.renewableRatioDirection !==
-      direction(comparison.metrics.renewableRatioDelta)
-    ) {
-      return false;
-    }
-    const body = Object.fromEntries(
-      Object.entries(comparison).filter(([key]) => key !== 'comparisonFingerprint'),
-    );
-    return comparison.comparisonFingerprint === fingerprint(body);
+    if (metrics.durationDirection !== direction(metrics.durationDeltaMs)) return false;
+    if (metrics.estimatedEnergyDirection !== direction(metrics.estimatedEnergyDeltaWh)) return false;
+    if (metrics.renewableRatioDirection !== direction(metrics.renewableRatioDelta)) return false;
+
+    const body = {
+      version: values.version,
+      baselineFingerprint: values.baselineFingerprint,
+      candidateFingerprint: values.candidateFingerprint,
+      sameWorkloadEvidence: values.sameWorkloadEvidence,
+      metrics,
+      interpretation: values.interpretation,
+      safety,
+    };
+    return values.comparisonFingerprint === fingerprint(body);
   } catch {
     return false;
   }
