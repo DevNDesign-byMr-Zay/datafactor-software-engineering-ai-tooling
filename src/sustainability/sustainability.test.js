@@ -1,5 +1,8 @@
 import { calculateSustainabilityEfficiency } from './efficiency-score.js';
-import { createSustainabilityEvidenceBundle } from './evidence-bundle.js';
+import {
+  createSustainabilityEvidenceBundle,
+  validateSustainabilityEvidenceBundle,
+} from './evidence-bundle.js';
 import { getSustainabilityReceiptStatus } from './receipt-status.js';
 
 describe('sustainability contracts', () => {
@@ -36,11 +39,37 @@ describe('sustainability contracts', () => {
     expect(bundle.receipt).not.toBe(receipt);
     expect(Object.isFrozen(bundle.receipt.runtime)).toBe(true);
     expect(Object.isFrozen(bundle.metadata.tags)).toBe(true);
+    expect(bundle.bundleFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(validateSustainabilityEvidenceBundle(bundle)).toBe(true);
 
     receipt.runtime.id = 'mutated';
     metadata.tags.push('late-change');
     expect(bundle.receipt.runtime.id).toBe('run-1');
     expect(bundle.metadata.tags).toEqual(['reviewed']);
+    expect(validateSustainabilityEvidenceBundle(bundle)).toBe(true);
+  });
+
+  test('fingerprints equivalent evidence deterministically and rejects tampering', () => {
+    const input = {
+      receipt: { estimatedEnergyWh: 4, runtime: { id: 'run-1' } },
+      metadata: { source: 'runtime', tags: ['reviewed'] },
+      efficiency: { energyPerSecondWh: 2 },
+    };
+    const first = createSustainabilityEvidenceBundle(input);
+    const second = createSustainabilityEvidenceBundle({
+      efficiency: { ...input.efficiency },
+      metadata: { tags: [...input.metadata.tags], source: input.metadata.source },
+      receipt: { runtime: { ...input.receipt.runtime }, estimatedEnergyWh: 4 },
+    });
+
+    expect(first.bundleFingerprint).toBe(second.bundleFingerprint);
+    expect(
+      validateSustainabilityEvidenceBundle({
+        ...first,
+        efficiency: { ...first.efficiency, energyPerSecondWh: 99 },
+      }),
+    ).toBe(false);
+    expect(validateSustainabilityEvidenceBundle({ ...first, unexpected: true })).toBe(false);
   });
 
   test('preserves repeated evidence references without treating them as cycles', () => {
