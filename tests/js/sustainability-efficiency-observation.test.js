@@ -141,9 +141,7 @@ test('rejects hidden, symbolic, accessor-backed, and malformed observation evide
       return observation.metrics.averagePower;
     },
   });
-  expect(
-    validateSustainabilityEfficiencyObservation({ ...observation, metrics }, source),
-  ).toBe(false);
+  expect(validateSustainabilityEfficiencyObservation({ ...observation, metrics }, source)).toBe(false);
   expect(getterReads).toBe(0);
 
   expect(
