@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { validateSustainabilityEfficiencyObservation } from './efficiency-observation.js';
 
 const EVIDENCE_BUNDLE_VERSION = 1;
 const EVIDENCE_BUNDLE_KEYS = Object.freeze([
@@ -100,11 +101,28 @@ function snapshotSustainabilityEvidence(value, path = 'evidence', seen = new Wea
   return copy;
 }
 
+function assertObservationLineage(receipt, efficiency) {
+  const hasObservationFingerprint = Object.hasOwn(efficiency, 'observationFingerprint');
+  const hasSourceReceiptFingerprint = Object.hasOwn(efficiency, 'sourceReceiptFingerprint');
+  if (!hasObservationFingerprint && !hasSourceReceiptFingerprint) return;
+  if (!hasObservationFingerprint || !hasSourceReceiptFingerprint) {
+    throw new TypeError('efficiency observation lineage is incomplete');
+  }
+  if (!validateSustainabilityEfficiencyObservation(efficiency, receipt)) {
+    throw new TypeError('efficiency observation must match bundled receipt');
+  }
+}
+
 function bundleBody({ receipt, metadata, efficiency }) {
+  const capturedReceipt = snapshotSustainabilityEvidence(receipt, 'receipt');
+  const capturedMetadata = snapshotSustainabilityEvidence(metadata, 'metadata');
+  const capturedEfficiency = snapshotSustainabilityEvidence(efficiency, 'efficiency');
+  assertObservationLineage(capturedReceipt, capturedEfficiency);
+
   return Object.freeze({
-    receipt: snapshotSustainabilityEvidence(receipt, 'receipt'),
-    metadata: snapshotSustainabilityEvidence(metadata, 'metadata'),
-    efficiency: snapshotSustainabilityEvidence(efficiency, 'efficiency'),
+    receipt: capturedReceipt,
+    metadata: capturedMetadata,
+    efficiency: capturedEfficiency,
     version: EVIDENCE_BUNDLE_VERSION,
   });
 }
