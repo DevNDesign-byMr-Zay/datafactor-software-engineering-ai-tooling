@@ -104,6 +104,23 @@ describe('sustainability evidence serializer boundary', () => {
     expect(reads).toBe(0);
   });
 
+  test('rejects non-enumerable evidence properties before issuing a bundle', () => {
+    const metadata = { source: 'runtime' };
+    Object.defineProperty(metadata, 'hidden', {
+      configurable: true,
+      enumerable: false,
+      value: 'must-not-cross-boundary',
+      writable: true,
+    });
+
+    expect(() =>
+      createSustainabilityEvidenceBundle({
+        ...validInputs(),
+        metadata,
+      }),
+    ).toThrow(/must not contain non-enumerable properties/);
+  });
+
   test('validator fails closed when nested trusted evidence is replaced by a custom prototype', () => {
     const bundle = createSustainabilityEvidenceBundle(validInputs());
     const tampered = {
@@ -120,5 +137,17 @@ describe('sustainability evidence serializer boundary', () => {
     tampered[Symbol('hidden')] = 'unexpected';
 
     expect(validateSustainabilityEvidenceBundle(tampered)).toBe(false);
+  });
+
+  test('validator fails closed when the trusted bundle gains non-enumerable nested state', () => {
+    const bundle = createSustainabilityEvidenceBundle(validInputs());
+    Object.defineProperty(bundle.metadata, 'hidden', {
+      configurable: true,
+      enumerable: false,
+      value: 'unexpected',
+      writable: true,
+    });
+
+    expect(validateSustainabilityEvidenceBundle(bundle)).toBe(false);
   });
 });
