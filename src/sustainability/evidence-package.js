@@ -16,10 +16,7 @@ import {
   createSustainabilityEvidenceExport,
   validateSustainabilityEvidenceExport,
 } from './evidence-export.js';
-import {
-  createSustainabilityReceipt,
-  validateSustainabilityReceipt,
-} from './execution-receipt.js';
+import { createSustainabilityReceipt, validateSustainabilityReceipt } from './execution-receipt.js';
 import { createSustainabilityMetadata } from './sustainability-metadata.js';
 
 const EVIDENCE_PACKAGE_VERSION = 1;
