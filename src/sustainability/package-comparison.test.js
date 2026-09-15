@@ -1,6 +1,4 @@
-import {
-  createSustainabilityEfficiencyObservation,
-} from './efficiency-observation.js';
+import { createSustainabilityEfficiencyObservation } from './efficiency-observation.js';
 import { createSustainabilityEvidenceBundle } from './evidence-bundle.js';
 import { createSustainabilityEvidenceChain } from './evidence-chain.js';
 import { createSustainabilityEvidenceExport } from './evidence-export.js';
@@ -116,9 +114,9 @@ describe('sustainability package comparison', () => {
     });
     const result = compareSustainabilityEvidencePackages({ baseline, candidate });
 
-    expect(validateSustainabilityPackageComparison(result, { baseline, candidate: substitute })).toBe(
-      false,
-    );
+    expect(
+      validateSustainabilityPackageComparison(result, { baseline, candidate: substitute }),
+    ).toBe(false);
     expect(
       validateSustainabilityPackageComparison(
         {
