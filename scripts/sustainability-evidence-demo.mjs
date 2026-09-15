@@ -20,6 +20,10 @@ import {
   createSustainabilityEvidenceExport,
   validateSustainabilityEvidenceExport,
 } from '../src/sustainability/evidence-export.js';
+import {
+  createSustainabilityEvidencePackage,
+  validateSustainabilityEvidencePackage,
+} from '../src/sustainability/evidence-package.js';
 
 const receipt = createSustainabilityReceipt({
   workload: {
@@ -77,4 +81,13 @@ if (!validateSustainabilityEvidenceExport(evidenceExport, { ...artifacts, chain 
   throw new Error('sustainability evidence export failed validation');
 }
 
-process.stdout.write(`${JSON.stringify(evidenceExport, null, 2)}\n`);
+const evidencePackage = createSustainabilityEvidencePackage({
+  ...artifacts,
+  chain,
+  evidenceExport,
+});
+if (!validateSustainabilityEvidencePackage(evidencePackage)) {
+  throw new Error('sustainability evidence package failed validation');
+}
+
+process.stdout.write(`${JSON.stringify(evidencePackage, null, 2)}\n`);
