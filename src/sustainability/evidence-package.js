@@ -32,6 +32,20 @@ const PACKAGE_KEYS = Object.freeze([
   'safety',
   'packageFingerprint',
 ]);
+const ARTIFACT_INPUT_KEYS = Object.freeze([
+  'receipt',
+  'observation',
+  'bundle',
+  'chain',
+  'evidenceExport',
+]);
+const EXECUTION_INPUT_KEYS = Object.freeze([
+  'workload',
+  'durationMs',
+  'estimatedEnergyWh',
+  'renewableRatio',
+  'source',
+]);
 const MANIFEST_KEYS = Object.freeze([
   'receiptFingerprint',
   'observationFingerprint',
@@ -64,6 +78,41 @@ function fingerprint(value) {
   return createHash('sha256')
     .update(JSON.stringify(canonical(value)), 'utf8')
     .digest('hex');
+}
+
+function readCreationDataObject(value, allowedKeys, requiredKeys = []) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('evidence package input must be a plain object');
+  }
+  if (Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new TypeError('evidence package input must use a plain object');
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError('evidence package input must not contain symbol properties');
+  }
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = Object.keys(descriptors);
+  const unexpected = keys.find((key) => !allowedKeys.includes(key));
+  if (unexpected) {
+    throw new TypeError(`evidence package input contains unsupported field: ${unexpected}`);
+  }
+
+  const copy = {};
+  for (const key of keys) {
+    const descriptor = descriptors[key];
+    if (!descriptor.enumerable) {
+      throw new TypeError(`evidence package input.${key} must be enumerable evidence`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`evidence package input.${key} must not use accessors`);
+    }
+    copy[key] = descriptor.value;
+  }
+
+  const missing = requiredKeys.find((key) => !Object.hasOwn(copy, key));
+  if (missing) throw new TypeError(`evidence package input is missing required field: ${missing}`);
+  return copy;
 }
 
 function readExactDataObject(value, expectedKeys) {
@@ -103,7 +152,9 @@ function packageSafety() {
   });
 }
 
-function validatedArtifacts({ receipt, observation, bundle, chain, evidenceExport }) {
+function validatedArtifacts(input) {
+  const values = readCreationDataObject(input, ARTIFACT_INPUT_KEYS, ARTIFACT_INPUT_KEYS);
+  const { receipt, observation, bundle, chain, evidenceExport } = values;
   if (!validateSustainabilityReceipt(receipt)) {
     throw new TypeError('validated sustainability receipt is required');
   }
@@ -169,17 +220,18 @@ export function createSustainabilityEvidencePackage(input = {}) {
   });
 }
 
-export function createSustainabilityEvidencePackageFromExecution({
-  workload,
-  durationMs,
-  estimatedEnergyWh,
-  renewableRatio = 0,
-  source = 'runtime',
-} = {}) {
+export function createSustainabilityEvidencePackageFromExecution(input = {}) {
+  const values = readCreationDataObject(input, EXECUTION_INPUT_KEYS, [
+    'workload',
+    'durationMs',
+    'estimatedEnergyWh',
+  ]);
+  const renewableRatio = Object.hasOwn(values, 'renewableRatio') ? values.renewableRatio : 0;
+  const source = Object.hasOwn(values, 'source') ? values.source : 'runtime';
   const receipt = createSustainabilityReceipt({
-    workload,
-    durationMs,
-    estimatedEnergyWh,
+    workload: values.workload,
+    durationMs: values.durationMs,
+    estimatedEnergyWh: values.estimatedEnergyWh,
     renewableRatio,
   });
   const observation = createSustainabilityEfficiencyObservation(receipt);

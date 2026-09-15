@@ -37,6 +37,17 @@ test('creates deterministic immutable sustainability evidence', () => {
   expect(receipt.workload.resources.acceleratorCount).toBe(2);
 });
 
+test('defaults renewable ratio to zero when the optional creation field is absent', () => {
+  const receipt = createSustainabilityReceipt({
+    workload: { name: 'scene-analysis' },
+    durationMs: 100,
+    estimatedEnergyWh: 2.5,
+  });
+
+  expect(receipt.renewableRatio).toBe(0);
+  expect(validateSustainabilityReceipt(receipt)).toBe(true);
+});
+
 test('rejects non-finite or out-of-range sustainability measurements', () => {
   expect(() =>
     createSustainabilityReceipt({
@@ -141,6 +152,56 @@ test('rejects deceptive workload evidence without evaluating getters', () => {
       renewableRatio: 0.5,
     }),
   ).toThrow(/symbol properties/);
+});
+
+test('receipt creation rejects deceptive top-level descriptors without evaluating getters', () => {
+  let getterReads = 0;
+  const input = {
+    workload: { name: 'scene-analysis' },
+    estimatedEnergyWh: 2.5,
+  };
+  Object.defineProperty(input, 'durationMs', {
+    enumerable: true,
+    get() {
+      getterReads += 1;
+      return 100;
+    },
+  });
+
+  expect(() => createSustainabilityReceipt(input)).toThrow(/must not use accessors/);
+  expect(getterReads).toBe(0);
+
+  const hidden = {
+    workload: { name: 'scene-analysis' },
+    durationMs: 100,
+    estimatedEnergyWh: 2.5,
+  };
+  Object.defineProperty(hidden, 'sourceAuthority', { value: true, enumerable: false });
+  expect(() => createSustainabilityReceipt(hidden)).toThrow(
+    /unsupported field|enumerable evidence/,
+  );
+
+  const symbolic = {
+    workload: { name: 'scene-analysis' },
+    durationMs: 100,
+    estimatedEnergyWh: 2.5,
+  };
+  symbolic[Symbol('authority')] = true;
+  expect(() => createSustainabilityReceipt(symbolic)).toThrow(/symbol properties/);
+
+  expect(() =>
+    createSustainabilityReceipt({
+      workload: { name: 'scene-analysis' },
+      durationMs: 100,
+      estimatedEnergyWh: 2.5,
+      unexpected: true,
+    }),
+  ).toThrow(/unsupported field/);
+
+  const inherited = Object.create({ durationMs: 100 });
+  inherited.workload = { name: 'scene-analysis' };
+  inherited.estimatedEnergyWh = 2.5;
+  expect(() => createSustainabilityReceipt(inherited)).toThrow(/plain object/);
 });
 
 test('receipt validator rejects deceptive descriptors without evaluating getters', () => {

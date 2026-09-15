@@ -16,6 +16,7 @@ import {
 } from './evidence-export.js';
 import {
   createSustainabilityEvidencePackage,
+  createSustainabilityEvidencePackageFromExecution,
   validateSustainabilityEvidencePackage,
 } from './evidence-package.js';
 import { createSustainabilityReceipt, validateSustainabilityReceipt } from './execution-receipt.js';
@@ -146,6 +147,80 @@ describe('sustainability evidence package', () => {
         safety: { ...evidencePackage.safety, authoritative: true },
       }),
     ).toBe(false);
+  });
+
+  test('package creation rejects top-level artifact accessors without evaluating getters', () => {
+    const artifacts = createArtifacts();
+    let getterReads = 0;
+    const deceptive = { ...artifacts };
+    Object.defineProperty(deceptive, 'receipt', {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return artifacts.receipt;
+      },
+    });
+
+    expect(() => createSustainabilityEvidencePackage(deceptive)).toThrow(/must not use accessors/);
+    expect(getterReads).toBe(0);
+
+    expect(() => createSustainabilityEvidencePackage({ ...artifacts, unexpected: true })).toThrow(
+      /unsupported field/,
+    );
+
+    const symbolic = { ...artifacts };
+    symbolic[Symbol('authority')] = true;
+    expect(() => createSustainabilityEvidencePackage(symbolic)).toThrow(/symbol properties/);
+  });
+
+  test('one-shot package creation rejects deceptive execution descriptors before reading them', () => {
+    let durationGetterReads = 0;
+    let sourceGetterReads = 0;
+    const input = {
+      workload: { name: 'package-test', runId: 'run-one-shot' },
+      estimatedEnergyWh: 12,
+    };
+    Object.defineProperty(input, 'durationMs', {
+      enumerable: true,
+      get() {
+        durationGetterReads += 1;
+        return 1_800_000;
+      },
+    });
+    Object.defineProperty(input, 'source', {
+      enumerable: true,
+      get() {
+        sourceGetterReads += 1;
+        return 'package-test';
+      },
+    });
+
+    expect(() => createSustainabilityEvidencePackageFromExecution(input)).toThrow(
+      /must not use accessors/,
+    );
+    expect(durationGetterReads).toBe(0);
+    expect(sourceGetterReads).toBe(0);
+
+    const inherited = Object.create({ durationMs: 1_800_000 });
+    inherited.workload = { name: 'package-test' };
+    inherited.estimatedEnergyWh = 12;
+    expect(() => createSustainabilityEvidencePackageFromExecution(inherited)).toThrow(
+      /plain object/,
+    );
+  });
+
+  test('one-shot package creation keeps optional defaults deterministic', () => {
+    const input = {
+      workload: { name: 'package-test', runId: 'run-defaults' },
+      durationMs: 1_800_000,
+      estimatedEnergyWh: 12,
+    };
+    const first = createSustainabilityEvidencePackageFromExecution(input);
+    const second = createSustainabilityEvidencePackageFromExecution({ ...input });
+
+    expect(validateSustainabilityEvidencePackage(first)).toBe(true);
+    expect(first.receipt.renewableRatio).toBe(0);
+    expect(first.packageFingerprint).toBe(second.packageFingerprint);
   });
 
   test('fails closed on deceptive package descriptors without evaluating getters', () => {
