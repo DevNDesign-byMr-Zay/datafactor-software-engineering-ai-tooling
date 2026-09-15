@@ -20,6 +20,7 @@ export * from './runtime/runtime-acceptance-decision.js';
 export * from './runtime/runtime-acceptance-receipt.js';
 export * from './runtime/holographic-runtime-acceptance-receipt.js';
 export * from './sustainability/efficiency-score.js';
+export * from './sustainability/efficiency-observation.js';
 export * from './sustainability/sustainability-metadata.js';
 export * from './sustainability/evidence-bundle.js';
 export * from './sustainability/evidence-chain.js';
