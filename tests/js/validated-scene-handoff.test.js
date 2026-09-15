@@ -73,4 +73,28 @@ describe('validated holographic scene handoff', () => {
       }),
     ).toBe(false);
   });
+
+  it('rejects a recomputed handoff fingerprint when acceptance booleans contradict', () => {
+    const handoff = build();
+    const forgedAcceptance = {
+      ...handoff.acceptance,
+      provenanceValid: false,
+      fingerprintValid: true,
+      safetyValid: true,
+      accepted: true,
+    };
+    const withoutFingerprint = { ...handoff, acceptance: forgedAcceptance };
+    delete withoutFingerprint.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(withoutFingerprint)).toBe(false);
+  });
+
+  it('rejects acceptance objects with non-boolean integrity fields', () => {
+    const handoff = build();
+    const withoutFingerprint = {
+      ...handoff,
+      acceptance: { ...handoff.acceptance, safetyValid: 'true' },
+    };
+    delete withoutFingerprint.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(withoutFingerprint)).toBe(false);
+  });
 });
