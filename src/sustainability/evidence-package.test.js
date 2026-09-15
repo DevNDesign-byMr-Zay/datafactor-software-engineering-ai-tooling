@@ -85,6 +85,15 @@ describe('sustainability evidence package', () => {
     });
   });
 
+  test('preserves package identity across JSON transport', () => {
+    const evidencePackage = createSustainabilityEvidencePackage(createArtifacts());
+    const transported = JSON.parse(JSON.stringify(evidencePackage));
+
+    expect(validateSustainabilityEvidencePackage(transported)).toBe(true);
+    expect(transported.packageFingerprint).toBe(evidencePackage.packageFingerprint);
+    expect(transported.manifest).toEqual(evidencePackage.manifest);
+  });
+
   test('rejects cross-run substitution even when every substituted artifact is independently valid', () => {
     const original = createSustainabilityEvidencePackage(createArtifacts('run-package-1'));
     const substitute = createSustainabilityEvidencePackage(createArtifacts('run-package-2'));
