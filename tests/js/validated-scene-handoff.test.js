@@ -32,6 +32,7 @@ describe('validated holographic scene handoff', () => {
       advisoryOnly: true,
     });
     expect(handoff.handoffFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(handoff.provenanceCommitment).toMatch(/^[a-f0-9]{64}$/);
     expect(handoff.acceptance).toMatchObject({
       accepted: true,
       provenanceValid: true,
@@ -40,6 +41,11 @@ describe('validated holographic scene handoff', () => {
       authoritative: false,
       physicalActuation: false,
       advisoryOnly: true,
+    });
+    expect(handoff.provenanceBinding).toMatchObject({
+      snapshotId: 'snap-handoff-1',
+      sceneId: handoff.scene.sceneId,
+      provenanceRef: 'prov-handoff-1',
     });
   });
 
@@ -96,5 +102,88 @@ describe('validated holographic scene handoff', () => {
     };
     delete withoutFingerprint.handoffFingerprint;
     expect(verifyValidatedHolographicSceneHandoff(withoutFingerprint)).toBe(false);
+  });
+
+  it('rejects provenance binding drift even when the outer fingerprint is recomputed', () => {
+    const handoff = build();
+    const forged = {
+      ...handoff,
+      provenanceBinding: {
+        ...handoff.provenanceBinding,
+        provenanceRef: 'prov-handoff-attacker',
+      },
+    };
+    delete forged.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(forged)).toBe(false);
+  });
+
+  it('rejects provenance commitment substitution even when the binding is unchanged', () => {
+    const handoff = build();
+    const forged = { ...handoff, provenanceCommitment: '0'.repeat(64) };
+    delete forged.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(forged)).toBe(false);
+  });
+
+  it('rejects binding metadata that is not structurally complete', () => {
+    const handoff = build();
+    const forged = {
+      ...handoff,
+      provenanceBinding: { ...handoff.provenanceBinding, sceneId: 42 },
+    };
+    delete forged.handoffFingerprint;
+    expect(verifyValidatedHolographicSceneHandoff(forged)).toBe(false);
+  });
+
+  it('re-validates the source envelope instead of trusting only the embedded fingerprint', () => {
+    const planned = planHolographicScene({
+      snapshotId: 'snap-handoff-2',
+      provenanceRef: 'prov-handoff-2',
+      intent: 'inspect',
+      target: 'holo-mat',
+      objects: [{ id: 'node-2', kind: 'load', x: 4, y: 5, z: 6 }],
+    });
+    const handoff = createValidatedHolographicSceneHandoff({
+      envelope: planned.evidence,
+      scene: planned.scene,
+      snapshotId: 'snap-handoff-2',
+      sceneId: planned.scene.sceneId,
+      provenanceRef: 'prov-handoff-2',
+    });
+
+    expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: planned.evidence })).toBe(
+      true,
+    );
+    const forgedEnvelope = { ...planned.evidence, provenanceRef: 'prov-attacker' };
+    expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: forgedEnvelope })).toBe(
+      false,
+    );
+  });
+
+  it('rejects an envelope swap even when the attacker keeps the handoff binding unchanged', () => {
+    const planned = planHolographicScene({
+      snapshotId: 'snap-handoff-3',
+      provenanceRef: 'prov-handoff-3',
+      intent: 'inspect',
+      target: 'holo-mat',
+      objects: [{ id: 'node-3', kind: 'load', x: 7, y: 8, z: 9 }],
+    });
+    const handoff = createValidatedHolographicSceneHandoff({
+      envelope: planned.evidence,
+      scene: planned.scene,
+      snapshotId: 'snap-handoff-3',
+      sceneId: planned.scene.sceneId,
+      provenanceRef: 'prov-handoff-3',
+    });
+    const other = planHolographicScene({
+      snapshotId: 'snap-other',
+      provenanceRef: 'prov-other',
+      intent: 'inspect',
+      target: 'holo-mat',
+      objects: [{ id: 'other', kind: 'load', x: 0, y: 0, z: 0 }],
+    });
+
+    expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: other.evidence })).toBe(
+      false,
+    );
   });
 });
