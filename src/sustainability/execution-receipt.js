@@ -9,6 +9,12 @@ const RECEIPT_KEYS = Object.freeze([
   'renewableRatio',
   'receiptFingerprint',
 ]);
+const RECEIPT_INPUT_KEYS = Object.freeze([
+  'workload',
+  'durationMs',
+  'estimatedEnergyWh',
+  'renewableRatio',
+]);
 
 function finiteNonNegative(value, name) {
   if (!Number.isFinite(value) || value < 0) {
@@ -22,6 +28,36 @@ function finiteRatio(value, name) {
     throw new TypeError(`${name} must be a finite number between 0 and 1`);
   }
   return value;
+}
+
+function readCreationInput(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError('receipt input must be a plain object');
+  }
+  if (Object.getPrototypeOf(value) !== Object.prototype) {
+    throw new TypeError('receipt input must use a plain object');
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError('receipt input must not contain symbol properties');
+  }
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const keys = Object.keys(descriptors);
+  const unexpected = keys.find((key) => !RECEIPT_INPUT_KEYS.includes(key));
+  if (unexpected) throw new TypeError(`receipt input contains unsupported field: ${unexpected}`);
+
+  const copy = {};
+  for (const key of keys) {
+    const descriptor = descriptors[key];
+    if (!descriptor.enumerable) {
+      throw new TypeError(`receipt input.${key} must be enumerable evidence`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`receipt input.${key} must not use accessors`);
+    }
+    copy[key] = descriptor.value;
+  }
+  return copy;
 }
 
 function snapshotArray(value, name, seen) {
@@ -141,17 +177,14 @@ function readReceiptData(receipt) {
   return values;
 }
 
-export function createSustainabilityReceipt({
-  workload,
-  durationMs,
-  estimatedEnergyWh,
-  renewableRatio = 0,
-}) {
+export function createSustainabilityReceipt(input = {}) {
+  const values = readCreationInput(input);
+  const renewableRatio = Object.hasOwn(values, 'renewableRatio') ? values.renewableRatio : 0;
   const body = {
     version: RECEIPT_VERSION,
-    workload: deepFreeze(snapshotEvidence(workload)),
-    durationMs: finiteNonNegative(durationMs, 'durationMs'),
-    estimatedEnergyWh: finiteNonNegative(estimatedEnergyWh, 'estimatedEnergyWh'),
+    workload: deepFreeze(snapshotEvidence(values.workload)),
+    durationMs: finiteNonNegative(values.durationMs, 'durationMs'),
+    estimatedEnergyWh: finiteNonNegative(values.estimatedEnergyWh, 'estimatedEnergyWh'),
     renewableRatio: finiteRatio(renewableRatio, 'renewableRatio'),
   };
 
