@@ -30,6 +30,13 @@ function sameWorkloadEvidence(left, right) {
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right));
 }
 
+function hasExactKeys(value, keys) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actual = Object.keys(value).sort();
+  const expected = [...keys].sort();
+  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
+}
+
 export function compareSustainabilityReceipts({ baseline, candidate } = {}) {
   if (!validateSustainabilityReceipt(baseline)) {
     throw new TypeError('baseline sustainability receipt is invalid');
@@ -73,28 +80,74 @@ export function compareSustainabilityReceipts({ baseline, candidate } = {}) {
 
 export function validateSustainabilityComparison(comparison) {
   try {
-    if (!comparison || typeof comparison !== 'object' || Array.isArray(comparison)) return false;
+    if (
+      !hasExactKeys(comparison, [
+        'version',
+        'baselineFingerprint',
+        'candidateFingerprint',
+        'sameWorkloadEvidence',
+        'metrics',
+        'interpretation',
+        'safety',
+        'comparisonFingerprint',
+      ])
+    ) {
+      return false;
+    }
     if (comparison.version !== COMPARISON_VERSION) return false;
     if (!/^[a-f0-9]{64}$/.test(comparison.baselineFingerprint)) return false;
     if (!/^[a-f0-9]{64}$/.test(comparison.candidateFingerprint)) return false;
     if (!/^[a-f0-9]{64}$/.test(comparison.comparisonFingerprint)) return false;
+    if (typeof comparison.sameWorkloadEvidence !== 'boolean') return false;
     if (comparison.interpretation !== 'observational-only') return false;
     if (
-      comparison.safety?.advisoryOnly !== true ||
-      comparison.safety?.authoritative !== false ||
-      comparison.safety?.schedulesWorkloads !== false ||
-      comparison.safety?.deploysWorkloads !== false ||
-      comparison.safety?.physicalActuation !== false
+      !hasExactKeys(comparison.safety, [
+        'advisoryOnly',
+        'authoritative',
+        'schedulesWorkloads',
+        'deploysWorkloads',
+        'physicalActuation',
+      ]) ||
+      comparison.safety.advisoryOnly !== true ||
+      comparison.safety.authoritative !== false ||
+      comparison.safety.schedulesWorkloads !== false ||
+      comparison.safety.deploysWorkloads !== false ||
+      comparison.safety.physicalActuation !== false
     ) {
       return false;
     }
-    if (!comparison.metrics || typeof comparison.metrics !== 'object') return false;
+    if (
+      !hasExactKeys(comparison.metrics, [
+        'durationDeltaMs',
+        'durationDirection',
+        'estimatedEnergyDeltaWh',
+        'estimatedEnergyDirection',
+        'renewableRatioDelta',
+        'renewableRatioDirection',
+      ])
+    ) {
+      return false;
+    }
     for (const value of [
       comparison.metrics.durationDeltaMs,
       comparison.metrics.estimatedEnergyDeltaWh,
       comparison.metrics.renewableRatioDelta,
     ]) {
       if (!Number.isFinite(value)) return false;
+    }
+    if (comparison.metrics.durationDirection !== direction(comparison.metrics.durationDeltaMs))
+      return false;
+    if (
+      comparison.metrics.estimatedEnergyDirection !==
+      direction(comparison.metrics.estimatedEnergyDeltaWh)
+    ) {
+      return false;
+    }
+    if (
+      comparison.metrics.renewableRatioDirection !==
+      direction(comparison.metrics.renewableRatioDelta)
+    ) {
+      return false;
     }
     const body = Object.fromEntries(
       Object.entries(comparison).filter(([key]) => key !== 'comparisonFingerprint'),
