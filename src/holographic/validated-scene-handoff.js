@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 import { evaluateHolographicAcceptance } from './acceptance-gate.js';
+import { validateHolographicEvidenceEnvelope } from './evidence-envelope.js';
 import { fingerprintHolographicScene } from './scene-fingerprint.js';
+import { validateHolographicProvenanceBinding } from './provenance-chain.js';
 
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
@@ -72,7 +74,8 @@ export function createValidatedHolographicSceneHandoff({ envelope, scene, snapsh
   return Object.freeze({ ...body, handoffFingerprint: fingerprintHandoff(body) });
 }
 
-export function verifyValidatedHolographicSceneHandoff(handoff) {
+/** Verify a handoff structurally; pass the source envelope to re-run the independent provenance gate. */
+export function verifyValidatedHolographicSceneHandoff(handoff, { envelope = null } = {}) {
   if (!handoff || typeof handoff !== 'object' || typeof handoff.handoffFingerprint !== 'string') return false;
   const body = Object.fromEntries(Object.entries(handoff).filter(([key]) => key !== 'handoffFingerprint'));
   if (!/^[a-f0-9]{64}$/.test(handoff.handoffFingerprint)) return false;
@@ -87,5 +90,17 @@ export function verifyValidatedHolographicSceneHandoff(handoff) {
   if (body.scene.snapshotId !== binding.snapshotId || body.scene.sceneId !== binding.sceneId) return false;
   if (!body.acceptance.provenanceValid) return false;
   if (!body.safety || body.safety.authoritative !== false || body.safety.physicalActuation !== false || body.safety.advisoryOnly !== true) return false;
+  if (envelope != null) {
+    if (!validateHolographicEvidenceEnvelope(envelope)) return false;
+    if (envelope.fingerprint !== binding.envelopeFingerprint) return false;
+    if (!validateHolographicProvenanceBinding({
+      envelope,
+      snapshotId: binding.snapshotId,
+      sceneId: binding.sceneId,
+      provenanceRef: binding.provenanceRef,
+      scene: body.scene,
+      sceneFingerprint: body.sceneFingerprint,
+    })) return false;
+  }
   return handoff.handoffFingerprint === fingerprintHandoff(body);
 }
