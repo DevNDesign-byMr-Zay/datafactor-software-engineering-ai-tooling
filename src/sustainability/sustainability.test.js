@@ -4,6 +4,7 @@ import {
   validateSustainabilityEvidenceBundle,
 } from './evidence-bundle.js';
 import { getSustainabilityReceiptStatus } from './receipt-status.js';
+import { createSustainabilityMetadata } from './sustainability-metadata.js';
 
 describe('sustainability contracts', () => {
   test('calculates energy efficiency without mutation', () => {
@@ -26,6 +27,15 @@ describe('sustainability contracts', () => {
       'partially-renewable',
     );
     expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4 })).toBe('grid-only');
+  });
+
+  test('validates and normalizes sustainability provenance metadata', () => {
+    expect(
+      createSustainabilityMetadata({ energyWh: 4, renewableRatio: 0.5, source: '  runtime  ' }),
+    ).toEqual({ energyWh: 4, renewableRatio: 0.5, source: 'runtime' });
+    expect(() => createSustainabilityMetadata({ energyWh: 4, source: '   ' })).toThrow(
+      /non-empty string/,
+    );
   });
 
   test('snapshots complete evidence bundles before sealing them', () => {
