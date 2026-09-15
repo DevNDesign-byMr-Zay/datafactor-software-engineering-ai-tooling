@@ -155,7 +155,8 @@ export function validateSustainabilityComparison(comparison) {
       if (!Number.isFinite(value)) return false;
     }
     if (metrics.durationDirection !== direction(metrics.durationDeltaMs)) return false;
-    if (metrics.estimatedEnergyDirection !== direction(metrics.estimatedEnergyDeltaWh)) return false;
+    if (metrics.estimatedEnergyDirection !== direction(metrics.estimatedEnergyDeltaWh))
+      return false;
     if (metrics.renewableRatioDirection !== direction(metrics.renewableRatioDelta)) return false;
 
     const body = {
