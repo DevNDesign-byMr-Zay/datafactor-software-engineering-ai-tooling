@@ -7,6 +7,18 @@ function text(value, name) {
   return value.trim();
 }
 
+function hasOwnSceneIdentity(scene, snapshotId, sceneId) {
+  if (!scene || typeof scene !== 'object' || Array.isArray(scene)) return false;
+  const prototype = Object.getPrototypeOf(scene);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  return (
+    Object.prototype.hasOwnProperty.call(scene, 'sceneId') &&
+    Object.prototype.hasOwnProperty.call(scene, 'snapshotId') &&
+    scene.sceneId === sceneId &&
+    scene.snapshotId === snapshotId
+  );
+}
+
 /** Bind a holographic evidence envelope to its producing artifact identity. */
 export function validateHolographicProvenanceBinding({
   envelope,
@@ -17,21 +29,19 @@ export function validateHolographicProvenanceBinding({
   sceneFingerprint = null,
 } = {}) {
   if (!validateHolographicEvidenceEnvelope(envelope)) return false;
+  const normalizedSnapshotId = text(snapshotId, 'snapshotId');
+  const normalizedSceneId = text(sceneId, 'sceneId');
+  const normalizedProvenanceRef = text(provenanceRef, 'provenanceRef');
   const identityMatches =
-    envelope.snapshotId === text(snapshotId, 'snapshotId') &&
-    envelope.sceneId === text(sceneId, 'sceneId') &&
-    envelope.provenanceRef === text(provenanceRef, 'provenanceRef');
+    envelope.snapshotId === normalizedSnapshotId &&
+    envelope.sceneId === normalizedSceneId &&
+    envelope.provenanceRef === normalizedProvenanceRef;
   if (!identityMatches) return false;
   if (scene != null || sceneFingerprint != null) {
     if (
-      scene == null ||
+      !hasOwnSceneIdentity(scene, normalizedSnapshotId, normalizedSceneId) ||
       typeof sceneFingerprint !== 'string' ||
       !verifyHolographicSceneFingerprint(scene, sceneFingerprint)
-    )
-      return false;
-    if (
-      scene.sceneId !== text(sceneId, 'sceneId') ||
-      scene.snapshotId !== text(snapshotId, 'snapshotId')
     )
       return false;
   }
