@@ -30,6 +30,10 @@ function fingerprintHandoff(value) {
   return createHash('sha256').update(JSON.stringify(canonical(value)), 'utf8').digest('hex');
 }
 
+function fingerprintProvenanceBinding(value) {
+  return createHash('sha256').update(JSON.stringify(canonical(value)), 'utf8').digest('hex');
+}
+
 function verifyAcceptance(acceptance) {
   if (!acceptance || typeof acceptance !== 'object' || Array.isArray(acceptance)) return false;
   const requiredBooleans = ['accepted', 'provenanceValid', 'fingerprintValid', 'safetyValid', 'authoritative', 'physicalActuation', 'advisoryOnly'];
@@ -64,11 +68,13 @@ export function createValidatedHolographicSceneHandoff({ envelope, scene, snapsh
     sceneId: normalizedSceneId,
     provenanceRef: normalizedProvenanceRef,
   };
+  const provenanceCommitment = fingerprintProvenanceBinding(provenanceBinding);
   const body = {
     scene: capturedScene,
     sceneFingerprint,
     acceptance,
     provenanceBinding: Object.freeze(provenanceBinding),
+    provenanceCommitment,
     safety: Object.freeze({ authoritative: false, physicalActuation: false, advisoryOnly: true }),
   };
   return Object.freeze({ ...body, handoffFingerprint: fingerprintHandoff(body) });
@@ -87,6 +93,8 @@ export function verifyValidatedHolographicSceneHandoff(handoff, { envelope = nul
   if (!binding || typeof binding !== 'object' || Array.isArray(binding)) return false;
   if (typeof binding.envelopeFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(binding.envelopeFingerprint)) return false;
   if (typeof binding.snapshotId !== 'string' || typeof binding.sceneId !== 'string' || typeof binding.provenanceRef !== 'string') return false;
+  if (!body.provenanceCommitment || !/^[a-f0-9]{64}$/.test(body.provenanceCommitment)) return false;
+  if (body.provenanceCommitment !== fingerprintProvenanceBinding(binding)) return false;
   if (body.scene.snapshotId !== binding.snapshotId || body.scene.sceneId !== binding.sceneId) return false;
   if (!body.acceptance.provenanceValid) return false;
   if (!body.safety || body.safety.authoritative !== false || body.safety.physicalActuation !== false || body.safety.advisoryOnly !== true) return false;
