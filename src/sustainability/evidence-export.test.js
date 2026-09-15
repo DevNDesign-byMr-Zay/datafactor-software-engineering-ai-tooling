@@ -49,9 +49,9 @@ describe('sustainability evidence export boundary', () => {
     const artifacts = createArtifacts();
 
     expect(validateSustainabilityReceipt(artifacts.receipt)).toBe(true);
-    expect(validateSustainabilityEfficiencyObservation(artifacts.observation, artifacts.receipt)).toBe(
-      true,
-    );
+    expect(
+      validateSustainabilityEfficiencyObservation(artifacts.observation, artifacts.receipt),
+    ).toBe(true);
     expect(validateSustainabilityEvidenceBundle(artifacts.bundle)).toBe(true);
     expect(validateSustainabilityEvidenceChain(artifacts.chain, artifacts)).toBe(true);
     expect(validateSustainabilityEvidenceExport(artifacts.evidenceExport, artifacts)).toBe(true);
@@ -74,13 +74,15 @@ describe('sustainability evidence export boundary', () => {
       receipt: { workload: { name: 'export-test', runId: 'run-2' } },
     });
 
-    expect(validateSustainabilityEfficiencyObservation(substitute.observation, substitute.receipt)).toBe(
-      true,
-    );
-    expect(validateSustainabilityEvidenceExport(original.evidenceExport, {
-      ...original,
-      observation: substitute.observation,
-    })).toBe(false);
+    expect(
+      validateSustainabilityEfficiencyObservation(substitute.observation, substitute.receipt),
+    ).toBe(true);
+    expect(
+      validateSustainabilityEvidenceExport(original.evidenceExport, {
+        ...original,
+        observation: substitute.observation,
+      }),
+    ).toBe(false);
   });
 
   test('rejects tampered exported metrics and safety declarations', () => {
