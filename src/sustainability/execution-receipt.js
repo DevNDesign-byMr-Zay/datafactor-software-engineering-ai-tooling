@@ -164,7 +164,10 @@ export function validateSustainabilityReceipt(receipt) {
     const data = readReceiptData(receipt);
     if (!data) return false;
     if (data.version !== RECEIPT_VERSION) return false;
-    if (typeof data.receiptFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(data.receiptFingerprint)) {
+    if (
+      typeof data.receiptFingerprint !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(data.receiptFingerprint)
+    ) {
       return false;
     }
 
