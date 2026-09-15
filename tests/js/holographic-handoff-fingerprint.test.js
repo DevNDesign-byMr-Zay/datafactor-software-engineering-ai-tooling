@@ -45,10 +45,27 @@ test('modified validated handoff is rejected', () => {
     provenanceRef,
   });
 
-  expect(
-    verifyValidatedHolographicSceneHandoff({
-      ...handoff,
-      sceneFingerprint: '0'.repeat(64),
-    }),
-  ).toBe(false);
+  expect(verifyValidatedHolographicSceneHandoff({ ...handoff, sceneFingerprint: '0'.repeat(64) })).toBe(false);
+});
+
+test('rejects a handoff whose scene changes without changing the embedded scene fingerprint', () => {
+  const snapshotId = 'handoff-scene-drift-snapshot';
+  const provenanceRef = 'provenance:handoff-scene-drift';
+  const planned = planHolographicScene({
+    snapshotId,
+    provenanceRef,
+    intent: 'inspect',
+    target: 'web-dashboard',
+    objects: [{ id: 'asset-1', text: 'Grid', x: 2, y: 4, z: 1 }],
+  });
+  const handoff = createValidatedHolographicSceneHandoff({
+    envelope: planned.evidence,
+    scene: planned.scene,
+    snapshotId,
+    sceneId: planned.scene.sceneId,
+    provenanceRef,
+  });
+  const changedScene = { ...handoff.scene, nodes: [...handoff.scene.nodes, { id: 'tampered', text: 'drift', x: 0, y: 0, z: 0 }] };
+
+  expect(verifyValidatedHolographicSceneHandoff({ ...handoff, scene: changedScene })).toBe(false);
 });
