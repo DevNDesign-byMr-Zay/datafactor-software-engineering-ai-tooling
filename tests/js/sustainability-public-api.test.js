@@ -1,37 +1,12 @@
 import * as api from '../../src/index.js';
 
 function createPackage(runId, { durationMs, estimatedEnergyWh, renewableRatio }) {
-  const receipt = api.createSustainabilityReceipt({
+  return api.createSustainabilityEvidencePackageFromExecution({
     workload: { name: 'public-package-consumer', runId },
     durationMs,
     estimatedEnergyWh,
     renewableRatio,
-  });
-  const observation = api.createSustainabilityEfficiencyObservation(receipt);
-  const metadata = api.createSustainabilityMetadata({
-    energyWh: receipt.estimatedEnergyWh,
-    renewableRatio: receipt.renewableRatio,
     source: 'public-api-test',
-  });
-  const efficiency = api.calculateSustainabilityEfficiency({
-    durationMs: receipt.durationMs,
-    estimatedEnergyWh: receipt.estimatedEnergyWh,
-    renewableRatio: receipt.renewableRatio,
-  });
-  const bundle = api.createSustainabilityEvidenceBundle({ receipt, metadata, efficiency });
-  const chain = api.createSustainabilityEvidenceChain({ receipt, observation, bundle });
-  const evidenceExport = api.createSustainabilityEvidenceExport({
-    receipt,
-    observation,
-    bundle,
-    chain,
-  });
-  return api.createSustainabilityEvidencePackage({
-    receipt,
-    observation,
-    bundle,
-    chain,
-    evidenceExport,
   });
 }
 
@@ -57,6 +32,26 @@ describe('sustainability public consumer API', () => {
     );
     expect(comparison.baselinePackageFingerprint).toBe(baseline.packageFingerprint);
     expect(comparison.candidatePackageFingerprint).toBe(candidate.packageFingerprint);
+    expect(baseline.manifest.receiptFingerprint).toBe(baseline.receipt.receiptFingerprint);
+    expect(baseline.manifest.observationFingerprint).toBe(
+      baseline.observation.observationFingerprint,
+    );
+    expect(baseline.manifest.bundleFingerprint).toBe(baseline.bundle.bundleFingerprint);
+    expect(baseline.manifest.chainFingerprint).toBe(baseline.chain.chainFingerprint);
+    expect(baseline.manifest.exportFingerprint).toBe(baseline.evidenceExport.exportFingerprint);
+  });
+
+  test('creates deterministic package identity from equivalent execution evidence', () => {
+    const input = {
+      durationMs: 1250,
+      estimatedEnergyWh: 6,
+      renewableRatio: 0.4,
+    };
+    const first = createPackage('deterministic', input);
+    const second = createPackage('deterministic', input);
+
+    expect(second).toEqual(first);
+    expect(second.packageFingerprint).toBe(first.packageFingerprint);
   });
 
   test('does not expose the loose receipt-comparison helper from the root entrypoint', () => {
