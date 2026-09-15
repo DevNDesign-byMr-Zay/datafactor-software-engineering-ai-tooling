@@ -167,4 +167,38 @@ describe('runtime acceptance receipt', () => {
     expect(receipt.service.traffic[0].url).toBeNull();
     expect(() => serializeRuntimeAcceptanceReceipt(receipt)).not.toThrow();
   });
+
+  test('preserves null release evidence without weakening the fingerprint contract', () => {
+    const first = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        release: {
+          ...acceptance.release,
+          command: null,
+          args: null,
+          stdout: null,
+        },
+      },
+      region: 'us-central1',
+    });
+    const second = buildRuntimeAcceptanceReceipt({
+      acceptance: {
+        ...acceptance,
+        release: {
+          ...acceptance.release,
+          command: null,
+          args: null,
+          stdout: null,
+        },
+      },
+      region: 'us-central1',
+    });
+
+    expect(serializeRuntimeAcceptanceReceipt(first)).toBe(
+      serializeRuntimeAcceptanceReceipt(second),
+    );
+    expect(fingerprintRuntimeAcceptanceReceipt(first)).toBe(
+      fingerprintRuntimeAcceptanceReceipt(second),
+    );
+  });
 });
