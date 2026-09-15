@@ -233,9 +233,9 @@ describe('validated holographic scene handoff', () => {
       },
     });
 
-    expect(
-      verifyValidatedHolographicSceneHandoff(handoff, { envelope: deceptiveEnvelope }),
-    ).toBe(false);
+    expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: deceptiveEnvelope })).toBe(
+      false,
+    );
     expect(envelopeGetterReads).toBe(0);
   });
 
