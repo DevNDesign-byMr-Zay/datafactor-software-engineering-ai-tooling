@@ -6,14 +6,22 @@ import {
 } from '../../src/holographic/validated-scene-handoff.js';
 
 describe('validated holographic scene handoff', () => {
-  function build() {
-    const planned = planHolographicScene({
-      snapshotId: 'snap-handoff-1',
-      provenanceRef: 'prov-handoff-1',
+  function plannedFixture({
+    snapshotId = 'snap-handoff-1',
+    provenanceRef = 'prov-handoff-1',
+    nodeId = 'node-1',
+  } = {}) {
+    return planHolographicScene({
+      snapshotId,
+      provenanceRef,
       intent: 'inspect',
       target: 'holo-mat',
-      objects: [{ id: 'node-1', kind: 'load', x: 1, y: 2, z: 3 }],
+      objects: [{ id: nodeId, kind: 'load', x: 1, y: 2, z: 3 }],
     });
+  }
+
+  function build() {
+    const planned = plannedFixture();
     return createValidatedHolographicSceneHandoff({
       envelope: planned.evidence,
       scene: planned.scene,
@@ -135,12 +143,10 @@ describe('validated holographic scene handoff', () => {
   });
 
   it('re-validates the source envelope instead of trusting only the embedded fingerprint', () => {
-    const planned = planHolographicScene({
+    const planned = plannedFixture({
       snapshotId: 'snap-handoff-2',
       provenanceRef: 'prov-handoff-2',
-      intent: 'inspect',
-      target: 'holo-mat',
-      objects: [{ id: 'node-2', kind: 'load', x: 4, y: 5, z: 6 }],
+      nodeId: 'node-2',
     });
     const handoff = createValidatedHolographicSceneHandoff({
       envelope: planned.evidence,
@@ -160,12 +166,10 @@ describe('validated holographic scene handoff', () => {
   });
 
   it('rejects an envelope swap even when the attacker keeps the handoff binding unchanged', () => {
-    const planned = planHolographicScene({
+    const planned = plannedFixture({
       snapshotId: 'snap-handoff-3',
       provenanceRef: 'prov-handoff-3',
-      intent: 'inspect',
-      target: 'holo-mat',
-      objects: [{ id: 'node-3', kind: 'load', x: 7, y: 8, z: 9 }],
+      nodeId: 'node-3',
     });
     const handoff = createValidatedHolographicSceneHandoff({
       envelope: planned.evidence,
@@ -174,16 +178,100 @@ describe('validated holographic scene handoff', () => {
       sceneId: planned.scene.sceneId,
       provenanceRef: 'prov-handoff-3',
     });
-    const other = planHolographicScene({
+    const other = plannedFixture({
       snapshotId: 'snap-other',
       provenanceRef: 'prov-other',
-      intent: 'inspect',
-      target: 'holo-mat',
-      objects: [{ id: 'other', kind: 'load', x: 0, y: 0, z: 0 }],
+      nodeId: 'other',
     });
 
     expect(verifyValidatedHolographicSceneHandoff(handoff, { envelope: other.evidence })).toBe(
       false,
     );
+  });
+
+  it('does not execute accessors while capturing a scene or source envelope', () => {
+    const planned = plannedFixture({
+      snapshotId: 'snap-handoff-accessor',
+      provenanceRef: 'prov-handoff-accessor',
+      nodeId: 'node-accessor',
+    });
+    let sceneGetterReads = 0;
+    const deceptiveScene = { ...planned.scene };
+    Object.defineProperty(deceptiveScene, 'nodes', {
+      enumerable: true,
+      get() {
+        sceneGetterReads += 1;
+        return planned.scene.nodes;
+      },
+    });
+
+    expect(() =>
+      createValidatedHolographicSceneHandoff({
+        envelope: planned.evidence,
+        scene: deceptiveScene,
+        snapshotId: 'snap-handoff-accessor',
+        sceneId: planned.scene.sceneId,
+        provenanceRef: 'prov-handoff-accessor',
+      }),
+    ).toThrow(/must not use accessors/);
+    expect(sceneGetterReads).toBe(0);
+
+    const handoff = createValidatedHolographicSceneHandoff({
+      envelope: planned.evidence,
+      scene: planned.scene,
+      snapshotId: 'snap-handoff-accessor',
+      sceneId: planned.scene.sceneId,
+      provenanceRef: 'prov-handoff-accessor',
+    });
+    let envelopeGetterReads = 0;
+    const deceptiveEnvelope = { ...planned.evidence };
+    Object.defineProperty(deceptiveEnvelope, 'fingerprint', {
+      enumerable: true,
+      get() {
+        envelopeGetterReads += 1;
+        return planned.evidence.fingerprint;
+      },
+    });
+
+    expect(
+      verifyValidatedHolographicSceneHandoff(handoff, { envelope: deceptiveEnvelope }),
+    ).toBe(false);
+    expect(envelopeGetterReads).toBe(0);
+  });
+
+  it('rejects deceptive handoff descriptors without executing getters', () => {
+    const handoff = build();
+    let getterReads = 0;
+    const deceptive = { ...handoff };
+    Object.defineProperty(deceptive, 'handoffFingerprint', {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return handoff.handoffFingerprint;
+      },
+    });
+
+    expect(verifyValidatedHolographicSceneHandoff(deceptive)).toBe(false);
+    expect(getterReads).toBe(0);
+  });
+
+  it('rejects side-channel fields, symbols, and decorated scene arrays', () => {
+    const handoff = build();
+    expect(verifyValidatedHolographicSceneHandoff({ ...handoff, hiddenAuthority: true })).toBe(
+      false,
+    );
+
+    const symbolic = { ...handoff };
+    symbolic[Symbol('authority')] = true;
+    expect(verifyValidatedHolographicSceneHandoff(symbolic)).toBe(false);
+
+    const nodes = handoff.scene.nodes.map((node) => ({ ...node }));
+    nodes.shadowAuthority = true;
+    expect(
+      verifyValidatedHolographicSceneHandoff({
+        ...handoff,
+        scene: { ...handoff.scene, nodes },
+      }),
+    ).toBe(false);
   });
 });
