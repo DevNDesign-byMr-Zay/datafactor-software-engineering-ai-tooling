@@ -63,6 +63,18 @@ describe('sustainability evidence serializer boundary', () => {
     expect(bundle.receipt.first).not.toBe(shared);
   });
 
+  test('rejects circular evidence without evaluating the cycle', () => {
+    const metadata = { source: 'runtime' };
+    metadata.self = metadata;
+
+    expect(() =>
+      createSustainabilityEvidenceBundle({
+        ...validInputs(),
+        metadata,
+      }),
+    ).toThrow(/must not contain circular references/);
+  });
+
   test('rejects array properties and accessors without evaluating executable evidence', () => {
     const values = ['safe'];
     values.extra = 'unexpected';
@@ -98,6 +110,14 @@ describe('sustainability evidence serializer boundary', () => {
       ...bundle,
       metadata: Object.assign(Object.create({ inherited: true }), bundle.metadata),
     };
+
+    expect(validateSustainabilityEvidenceBundle(tampered)).toBe(false);
+  });
+
+  test('validator fails closed when the trusted bundle gains a symbol property', () => {
+    const bundle = createSustainabilityEvidenceBundle(validInputs());
+    const tampered = { ...bundle };
+    tampered[Symbol('hidden')] = 'unexpected';
 
     expect(validateSustainabilityEvidenceBundle(tampered)).toBe(false);
   });
