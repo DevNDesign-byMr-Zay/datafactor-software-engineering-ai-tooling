@@ -43,24 +43,42 @@ describe('sustainability contracts', () => {
     expect(bundle.metadata.tags).toEqual(['reviewed']);
   });
 
+  test('preserves repeated evidence references without treating them as cycles', () => {
+    const shared = { id: 'shared-runtime' };
+    const bundle = createSustainabilityEvidenceBundle({
+      receipt: { first: shared, second: shared },
+      metadata: { source: 'runtime' },
+      efficiency: { energyPerSecondWh: 2 },
+    });
+
+    expect(bundle.receipt.first).toEqual(shared);
+    expect(bundle.receipt.second).toEqual(shared);
+    expect(bundle.receipt.first).not.toBe(shared);
+    expect(bundle.receipt.second).not.toBe(shared);
+  });
+
   test('fails closed on incomplete or non-serializable evidence', () => {
     const receipt = { estimatedEnergyWh: 4 };
     const metadata = { source: 'runtime' };
     const efficiency = { energyPerSecondWh: 2 };
 
     expect(() => createSustainabilityEvidenceBundle({ receipt, metadata })).toThrow();
-    expect(() => createSustainabilityEvidenceBundle({
-      receipt: { ...receipt, bad: () => true },
-      metadata,
-      efficiency,
-    })).toThrow(/JSON-compatible evidence/);
+    expect(() =>
+      createSustainabilityEvidenceBundle({
+        receipt: { ...receipt, bad: () => true },
+        metadata,
+        efficiency,
+      }),
+    ).toThrow(/JSON-compatible evidence/);
 
     const circular = { ...receipt };
     circular.self = circular;
-    expect(() => createSustainabilityEvidenceBundle({
-      receipt: circular,
-      metadata,
-      efficiency,
-    })).toThrow(/circular references/);
+    expect(() =>
+      createSustainabilityEvidenceBundle({
+        receipt: circular,
+        metadata,
+        efficiency,
+      }),
+    ).toThrow(/circular references/);
   });
 });
