@@ -171,4 +171,44 @@ describe('sustainability evidence package', () => {
     symbolicPackage[Symbol('hidden')] = true;
     expect(validateSustainabilityEvidencePackage(symbolicPackage)).toBe(false);
   });
+
+  test('fails closed on deceptive nested manifest and safety descriptors without evaluating getters', () => {
+    const evidencePackage = createSustainabilityEvidencePackage(createArtifacts());
+    let manifestGetterReads = 0;
+    let safetyGetterReads = 0;
+
+    const manifest = { ...evidencePackage.manifest };
+    Object.defineProperty(manifest, 'exportFingerprint', {
+      enumerable: true,
+      get() {
+        manifestGetterReads += 1;
+        return evidencePackage.manifest.exportFingerprint;
+      },
+    });
+
+    const safety = { ...evidencePackage.safety };
+    Object.defineProperty(safety, 'authoritative', {
+      enumerable: true,
+      get() {
+        safetyGetterReads += 1;
+        return false;
+      },
+    });
+
+    expect(
+      validateSustainabilityEvidencePackage({
+        ...evidencePackage,
+        manifest,
+      }),
+    ).toBe(false);
+    expect(manifestGetterReads).toBe(0);
+
+    expect(
+      validateSustainabilityEvidencePackage({
+        ...evidencePackage,
+        safety,
+      }),
+    ).toBe(false);
+    expect(safetyGetterReads).toBe(0);
+  });
 });
