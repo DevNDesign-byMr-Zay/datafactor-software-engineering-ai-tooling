@@ -4,6 +4,7 @@ import {
   createValidatedHolographicSceneHandoff,
   verifyValidatedHolographicSceneHandoff,
 } from '../../src/holographic/validated-scene-handoff.js';
+
 describe('validated holographic scene handoff', () => {
   function build() {
     const planned = planHolographicScene({
@@ -21,6 +22,7 @@ describe('validated holographic scene handoff', () => {
       provenanceRef: 'prov-handoff-1',
     });
   }
+
   it('emits a verifiable immutable advisory handoff', () => {
     const handoff = build();
     expect(verifyValidatedHolographicSceneHandoff(handoff)).toBe(true);
@@ -31,6 +33,7 @@ describe('validated holographic scene handoff', () => {
     });
     expect(handoff.handoffFingerprint).toMatch(/^[a-f0-9]{64}$/);
   });
+
   it('rejects scene mutation after handoff construction', () => {
     const handoff = build();
     const tampered = {
@@ -42,10 +45,14 @@ describe('validated holographic scene handoff', () => {
     };
     expect(verifyValidatedHolographicSceneHandoff(tampered)).toBe(false);
   });
+
   it('rejects forged fingerprints and unsafe authority flags', () => {
     const handoff = build();
     expect(
-      verifyValidatedHolographicSceneHandoff({ ...handoff, handoffFingerprint: '0'.repeat(64) }),
+      verifyValidatedHolographicSceneHandoff({
+        ...handoff,
+        handoffFingerprint: '0'.repeat(64),
+      }),
     ).toBe(false);
     expect(
       verifyValidatedHolographicSceneHandoff({
