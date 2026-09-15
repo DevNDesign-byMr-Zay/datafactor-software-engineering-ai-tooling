@@ -63,9 +63,9 @@ describe('holographic evidence envelope prototype boundary', () => {
         return false;
       },
     });
-    expect(
-      validateHolographicEvidenceEnvelope({ ...envelope, safety: deceptiveSafety }),
-    ).toBe(false);
+    expect(validateHolographicEvidenceEnvelope({ ...envelope, safety: deceptiveSafety })).toBe(
+      false,
+    );
     expect(safetyGetterReads).toBe(0);
   });
 
