@@ -2,7 +2,6 @@ import { calculateSustainabilityEfficiency } from './efficiency-score.js';
 import { createSustainabilityEvidenceBundle } from './evidence-bundle.js';
 import { getSustainabilityReceiptStatus } from './receipt-status.js';
 
-
 describe('sustainability contracts', () => {
   test('calculates energy efficiency without mutation', () => {
     const result = calculateSustainabilityEfficiency({
@@ -17,8 +16,12 @@ describe('sustainability contracts', () => {
 
   test('classifies renewable receipt state', () => {
     expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 0 })).toBe('no-energy-estimate');
-    expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4, renewableRatio: 1 })).toBe('renewable');
-    expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4, renewableRatio: 0.25 })).toBe('partially-renewable');
+    expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4, renewableRatio: 1 })).toBe(
+      'renewable',
+    );
+    expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4, renewableRatio: 0.25 })).toBe(
+      'partially-renewable',
+    );
     expect(getSustainabilityReceiptStatus({ estimatedEnergyWh: 4 })).toBe('grid-only');
   });
 
