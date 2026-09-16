@@ -16,7 +16,6 @@ describe('holographic provenance tamper boundary', () => {
       snapshotId: 'snapshot-1',
       sceneId: 'scene-1',
       provenanceRef: 'prov-1',
-      evidence: { source: 'test' },
     });
     const fingerprint = fingerprintHolographicScene(scene);
     const result = evaluateHolographicAcceptance({
