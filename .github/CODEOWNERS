@@ -1,0 +1,9 @@
+# Default review routing
+* @DevNDesign-byMr-Zay @DevNDesign-Team
+
+# Maintained runtime trust boundary and focused tests
+/src/runtime/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+/tests/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+
+# Repository governance and automation
+/.github/** @DevNDesign-byMr-Zay @DevNDesign-Team
