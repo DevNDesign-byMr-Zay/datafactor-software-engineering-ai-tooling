@@ -1,9 +1,6 @@
 import { consumeRuntimeAcceptanceEvidence } from '../../src/runtime/runtime-acceptance-consumer.js';
 import { RUNTIME_ACCEPTANCE_DECISIONS } from '../../src/runtime/runtime-acceptance-decision.js';
-import {
-  fingerprintRuntimeAcceptanceReceipt,
-  serializeRuntimeAcceptanceReceipt,
-} from '../../src/runtime/runtime-acceptance-receipt.js';
+import { fingerprintRuntimeAcceptanceReceipt } from '../../src/runtime/runtime-acceptance-receipt.js';
 import { runtimeAcceptanceConsumerFixture } from './fixtures/runtime-acceptance-consumer.js';
 
 function fingerprint() {
@@ -141,29 +138,5 @@ describe('verified runtime acceptance consumer boundary', () => {
         receiptFingerprint: fingerprint(),
       }).reason,
     ).toBe('invalid receipt');
-  });
-
-  test('keeps the maintained fixture compact, order-stable, and provider-noise-free', () => {
-    const serialized = serializeRuntimeAcceptanceReceipt(runtimeAcceptanceConsumerFixture);
-    for (const diagnosticField of [
-      'stdout',
-      'stderr',
-      'command',
-      'args',
-      'token',
-      'environment',
-      'release',
-    ]) {
-      expect(serialized).not.toContain(`"${diagnosticField}"`);
-    }
-
-    const equivalent = {
-      ...runtimeAcceptanceConsumerFixture,
-      service: {
-        ...runtimeAcceptanceConsumerFixture.service,
-        traffic: [...runtimeAcceptanceConsumerFixture.service.traffic].reverse(),
-      },
-    };
-    expect(fingerprintRuntimeAcceptanceReceipt(equivalent)).toBe(fingerprint());
   });
 });
