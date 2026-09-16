@@ -44,9 +44,7 @@ export function buildRuntimeAcceptanceReceipt(input = {}) {
     'latestReadyRevisionName',
   );
 
-  const traffic = normalizeTraffic(
-    readOwnData(service, 'traffic', 'acceptance.release.service'),
-  );
+  const traffic = normalizeTraffic(readOwnData(service, 'traffic', 'acceptance.release.service'));
 
   return deepFreeze({
     contractVersion: RECEIPT_VERSION,
@@ -64,9 +62,7 @@ export function buildRuntimeAcceptanceReceipt(input = {}) {
         readOwnData(release, 'stage', 'acceptance.release'),
         'release.stage',
       ),
-      exitCode: normalizeExitCode(
-        readOwnData(release, 'exitCode', 'acceptance.release'),
-      ),
+      exitCode: normalizeExitCode(readOwnData(release, 'exitCode', 'acceptance.release')),
     },
   });
 }
@@ -111,11 +107,7 @@ function normalizeReceiptForSerialization(receipt) {
     'receipt.releaseEvidence',
   );
 
-  const readiness = readDenseDataArray(
-    bootstrap.readiness,
-    'receipt.bootstrap.readiness',
-    true,
-  );
+  const readiness = readDenseDataArray(bootstrap.readiness, 'receipt.bootstrap.readiness', true);
   const normalizedBootstrap = {
     stage: normalizeNullableString(bootstrap.stage, 'receipt.bootstrap.stage'),
     readiness: readiness.map((step, index) => normalizeReceiptReadinessStep(step, index)),
