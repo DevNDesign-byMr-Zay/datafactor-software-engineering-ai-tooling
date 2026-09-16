@@ -2,6 +2,15 @@ import { createHash } from 'node:crypto';
 
 const ENVELOPE_VERSION = 2;
 const TARGETS = Object.freeze(['holo-mat', 'projector', 'volumetric-3d', 'ar-vr', 'web-dashboard']);
+const BUILD_INPUT_KEYS = Object.freeze([
+  'snapshotId',
+  'sceneId',
+  'provenanceRef',
+  'target',
+  'renderer',
+  'payload',
+  'advisoryOnly',
+]);
 const ENVELOPE_KEYS = Object.freeze([
   'envelopeVersion',
   'snapshotId',
@@ -20,6 +29,40 @@ function text(value, name) {
   if (typeof value !== 'string' || !value.trim())
     throw new TypeError(`${name} must be a non-empty string`);
   return value.trim();
+}
+
+function captureBuildInput(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new TypeError('evidence envelope input must be a plain object');
+  }
+  const prototype = Object.getPrototypeOf(input);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError('evidence envelope input must be a plain object');
+  }
+  if (Object.getOwnPropertySymbols(input).length > 0) {
+    throw new TypeError('evidence envelope input must not contain symbol properties');
+  }
+
+  const descriptors = Object.getOwnPropertyDescriptors(input);
+  const unexpected = Object.keys(descriptors).find((key) => !BUILD_INPUT_KEYS.includes(key));
+  if (unexpected) throw new TypeError(`evidence envelope input contains unsupported field: ${unexpected}`);
+
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!descriptor.enumerable) {
+      throw new TypeError(`evidence envelope input.${key} must be enumerable data`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`evidence envelope input.${key} must not use accessors`);
+    }
+    Object.defineProperty(copy, key, {
+      value: descriptor.value,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  }
+  return copy;
 }
 
 function snapshotArray(value, path, seen) {
@@ -57,7 +100,12 @@ function snapshotObject(value, path, seen) {
     if ('get' in descriptor || 'set' in descriptor) {
       throw new TypeError(`${path}.${key} must not use accessors`);
     }
-    copy[key] = snapshotEvidence(descriptor.value, `${path}.${key}`, seen);
+    Object.defineProperty(copy, key, {
+      value: snapshotEvidence(descriptor.value, `${path}.${key}`, seen),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
   }
   return copy;
 }
@@ -108,15 +156,16 @@ function fingerprint(value) {
     .digest('hex');
 }
 
-export function buildHolographicEvidenceEnvelope({
-  snapshotId,
-  sceneId,
-  provenanceRef,
-  target = 'web-dashboard',
-  renderer = 'renderer-neutral',
-  payload = null,
-  advisoryOnly = true,
-} = {}) {
+export function buildHolographicEvidenceEnvelope(input = {}) {
+  const values = captureBuildInput(input);
+  const snapshotId = values.snapshotId;
+  const sceneId = values.sceneId;
+  const provenanceRef = values.provenanceRef;
+  const target = Object.hasOwn(values, 'target') ? values.target : 'web-dashboard';
+  const renderer = Object.hasOwn(values, 'renderer') ? values.renderer : 'renderer-neutral';
+  const payload = Object.hasOwn(values, 'payload') ? values.payload : null;
+  const advisoryOnly = Object.hasOwn(values, 'advisoryOnly') ? values.advisoryOnly : true;
+
   const capturedPayload = deepFreeze(snapshotEvidence(payload, 'payload'));
   const envelope = {
     envelopeVersion: ENVELOPE_VERSION,
