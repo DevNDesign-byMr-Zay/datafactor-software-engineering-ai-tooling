@@ -45,7 +45,8 @@ function captureBuildInput(input) {
 
   const descriptors = Object.getOwnPropertyDescriptors(input);
   const unexpected = Object.keys(descriptors).find((key) => !BUILD_INPUT_KEYS.includes(key));
-  if (unexpected) throw new TypeError(`evidence envelope input contains unsupported field: ${unexpected}`);
+  if (unexpected)
+    throw new TypeError(`evidence envelope input contains unsupported field: ${unexpected}`);
 
   const copy = {};
   for (const [key, descriptor] of Object.entries(descriptors)) {
