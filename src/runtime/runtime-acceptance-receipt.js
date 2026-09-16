@@ -277,12 +277,24 @@ function primitiveNumber(value) {
   return Number(value);
 }
 
+function isObjectPrototype(prototype) {
+  if (prototype === null || prototype === Object.prototype) return true;
+  if (Object.getPrototypeOf(prototype) !== null) return false;
+
+  const constructorDescriptor = Object.getOwnPropertyDescriptor(prototype, 'constructor');
+  return Boolean(
+    constructorDescriptor &&
+      'value' in constructorDescriptor &&
+      typeof constructorDescriptor.value === 'function' &&
+      constructorDescriptor.value.name === 'Object',
+  );
+}
+
 function requirePlainObject(value, name) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${name} must be an object`);
   }
-  const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) {
+  if (!isObjectPrototype(Object.getPrototypeOf(value))) {
     throw new TypeError(`${name} must be a plain object`);
   }
   return value;
@@ -327,9 +339,6 @@ function readExactDataObject(value, allowedKeys, name) {
 function readDenseDataArray(value, name, rejectExtraProperties) {
   if (!Array.isArray(value)) {
     throw new TypeError(`${name} must be an array`);
-  }
-  if (Object.getPrototypeOf(value) !== Array.prototype) {
-    throw new TypeError(`${name} must use a standard array prototype`);
   }
   if (Object.getOwnPropertySymbols(value).length > 0) {
     throw new TypeError(`${name} must not contain symbol properties`);
