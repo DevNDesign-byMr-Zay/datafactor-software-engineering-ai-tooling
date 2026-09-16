@@ -31,6 +31,10 @@ function text(value, name) {
   return value.trim();
 }
 
+function canonicalText(value) {
+  return typeof value === 'string' && value.length > 0 && value === value.trim();
+}
+
 function captureBuildInput(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new TypeError('evidence envelope input must be a plain object');
@@ -198,15 +202,11 @@ export function validateHolographicEvidenceEnvelope(envelope) {
     if (!hasExactKeys(value, ENVELOPE_KEYS)) return false;
     if (
       value.envelopeVersion !== ENVELOPE_VERSION ||
-      typeof value.snapshotId !== 'string' ||
-      !value.snapshotId.trim() ||
-      typeof value.sceneId !== 'string' ||
-      !value.sceneId.trim() ||
-      typeof value.provenanceRef !== 'string' ||
-      !value.provenanceRef.trim() ||
+      !canonicalText(value.snapshotId) ||
+      !canonicalText(value.sceneId) ||
+      !canonicalText(value.provenanceRef) ||
       !TARGETS.includes(value.target) ||
-      typeof value.renderer !== 'string' ||
-      !value.renderer.trim() ||
+      !canonicalText(value.renderer) ||
       value.advisoryOnly !== true ||
       typeof value.fingerprint !== 'string' ||
       !/^[a-f0-9]{64}$/.test(value.fingerprint)
