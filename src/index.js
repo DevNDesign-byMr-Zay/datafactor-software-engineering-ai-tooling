@@ -16,6 +16,7 @@ export * from './holographic/scene-planner.js';
 export * from './holographic/validated-scene-handoff.js';
 export * from './reliability/backend-config.js';
 export * from './runtime/application-runtime-acceptance.js';
+export * from './runtime/runtime-acceptance-consumer.js';
 export * from './runtime/runtime-acceptance-decision.js';
 export * from './runtime/runtime-acceptance-receipt.js';
 export * from './runtime/holographic-runtime-acceptance-receipt.js';
