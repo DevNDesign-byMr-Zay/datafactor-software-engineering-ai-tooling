@@ -13,9 +13,9 @@ function isObjectPrototype(prototype) {
   const constructorDescriptor = Object.getOwnPropertyDescriptor(prototype, 'constructor');
   return Boolean(
     constructorDescriptor &&
-      'value' in constructorDescriptor &&
-      typeof constructorDescriptor.value === 'function' &&
-      constructorDescriptor.value.name === 'Object',
+    'value' in constructorDescriptor &&
+    typeof constructorDescriptor.value === 'function' &&
+    constructorDescriptor.value.name === 'Object',
   );
 }
 
