@@ -6,12 +6,24 @@ export const RUNTIME_ACCEPTANCE_DECISIONS = Object.freeze({
   CHANGED: 'changed',
 });
 
+function isObjectPrototype(prototype) {
+  if (prototype === null || prototype === Object.prototype) return true;
+  if (Object.getPrototypeOf(prototype) !== null) return false;
+
+  const constructorDescriptor = Object.getOwnPropertyDescriptor(prototype, 'constructor');
+  return Boolean(
+    constructorDescriptor &&
+      'value' in constructorDescriptor &&
+      typeof constructorDescriptor.value === 'function' &&
+      constructorDescriptor.value.name === 'Object',
+  );
+}
+
 function readAcceptedMarker(receipt) {
   if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
     throw new TypeError('receipt must be an object');
   }
-  const prototype = Object.getPrototypeOf(receipt);
-  if (prototype !== Object.prototype && prototype !== null) {
+  if (!isObjectPrototype(Object.getPrototypeOf(receipt))) {
     throw new TypeError('receipt must be a plain object');
   }
 
