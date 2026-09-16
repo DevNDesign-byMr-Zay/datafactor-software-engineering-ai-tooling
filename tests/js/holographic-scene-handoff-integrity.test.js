@@ -35,7 +35,7 @@ test('combined evidence verification rejects a valid fingerprint from another sc
   expect(result.valid).toBe(false);
 });
 
-test('validated handoff snapshots scene state while preserving its handoff fingerprint', () => {
+test('validated handoff preserves the planner-frozen source and its handoff fingerprint', () => {
   const planned = planHolographicScene({
     snapshotId: 'snapshot-handoff-current',
     provenanceRef: 'prov-handoff-current',
@@ -54,13 +54,20 @@ test('validated handoff snapshots scene state while preserving its handoff finge
   const sceneFingerprint = handoff.sceneFingerprint;
 
   expect(handoff.acceptance.accepted).toBe(true);
+  expect(Object.isFrozen(scene)).toBe(true);
+  expect(Object.isFrozen(scene.nodes[0].position)).toBe(true);
+  expect(Object.isFrozen(scene.safety)).toBe(true);
   expect(Object.isFrozen(handoff.scene)).toBe(true);
   expect(Object.isFrozen(handoff.scene.nodes)).toBe(true);
   expect(Object.isFrozen(handoff.scene.nodes[0].position)).toBe(true);
   expect(Object.isFrozen(handoff.scene.safety)).toBe(true);
 
-  scene.nodes[0].position.x = 99;
-  scene.safety.authoritative = true;
+  expect(() => {
+    scene.nodes[0].position.x = 99;
+  }).toThrow(TypeError);
+  expect(() => {
+    scene.safety.authoritative = true;
+  }).toThrow(TypeError);
 
   expect(handoff.scene.nodes[0].position.x).toBe(1);
   expect(handoff.scene.safety.authoritative).toBe(false);
