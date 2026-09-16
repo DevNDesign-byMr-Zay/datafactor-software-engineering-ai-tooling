@@ -8,30 +8,43 @@ const RECEIPT_VERSION = 1;
  * safe to persist and compare without carrying logs, tokens, or environment
  * details into downstream tooling.
  */
-export function buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region } = {}) {
-  if (!acceptance || typeof acceptance !== 'object' || Array.isArray(acceptance)) {
-    throw new TypeError('acceptance must be an object');
-  }
+export function buildRuntimeAcceptanceReceipt(input = {}) {
+  const builder = requirePlainObject(input, 'receipt builder input');
+  const acceptance = requirePlainObject(
+    readOwnData(builder, 'acceptance', 'receipt builder input'),
+    'acceptance',
+  );
+  const serviceName = readOwnData(builder, 'serviceName', 'receipt builder input');
+  const region = readOwnData(builder, 'region', 'receipt builder input');
 
-  if (acceptance.accepted !== true) {
+  if (readOwnData(acceptance, 'accepted', 'acceptance') !== true) {
     throw new TypeError('acceptance must be marked accepted');
   }
 
-  const bootstrap = requireObject(acceptance.bootstrap, 'acceptance.bootstrap');
-  const release = requireObject(acceptance.release, 'acceptance.release');
-  const service = requireObject(release.service, 'acceptance.release.service');
+  const bootstrap = requirePlainObject(
+    readOwnData(acceptance, 'bootstrap', 'acceptance'),
+    'acceptance.bootstrap',
+  );
+  const release = requirePlainObject(
+    readOwnData(acceptance, 'release', 'acceptance'),
+    'acceptance.release',
+  );
+  const service = requirePlainObject(
+    readOwnData(release, 'service', 'acceptance.release'),
+    'acceptance.release.service',
+  );
 
   const normalizedServiceName = requireNonEmptyString(
-    serviceName ?? service.serviceName,
+    serviceName ?? readOwnData(service, 'serviceName', 'acceptance.release.service'),
     'serviceName',
   );
 
   const latestReadyRevisionName = requireNonEmptyString(
-    service.latestReadyRevisionName,
+    readOwnData(service, 'latestReadyRevisionName', 'acceptance.release.service'),
     'latestReadyRevisionName',
   );
 
-  const traffic = normalizeTraffic(service.traffic);
+  const traffic = normalizeTraffic(readOwnData(service, 'traffic', 'acceptance.release.service'));
 
   return deepFreeze({
     contractVersion: RECEIPT_VERSION,
@@ -41,12 +54,15 @@ export function buildRuntimeAcceptanceReceipt({ acceptance, serviceName, region 
       region: region === undefined ? null : requireNonEmptyString(region, 'region'),
       latestReadyRevisionName,
       traffic,
-      url: normalizeOptionalString(service.url),
+      url: normalizeOptionalString(readOwnData(service, 'url', 'acceptance.release.service')),
     },
     bootstrap: summarizeBootstrap(bootstrap),
     releaseEvidence: {
-      stage: requireNonEmptyString(release.stage, 'release.stage'),
-      exitCode: normalizeExitCode(release.exitCode),
+      stage: requireNonEmptyString(
+        readOwnData(release, 'stage', 'acceptance.release'),
+        'release.stage',
+      ),
+      exitCode: normalizeExitCode(readOwnData(release, 'exitCode', 'acceptance.release')),
     },
   });
 }
@@ -62,9 +78,8 @@ export function fingerprintRuntimeAcceptanceReceipt(receipt) {
 }
 
 function normalizeReceiptForSerialization(receipt) {
-  const value = requireObject(receipt, 'receipt');
-  assertAllowedKeys(
-    value,
+  const value = readExactDataObject(
+    receipt,
     ['contractVersion', 'accepted', 'service', 'bootstrap', 'releaseEvidence'],
     'receipt',
   );
@@ -76,24 +91,26 @@ function normalizeReceiptForSerialization(receipt) {
     throw new TypeError('receipt.accepted must be true');
   }
 
-  const service = requireObject(value.service, 'receipt.service');
-  assertAllowedKeys(
-    service,
+  const service = readExactDataObject(
+    value.service,
     ['name', 'region', 'latestReadyRevisionName', 'traffic', 'url'],
     'receipt.service',
   );
+  const bootstrap = readExactDataObject(
+    value.bootstrap,
+    ['stage', 'readiness', 'failedStep'],
+    'receipt.bootstrap',
+  );
+  const releaseEvidence = readExactDataObject(
+    value.releaseEvidence,
+    ['stage', 'exitCode'],
+    'receipt.releaseEvidence',
+  );
 
-  const bootstrap = requireObject(value.bootstrap, 'receipt.bootstrap');
-  assertAllowedKeys(bootstrap, ['stage', 'readiness', 'failedStep'], 'receipt.bootstrap');
-
-  const releaseEvidence = requireObject(value.releaseEvidence, 'receipt.releaseEvidence');
-  assertAllowedKeys(releaseEvidence, ['stage', 'exitCode'], 'receipt.releaseEvidence');
-
+  const readiness = readDenseDataArray(bootstrap.readiness, 'receipt.bootstrap.readiness', true);
   const normalizedBootstrap = {
     stage: normalizeNullableString(bootstrap.stage, 'receipt.bootstrap.stage'),
-    readiness: requireArray(bootstrap.readiness, 'receipt.bootstrap.readiness').map((step, index) =>
-      normalizeReceiptReadinessStep(step, index),
-    ),
+    readiness: readiness.map((step, index) => normalizeReceiptReadinessStep(step, index)),
   };
 
   if (Object.hasOwn(bootstrap, 'failedStep')) {
@@ -125,11 +142,10 @@ function normalizeReceiptForSerialization(receipt) {
 }
 
 function normalizeReceiptTraffic(traffic) {
-  return requireArray(traffic, 'receipt.service.traffic')
+  return readDenseDataArray(traffic, 'receipt.service.traffic', true)
     .map((entry, index) => {
-      const value = requireObject(entry, `receipt.service.traffic[${index}]`);
-      assertAllowedKeys(
-        value,
+      const value = readExactDataObject(
+        entry,
         ['revisionName', 'percent', 'tag', 'url'],
         `receipt.service.traffic[${index}]`,
       );
@@ -151,8 +167,11 @@ function normalizeReceiptTraffic(traffic) {
 }
 
 function normalizeReceiptReadinessStep(step, index) {
-  const value = requireObject(step, `receipt.bootstrap.readiness[${index}]`);
-  assertAllowedKeys(value, ['name', 'status'], `receipt.bootstrap.readiness[${index}]`);
+  const value = readExactDataObject(
+    step,
+    ['name', 'status'],
+    `receipt.bootstrap.readiness[${index}]`,
+  );
 
   return {
     name: normalizeNullableString(value.name, `receipt.bootstrap.readiness[${index}].name`),
@@ -167,53 +186,79 @@ function trafficSortKey(entry) {
 }
 
 function summarizeBootstrap(bootstrap) {
+  const stage = readOwnData(bootstrap, 'stage', 'acceptance.bootstrap');
+  const readinessValue = readOwnData(bootstrap, 'readiness', 'acceptance.bootstrap');
+  const failedStep = readOwnData(bootstrap, 'failedStep', 'acceptance.bootstrap');
+  const readiness = Array.isArray(readinessValue)
+    ? readDenseDataArray(readinessValue, 'acceptance.bootstrap.readiness', false).map(
+        summarizeReadinessStep,
+      )
+    : [];
+
   const summary = {
-    stage: normalizeOptionalString(bootstrap.stage),
-    readiness: Array.isArray(bootstrap.readiness)
-      ? bootstrap.readiness.map(summarizeReadinessStep)
-      : [],
+    stage: normalizeOptionalString(stage),
+    readiness,
   };
 
-  if (bootstrap.failedStep !== undefined && bootstrap.failedStep !== null) {
-    summary.failedStep = normalizeOptionalString(bootstrap.failedStep);
+  if (failedStep !== undefined && failedStep !== null) {
+    summary.failedStep = normalizeOptionalString(failedStep);
   }
 
   return summary;
 }
 
-function summarizeReadinessStep(step) {
+function summarizeReadinessStep(step, index) {
   if (!step || typeof step !== 'object' || Array.isArray(step)) {
     return { status: 'invalid' };
   }
 
+  const value = requirePlainObject(step, `acceptance.bootstrap.readiness[${index}]`);
   return {
-    name: normalizeOptionalString(step.name),
-    status: normalizeOptionalString(step.status) ?? 'unknown',
+    name: normalizeOptionalString(
+      readOwnData(value, 'name', `acceptance.bootstrap.readiness[${index}]`),
+    ),
+    status:
+      normalizeOptionalString(
+        readOwnData(value, 'status', `acceptance.bootstrap.readiness[${index}]`),
+      ) ?? 'unknown',
   };
 }
 
 function normalizeTraffic(traffic) {
   if (!Array.isArray(traffic)) return [];
 
-  return traffic
-    .map((entry) => {
+  return readDenseDataArray(traffic, 'acceptance.release.service.traffic', false)
+    .map((entry, index) => {
       if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
-
-      const revisionName = normalizeOptionalString(entry.revisionName);
+      const value = requirePlainObject(entry, `acceptance.release.service.traffic[${index}]`);
+      const revisionName = normalizeOptionalString(
+        readOwnData(value, 'revisionName', `acceptance.release.service.traffic[${index}]`),
+      );
       if (!revisionName) return null;
+
+      const percentValue = readOwnData(
+        value,
+        'percent',
+        `acceptance.release.service.traffic[${index}]`,
+      );
+      const numericPercent = primitiveNumber(percentValue);
 
       return {
         revisionName,
-        percent: Number.isFinite(Number(entry.percent)) ? Number(entry.percent) : null,
-        tag: normalizeOptionalString(entry.tag),
-        url: normalizeOptionalString(entry.url),
+        percent: Number.isFinite(numericPercent) ? numericPercent : null,
+        tag: normalizeOptionalString(
+          readOwnData(value, 'tag', `acceptance.release.service.traffic[${index}]`),
+        ),
+        url: normalizeOptionalString(
+          readOwnData(value, 'url', `acceptance.release.service.traffic[${index}]`),
+        ),
       };
     })
     .filter(Boolean);
 }
 
 function normalizeExitCode(value) {
-  const exitCode = Number(value);
+  const exitCode = primitiveNumber(value);
   if (!Number.isInteger(exitCode)) {
     throw new TypeError('release.exitCode must be an integer');
   }
@@ -227,18 +272,89 @@ function normalizeReceiptExitCode(value) {
   return value;
 }
 
-function requireObject(value, name) {
+function primitiveNumber(value) {
+  if (typeof value !== 'number' && typeof value !== 'string') return Number.NaN;
+  return Number(value);
+}
+
+function requirePlainObject(value, name) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new TypeError(`${name} must be an object`);
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError(`${name} must be a plain object`);
   }
   return value;
 }
 
-function requireArray(value, name) {
+function readOwnData(value, key, path) {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor) return undefined;
+  if (!descriptor.enumerable) {
+    throw new TypeError(`${path}.${key} must be enumerable data`);
+  }
+  if ('get' in descriptor || 'set' in descriptor) {
+    throw new TypeError(`${path}.${key} must not use accessors`);
+  }
+  return descriptor.value;
+}
+
+function readExactDataObject(value, allowedKeys, name) {
+  const object = requirePlainObject(value, name);
+  if (Object.getOwnPropertySymbols(object).length > 0) {
+    throw new TypeError(`${name} must not contain symbol properties`);
+  }
+
+  const allowed = new Set(allowedKeys);
+  const descriptors = Object.getOwnPropertyDescriptors(object);
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!allowed.has(key)) {
+      throw new TypeError(`${name} contains unsupported field: ${key}`);
+    }
+    if (!descriptor.enumerable) {
+      throw new TypeError(`${name}.${key} must be enumerable data`);
+    }
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${name}.${key} must not use accessors`);
+    }
+    copy[key] = descriptor.value;
+  }
+  return copy;
+}
+
+function readDenseDataArray(value, name, rejectExtraProperties) {
   if (!Array.isArray(value)) {
     throw new TypeError(`${name} must be an array`);
   }
-  return value;
+  if (Object.getPrototypeOf(value) !== Array.prototype) {
+    throw new TypeError(`${name} must use a standard array prototype`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${name} must not contain symbol properties`);
+  }
+
+  const allowedKeys = new Set(['length']);
+  const copy = [];
+  for (let index = 0; index < value.length; index += 1) {
+    const key = String(index);
+    allowedKeys.add(key);
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor) throw new TypeError(`${name} must not contain sparse entries`);
+    if (!descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${name}[${index}] must be enumerable data`);
+    }
+    copy.push(descriptor.value);
+  }
+
+  if (
+    rejectExtraProperties &&
+    Reflect.ownKeys(value).some((key) => typeof key !== 'string' || !allowedKeys.has(key))
+  ) {
+    throw new TypeError(`${name} must not contain extra properties`);
+  }
+  return copy;
 }
 
 function requireNonEmptyString(value, name) {
@@ -260,21 +376,13 @@ function normalizeNullableFiniteNumber(value, name) {
   return value;
 }
 
-function assertAllowedKeys(value, allowedKeys, name) {
-  const allowed = new Set(allowedKeys);
-  for (const key of Object.keys(value)) {
-    if (!allowed.has(key)) {
-      throw new TypeError(`${name} contains unsupported field: ${key}`);
-    }
-  }
-}
-
 function normalizeOptionalString(value) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
 function deepFreeze(value) {
-  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  if (!value || typeof value !== 'object') return value;
   for (const nested of Object.values(value)) deepFreeze(nested);
-  return Object.freeze(value);
+  if (!Object.isFrozen(value)) Object.freeze(value);
+  return value;
 }
