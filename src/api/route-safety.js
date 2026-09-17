@@ -22,11 +22,7 @@ function normalizeMimeType(value, { optional = false } = {}) {
   if (value === undefined && optional) return 'application/octet-stream';
   if (typeof value !== 'string') return null;
   const mimeType = value.trim().toLowerCase();
-  if (
-    !mimeType ||
-    mimeType.length > MAX_MIME_TYPE_LENGTH ||
-    !MIME_TYPE_PATTERN.test(mimeType)
-  ) {
+  if (!mimeType || mimeType.length > MAX_MIME_TYPE_LENGTH || !MIME_TYPE_PATTERN.test(mimeType)) {
     return null;
   }
   return mimeType;
