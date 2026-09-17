@@ -9,6 +9,7 @@ async function loadRoute({ geminiModel = {}, bucket = null, generateReply = jest
   globalThis.geminiModel = geminiModel;
   globalThis.bucket = bucket;
   globalThis.generateReply = generateReply;
+  globalThis.routeLogger = { error: jest.fn(), warn: jest.fn() };
   globalThis.app = {
     post: jest.fn((path, handler) => {
       registered.path = path;
@@ -17,7 +18,7 @@ async function loadRoute({ geminiModel = {}, bucket = null, generateReply = jest
   };
 
   await import(`${SOURCE}?test=${importId++}`);
-  return { ...registered, generateReply };
+  return { ...registered, generateReply, routeLogger: globalThis.routeLogger };
 }
 
 function responseHarness() {
@@ -31,6 +32,7 @@ afterEach(() => {
   delete globalThis.geminiModel;
   delete globalThis.bucket;
   delete globalThis.generateReply;
+  delete globalThis.routeLogger;
   jest.restoreAllMocks();
 });
 
@@ -51,15 +53,36 @@ describe('file-aware Gemini chat final route', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'GEMINI_API_KEY not configured' });
   });
 
-  test('uses default session and an empty parts array for an empty body', async () => {
-    const generateReply = jest.fn().mockResolvedValue('empty reply');
+  test('rejects an empty chat request instead of generating an empty prompt', async () => {
+    const generateReply = jest.fn().mockResolvedValue('should not run');
     const { handler } = await loadRoute({ generateReply });
     const res = responseHarness();
 
     await handler({ body: {} }, res);
 
-    expect(generateReply).toHaveBeenCalledWith([]);
-    expect(res.json).toHaveBeenCalledWith({ reply: 'empty reply', sessionId: 'default' });
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Chat requires text or a file' });
+    expect(generateReply).not.toHaveBeenCalled();
+  });
+
+  test('rejects malformed file references before provider work begins', async () => {
+    const generateReply = jest.fn();
+    const { handler } = await loadRoute({ bucket: { file: jest.fn() }, generateReply });
+    const res = responseHarness();
+
+    await handler(
+      {
+        body: {
+          text: 'hello',
+          files: [{ objectName: '../private/a.pdf', mimeType: 'application/pdf' }],
+        },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid chat file reference' });
+    expect(generateReply).not.toHaveBeenCalled();
   });
 
   test('signs valid file references and combines them with text', async () => {
@@ -79,12 +102,11 @@ describe('file-aware Gemini chat final route', () => {
     await handler(
       {
         body: {
-          sessionId: 'session-1',
-          text: 'Summarize these',
+          sessionId: ' session-1 ',
+          text: ' Summarize these ',
           files: [
             { objectName: 'uploads/a.pdf', mimeType: 'application/pdf' },
             { objectName: 'uploads/b.bin' },
-            { mimeType: 'image/png' },
           ],
         },
       },
@@ -117,7 +139,7 @@ describe('file-aware Gemini chat final route', () => {
     });
   });
 
-  test('skips file references when no bucket is available', async () => {
+  test('rejects file-aware requests when storage is unavailable', async () => {
     const generateReply = jest.fn().mockResolvedValue('text only');
     const { handler } = await loadRoute({ bucket: null, generateReply });
     const res = responseHarness();
@@ -132,16 +154,19 @@ describe('file-aware Gemini chat final route', () => {
       res,
     );
 
-    expect(generateReply).toHaveBeenCalledWith([{ text: 'hello' }]);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Bucket not configured for file-aware chat' });
+    expect(generateReply).not.toHaveBeenCalled();
   });
 
-  test('continues when one file cannot be signed', async () => {
-    const error = new Error('sign failed');
+  test('continues with text when one file cannot be signed without logging raw details', async () => {
+    const secret = 'signed-url-secret=do-not-log';
+    const error = new Error(secret);
+    error.code = 'SIGNING_DOWN';
     const getSignedUrl = jest.fn().mockRejectedValue(error);
     const bucket = { file: jest.fn(() => ({ getSignedUrl })) };
     const generateReply = jest.fn().mockResolvedValue('fallback reply');
-    const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const { handler } = await loadRoute({ bucket, generateReply });
+    const { handler, routeLogger } = await loadRoute({ bucket, generateReply });
     const res = responseHarness();
 
     await handler(
@@ -154,26 +179,61 @@ describe('file-aware Gemini chat final route', () => {
       res,
     );
 
-    expect(consoleWarn).toHaveBeenCalledWith(
-      'Failed to sign file:',
-      'uploads/a.pdf',
-      'sign failed',
+    expect(routeLogger.warn).toHaveBeenCalledWith(
+      {
+        event: 'chat.file_sign_failed',
+        objectName: 'uploads/a.pdf',
+        errorName: 'Error',
+        errorCode: 'SIGNING_DOWN',
+      },
+      'Chat file signing failed',
     );
     expect(generateReply).toHaveBeenCalledWith([{ text: 'hello' }]);
     expect(res.json).toHaveBeenCalledWith({ reply: 'fallback reply', sessionId: 'default' });
+    expect(JSON.stringify(routeLogger.warn.mock.calls)).not.toContain(secret);
   });
 
-  test('returns a request error when reply generation fails', async () => {
-    const error = new Error('model unavailable');
+  test('fails cleanly when every file is inaccessible and no text remains', async () => {
+    const getSignedUrl = jest.fn().mockRejectedValue(new Error('sign failed'));
+    const bucket = { file: jest.fn(() => ({ getSignedUrl })) };
+    const generateReply = jest.fn();
+    const { handler } = await loadRoute({ bucket, generateReply });
+    const res = responseHarness();
+
+    await handler(
+      {
+        body: {
+          files: [{ objectName: 'uploads/a.pdf', mimeType: 'application/pdf' }],
+        },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Unable to access chat files' });
+    expect(generateReply).not.toHaveBeenCalled();
+  });
+
+  test('sanitizes reply-generation failures without returning provider details', async () => {
+    const secret = 'model-key=do-not-return';
+    const error = new Error(secret);
+    error.code = 'MODEL_DOWN';
     const generateReply = jest.fn().mockRejectedValue(error);
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const { handler } = await loadRoute({ generateReply });
+    const { handler, routeLogger } = await loadRoute({ generateReply });
     const res = responseHarness();
 
     await handler({ body: { text: 'hello' } }, res);
 
-    expect(consoleError).toHaveBeenCalledWith('Chat error:', error);
+    expect(routeLogger.error).toHaveBeenCalledWith(
+      {
+        event: 'chat.failed',
+        errorName: 'Error',
+        errorCode: 'MODEL_DOWN',
+      },
+      'Chat request failed',
+    );
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'model unavailable' });
+    expect(res.json).toHaveBeenCalledWith({ error: 'Unable to generate reply' });
+    expect(JSON.stringify(routeLogger.error.mock.calls)).not.toContain(secret);
   });
 });
