@@ -22,6 +22,29 @@ describe('holographic scene planner', () => {
     expect(validateHolographicEvidenceEnvelope(result.evidence)).toBe(true);
   });
 
+  test('freezes nested scene state behind the evidence fingerprint', () => {
+    const result = planHolographicScene({
+      snapshotId: 'snapshot-001',
+      provenanceRef: 'receipt-001',
+      intent: 'Show renewable flow',
+      objects: [{ id: 'solar-1', x: 1, y: 2, z: 3 }],
+      alerts: ['Battery reserve is low'],
+    });
+    const fingerprint = result.evidence.fingerprint;
+
+    expect(Object.isFrozen(result.scene)).toBe(true);
+    expect(Object.isFrozen(result.scene.nodes)).toBe(true);
+    expect(Object.isFrozen(result.scene.nodes[0])).toBe(true);
+    expect(Object.isFrozen(result.scene.nodes[0].position)).toBe(true);
+    expect(Object.isFrozen(result.scene.alerts)).toBe(true);
+    expect(Object.isFrozen(result.scene.safety)).toBe(true);
+    expect(() => {
+      result.scene.nodes[0].position.x = 99;
+    }).toThrow(TypeError);
+    expect(result.evidence.fingerprint).toBe(fingerprint);
+    expect(validateHolographicEvidenceEnvelope(result.evidence)).toBe(true);
+  });
+
   test('rejects unsupported renderer targets', () => {
     expect(() =>
       planHolographicScene({
