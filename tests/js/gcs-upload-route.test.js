@@ -13,6 +13,7 @@ async function loadRoute(bucket) {
 
   globalThis.bucket = bucket;
   globalThis.multer = multer;
+  globalThis.routeLogger = { error: jest.fn(), warn: jest.fn() };
   globalThis.app = {
     post: jest.fn((path, middleware, handler) => {
       registered.path = path;
@@ -23,7 +24,13 @@ async function loadRoute(bucket) {
 
   await import(`${SOURCE}?test=${importId++}`);
 
-  return { ...registered, multer, single, uploadMiddleware };
+  return {
+    ...registered,
+    multer,
+    single,
+    uploadMiddleware,
+    routeLogger: globalThis.routeLogger,
+  };
 }
 
 function responseHarness() {
@@ -36,6 +43,7 @@ afterEach(() => {
   delete globalThis.app;
   delete globalThis.bucket;
   delete globalThis.multer;
+  delete globalThis.routeLogger;
   jest.restoreAllMocks();
 });
 
@@ -70,7 +78,7 @@ describe('GCS upload pipeline final route', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'No file uploaded' });
   });
 
-  test('prefixes the filename, saves bytes, and returns object metadata', async () => {
+  test('normalizes the filename, saves bytes, and returns object metadata', async () => {
     jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
     const save = jest.fn().mockResolvedValue(undefined);
     const file = jest.fn(() => ({ save }));
@@ -81,7 +89,7 @@ describe('GCS upload pipeline final route', () => {
     await handler(
       {
         file: {
-          originalname: 'project notes.txt',
+          originalname: '../project notes.txt',
           buffer,
           mimetype: 'text/plain',
         },
@@ -89,24 +97,46 @@ describe('GCS upload pipeline final route', () => {
       res,
     );
 
-    expect(file).toHaveBeenCalledWith('uploads/1700000000000-project notes.txt');
+    expect(file).toHaveBeenCalledWith('uploads/1700000000000-_project_notes.txt');
     expect(save).toHaveBeenCalledWith(buffer, {
       metadata: { contentType: 'text/plain' },
       resumable: false,
     });
     expect(res.json).toHaveBeenCalledWith({
       ok: true,
-      objectName: 'uploads/1700000000000-project notes.txt',
+      objectName: 'uploads/1700000000000-_project_notes.txt',
       mimeType: 'text/plain',
     });
   });
 
-  test('returns a storage error when object persistence fails', async () => {
-    const error = new Error('storage unavailable');
-    const save = jest.fn().mockRejectedValue(error);
-    const { handler } = await loadRoute({ file: jest.fn(() => ({ save })) });
+  test('rejects malformed upload metadata before storage is called', async () => {
+    const file = jest.fn();
+    const { handler } = await loadRoute({ file });
     const res = responseHarness();
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await handler(
+      {
+        file: {
+          originalname: 'file.txt',
+          buffer: Buffer.from('x'),
+          mimetype: 'not-a-mime',
+        },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid upload MIME type' });
+    expect(file).not.toHaveBeenCalled();
+  });
+
+  test('sanitizes persistence failures without leaking raw error text', async () => {
+    const secret = 'storage-token=do-not-return';
+    const error = new Error(secret);
+    error.code = 'STORAGE_DOWN';
+    const save = jest.fn().mockRejectedValue(error);
+    const { handler, routeLogger } = await loadRoute({ file: jest.fn(() => ({ save })) });
+    const res = responseHarness();
 
     await handler(
       {
@@ -119,8 +149,16 @@ describe('GCS upload pipeline final route', () => {
       res,
     );
 
-    expect(consoleError).toHaveBeenCalledWith('Upload error:', error);
+    expect(routeLogger.error).toHaveBeenCalledWith(
+      {
+        event: 'upload.persist_failed',
+        errorName: 'Error',
+        errorCode: 'STORAGE_DOWN',
+      },
+      'Upload persistence failed',
+    );
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'storage unavailable' });
+    expect(res.json).toHaveBeenCalledWith({ error: 'Unable to store upload' });
+    expect(JSON.stringify(routeLogger.error.mock.calls)).not.toContain(secret);
   });
 });
