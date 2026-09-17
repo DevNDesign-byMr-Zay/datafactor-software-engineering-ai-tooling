@@ -1,0 +1,14 @@
+# Default review routing
+* @DevNDesign-byMr-Zay @DevNDesign-Team
+
+# Maintained runtime trust boundary
+/src/runtime/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+
+# Holographic evidence, identity, and presentation boundaries
+/src/holographic/** @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+
+# Focused regressions and package-surface tests
+/tests/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+
+# Repository governance and automation
+/.github/** @DevNDesign-byMr-Zay @DevNDesign-Team
