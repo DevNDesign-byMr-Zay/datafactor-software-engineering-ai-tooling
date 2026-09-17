@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: dependency-lock-refresh-main
@@ -20,17 +21,20 @@ concurrency:
 jobs:
   lockfiles:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - name: Check out repository
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: package.json
-      - uses: actions/setup-python@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -41,18 +45,51 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           python -m pip freeze --exclude-editable > requirements.lock.txt
-      - name: Commit refreshed lockfiles
+      - name: Detect lockfile changes
+        id: changes
         shell: bash
         run: |
           set -euo pipefail
+          if git diff --quiet -- package-lock.json requirements.lock.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Lockfiles already current."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify JavaScript lockfile
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          npm ci --ignore-scripts
+          npm audit --audit-level=moderate
+          npm run lint
+          npm run format:check
+          npm run test:coverage
+          npm run demo:sustainability
+      - name: Verify Python lockfile
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.lock.txt
+          python -m pip check
+          pip-audit -r requirements.lock.txt
+          python -m ruff check .
+          python -m coverage run -m pytest
+          python -m coverage report --include="Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+      - name: Open verified lockfile pull request
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="automation/refresh-lockfiles-${GITHUB_RUN_ID}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
           git add package-lock.json requirements.lock.txt
-          if git diff --cached --quiet; then
-            echo "Lockfiles already current."
-            exit 0
-          fi
-          git commit -m "build: refresh dependency lockfiles [skip ci]"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          git commit -m "build: refresh verified dependency lockfiles"
+          git push --set-upstream origin "$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "build: refresh verified dependency lockfiles" \
+            --body "Regenerates the JavaScript and Python lockfiles from the current manifests. The refresh workflow completed clean installs, dependency audits, linting, formatting checks, maintained test coverage, the sustainability demo, Python dependency validation, and Python coverage before opening this PR. Normal repository CI and security analysis should still validate this exact PR head before merge."
