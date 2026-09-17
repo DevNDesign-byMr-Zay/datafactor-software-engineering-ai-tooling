@@ -1,5 +1,4 @@
 .git
-.github
 node_modules
 coverage
 .coverage
@@ -9,3 +8,4 @@ __pycache__
 *.pyc
 .env
 .env.*
+!.env.example
