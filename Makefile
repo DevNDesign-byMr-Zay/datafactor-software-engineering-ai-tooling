@@ -1,4 +1,4 @@
-.PHONY: setup test test-js test-python lint lint-legacy format-check audit check
+.PHONY: setup test test-js test-python lint lint-legacy format-check audit check verify-fresh
 
 setup:
 	npm ci --ignore-scripts
@@ -29,3 +29,5 @@ audit:
 	pip-audit -r requirements.lock.txt
 
 check: lint format-check test audit
+
+verify-fresh: setup check
