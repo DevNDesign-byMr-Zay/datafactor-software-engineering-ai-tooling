@@ -6,7 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH"
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-venv python3-pip \
+    && apt-get install -y --no-install-recommends make python3 python3-venv python3-pip \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv "$VIRTUAL_ENV"
 
@@ -20,4 +20,4 @@ RUN python -m pip install --disable-pip-version-check -r requirements.lock.txt
 
 COPY . .
 
-CMD ["sh", "-c", "npm test && python -m pytest"]
+CMD ["make", "check"]

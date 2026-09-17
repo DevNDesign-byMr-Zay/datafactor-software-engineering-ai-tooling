@@ -39,6 +39,7 @@ The maintained `src/` modules are deliberately extracted from authenticated hist
 ## Maintained architecture
 
 - `src/index.js` — canonical package boundary and static-analysis entrypoint.
+- `src/api/route-safety.js` — dependency-free validation and bounded structured-failure logging shared by the promoted upload, sign, and file-aware chat boundaries.
 - `src/frontend/erase-mask.js` — shared erase/mask geometry, brush normalization, scaling, stroke spacing, and feather policy.
 - `src/reliability/backend-config.js` — CORS origin normalization, app-token policy, authorization matching, and deterministic health metadata.
 - `src/deployment/cloud-run.js` — Cloud Run deployment argument planning, env-file risk detection, and authenticated smoke-request planning without live cloud credentials.
@@ -51,7 +52,7 @@ The maintained `src/` modules are deliberately extracted from authenticated hist
 - `package.json` + `package-lock.json` — JavaScript package surface and reproducible dependency resolution.
 - `pyproject.toml` + requirements files/lock — Python metadata, tooling, and resolved dependency snapshot.
 - `eslint.config.js` + `.prettierrc.json` — JavaScript quality policy.
-- `.github/workflows/ci.yml` — Drive-independent JS/Python quality gates.
+- `.github/workflows/ci.yml` — Drive-independent JavaScript, Python, and container quality gates.
 - `.github/workflows/codeql.yml` — JavaScript/Python static security analysis.
 - `.github/workflows/format-maintained-js.yml` — deterministic formatting verification for maintained JavaScript.
 - `.github/workflows/import-drive.yml` and `verify-drive.yml` — manual-only corpus maintenance workflows.
@@ -67,12 +68,14 @@ Requirements:
 - GNU Make optional
 
 ```bash
-git clone https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling.git
-cd datafactor-software-engineering-ai-tooling
-make setup
+git clone <repository-url>
+cd <repository-directory>
+make verify-fresh
 ```
 
-Equivalent commands:
+`make verify-fresh` performs the reproducible JavaScript/Python setup and then runs the maintained lint, formatting, tests, coverage, and dependency-audit contract.
+
+Equivalent setup commands:
 
 ```bash
 npm ci --ignore-scripts
@@ -136,20 +139,21 @@ This runs npm audit at the moderate threshold and pip-audit against the committe
 make check
 ```
 
-CI performs reproducible installation, dependency audits, lint/format enforcement, tests, and coverage gates on pushes and pull requests.
+CI performs reproducible installation, dependency audits, lint/format enforcement, tests, coverage gates, and an independent containerized verification run on pushes and pull requests.
 
 ## Container verification
 
+The Docker image installs both committed lockfiles and defaults to the same `make check` contract used by contributors. Compose provides the one-command reproducible verification path:
+
 ```bash
-docker build -t software-engineering-ai-tooling .
-docker run --rm software-engineering-ai-tooling
+docker compose up --build --abort-on-container-exit --exit-code-from verify
 ```
 
-The container exits non-zero if the maintained JavaScript or Python test suites fail.
+The `verify` service has no ports or cloud credentials because this repository is a maintained library/tooling package rather than a long-running web service. It exits non-zero if lint, formatting, dependency audits, JavaScript coverage, or Python coverage fail. CI validates the Compose configuration and runs this container from a fresh checkout.
 
 ## Environment, logging, and errors
 
-`.env.example` documents non-secret maintained settings. Credentials and production secrets do not belong in the repository. Maintained Python utilities use `python_support.logging_config` for structured JSON logs and typed/explicit handling of expected parsing failures.
+`.env.example` documents non-secret maintained settings. Credentials and production secrets do not belong in the repository. Maintained Python utilities use `python_support.logging_config` for structured JSON logs and typed/explicit handling of expected parsing failures. Promoted HTTP route artifacts use the maintained route-safety boundary for bounded validation and structured failure metadata without returning raw provider/storage exceptions.
 
 ## Test-density and refactoring policy
 
