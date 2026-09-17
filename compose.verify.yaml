@@ -1,0 +1,8 @@
+services:
+  verify:
+    build:
+      context: .
+    command:
+      - sh
+      - -c
+      - npm test && python -m pytest
