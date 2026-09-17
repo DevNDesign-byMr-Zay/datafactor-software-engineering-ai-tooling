@@ -1,0 +1,21 @@
+# Default review routing
+* @DevNDesign-byMr-Zay @DevNDesign-Team
+
+# Maintained runtime trust boundary
+/src/runtime/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+
+# Holographic evidence, identity, and presentation boundaries
+/src/holographic/** @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+
+# Focused regressions and package-surface tests
+/tests/** @DevNDesign-byMr-Zay @Cephas222 @DevNDesign-Team
+
+# Holographic/evidence regressions need the specialized trust-boundary owners too.
+/tests/js/*holographic* @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+/tests/js/*scene* @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+/tests/js/*handoff* @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+/tests/js/*evidence* @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+/tests/js/*provenance* @DevNDesign-byMr-Zay @HoloSpacxIntel @VAELONcomp
+
+# Repository governance and automation
+/.github/** @DevNDesign-byMr-Zay @DevNDesign-Team
