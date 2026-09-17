@@ -7,6 +7,7 @@ let importId = 0;
 async function loadRoute(bucket) {
   const registered = {};
   globalThis.bucket = bucket;
+  globalThis.routeLogger = { error: jest.fn(), warn: jest.fn() };
   globalThis.app = {
     get: jest.fn((path, handler) => {
       registered.path = path;
@@ -15,7 +16,7 @@ async function loadRoute(bucket) {
   };
 
   await import(`${SOURCE}?test=${importId++}`);
-  return registered;
+  return { ...registered, routeLogger: globalThis.routeLogger };
 }
 
 function responseHarness() {
@@ -27,6 +28,7 @@ function responseHarness() {
 afterEach(() => {
   delete globalThis.app;
   delete globalThis.bucket;
+  delete globalThis.routeLogger;
   jest.restoreAllMocks();
 });
 
@@ -47,14 +49,16 @@ describe('signed URL file access final route', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'Bucket not configured' });
   });
 
-  test('requires an object query parameter', async () => {
-    const { handler } = await loadRoute({ file: jest.fn() });
+  test('requires a safe uploads object query parameter', async () => {
+    const file = jest.fn();
+    const { handler } = await loadRoute({ file });
     const res = responseHarness();
 
-    await handler({ query: {} }, res);
+    await handler({ query: { object: '../private/a.txt' } }, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Missing ?object=' });
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid ?object=' });
+    expect(file).not.toHaveBeenCalled();
   });
 
   test('creates a one-hour read URL for the requested object', async () => {
@@ -64,7 +68,7 @@ describe('signed URL file access final route', () => {
     const { handler } = await loadRoute({ file });
     const res = responseHarness();
 
-    await handler({ query: { object: 'uploads/a.txt' } }, res);
+    await handler({ query: { object: ' uploads/a.txt ' } }, res);
 
     expect(file).toHaveBeenCalledWith('uploads/a.txt');
     expect(getSignedUrl).toHaveBeenCalledWith({
@@ -74,19 +78,28 @@ describe('signed URL file access final route', () => {
     expect(res.json).toHaveBeenCalledWith({ url: 'https://example.test/signed' });
   });
 
-  test('returns a signing error when URL generation fails', async () => {
-    const error = new Error('signing failed');
+  test('sanitizes signing failures without returning provider details', async () => {
+    const secret = 'signing-key=do-not-return';
+    const error = new Error(secret);
+    error.code = 'SIGNING_DOWN';
     const getSignedUrl = jest.fn().mockRejectedValue(error);
-    const { handler } = await loadRoute({
+    const { handler, routeLogger } = await loadRoute({
       file: jest.fn(() => ({ getSignedUrl })),
     });
     const res = responseHarness();
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     await handler({ query: { object: 'uploads/a.txt' } }, res);
 
-    expect(consoleError).toHaveBeenCalledWith('Sign error:', error);
+    expect(routeLogger.error).toHaveBeenCalledWith(
+      {
+        event: 'sign.failed',
+        errorName: 'Error',
+        errorCode: 'SIGNING_DOWN',
+      },
+      'Signed URL generation failed',
+    );
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({ error: 'signing failed' });
+    expect(res.json).toHaveBeenCalledWith({ error: 'Unable to create signed URL' });
+    expect(JSON.stringify(routeLogger.error.mock.calls)).not.toContain(secret);
   });
 });
