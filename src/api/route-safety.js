@@ -39,6 +39,7 @@ function normalizeFilename(value) {
     .replace(/[\\/]+/gu, '_')
     .replace(/\s+/gu, '_')
     .replace(/\.{2,}/gu, '_')
+    .replace(/_+/gu, '_')
     .replace(/^\.+/u, '');
 
   return normalized || null;
