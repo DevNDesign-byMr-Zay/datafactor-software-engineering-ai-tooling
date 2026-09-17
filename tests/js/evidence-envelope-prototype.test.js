@@ -34,6 +34,39 @@ describe('holographic evidence envelope prototype boundary', () => {
     expect(validateHolographicEvidenceEnvelope(forgedEnvelope)).toBe(false);
   });
 
+  it('rejects an own prototype-named envelope field instead of dropping it', () => {
+    const envelope = buildHolographicEvidenceEnvelope({
+      snapshotId: 'snap-proto-name',
+      sceneId: 'scene-proto-name',
+      provenanceRef: 'prov-proto-name',
+      target: 'holo-mat',
+    });
+    const prototypeNamed = JSON.parse('{"__proto__":{"hiddenAuthority":true}}');
+    const forgedEnvelope = { ...envelope, ...prototypeNamed };
+
+    expect(Object.hasOwn(forgedEnvelope, '__proto__')).toBe(true);
+    expect(validateHolographicEvidenceEnvelope(forgedEnvelope)).toBe(false);
+  });
+
+  it('preserves prototype-named payload evidence inside the signed fingerprint', () => {
+    const prototypeNamed = JSON.parse('{"__proto__":{"reviewed":true}}');
+    const envelope = buildHolographicEvidenceEnvelope({
+      snapshotId: 'snap-payload-proto-name',
+      sceneId: 'scene-payload-proto-name',
+      provenanceRef: 'prov-payload-proto-name',
+      target: 'holo-mat',
+      payload: { status: 'reviewed', ...prototypeNamed },
+    });
+
+    expect(Object.hasOwn(envelope.payload, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(envelope.payload)).toBe(Object.prototype);
+    expect(validateHolographicEvidenceEnvelope(envelope)).toBe(true);
+
+    const tampered = JSON.parse(JSON.stringify(envelope));
+    tampered.payload.__proto__.reviewed = false;
+    expect(validateHolographicEvidenceEnvelope(tampered)).toBe(false);
+  });
+
   it('rejects top-level and safety accessors without evaluating getters', () => {
     const envelope = buildHolographicEvidenceEnvelope({
       snapshotId: 'snap-accessor',
@@ -134,5 +167,35 @@ describe('holographic evidence envelope prototype boundary', () => {
       }),
     ).toThrow(/must not use accessors/);
     expect(getterReads).toBe(0);
+  });
+
+  it('captures build inputs before evaluating getters or unsupported fields', () => {
+    let getterReads = 0;
+    const input = {
+      sceneId: 'scene-build-input',
+      provenanceRef: 'prov-build-input',
+      target: 'holo-mat',
+    };
+    Object.defineProperty(input, 'snapshotId', {
+      enumerable: true,
+      get() {
+        getterReads += 1;
+        return 'snap-build-input';
+      },
+    });
+
+    expect(() => buildHolographicEvidenceEnvelope(input)).toThrow(/must not use accessors/);
+    expect(getterReads).toBe(0);
+
+    const prototypeNamed = JSON.parse('{"__proto__":{"hiddenAuthority":true}}');
+    expect(() =>
+      buildHolographicEvidenceEnvelope({
+        snapshotId: 'snap-build-proto-name',
+        sceneId: 'scene-build-proto-name',
+        provenanceRef: 'prov-build-proto-name',
+        target: 'holo-mat',
+        ...prototypeNamed,
+      }),
+    ).toThrow(/unsupported field: __proto__/);
   });
 });
