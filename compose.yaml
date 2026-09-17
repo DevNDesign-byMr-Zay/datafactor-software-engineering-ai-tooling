@@ -1,0 +1,5 @@
+services:
+  verify:
+    build:
+      context: .
+    init: true
