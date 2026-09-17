@@ -32,14 +32,23 @@ describe('route safety boundaries', () => {
 
   test.each([
     [null, 'No file uploaded'],
-    [{ originalname: '', buffer: Buffer.from('x'), mimetype: 'text/plain' }, 'Invalid upload filename'],
+    [
+      { originalname: '', buffer: Buffer.from('x'), mimetype: 'text/plain' },
+      'Invalid upload filename',
+    ],
     [{ originalname: 'a.txt', buffer: 'x', mimetype: 'text/plain' }, 'Invalid upload body'],
-    [{ originalname: 'a.txt', buffer: Buffer.alloc(0), mimetype: 'text/plain' }, 'Upload size must be between 1 byte and 10 MiB'],
+    [
+      { originalname: 'a.txt', buffer: Buffer.alloc(0), mimetype: 'text/plain' },
+      'Upload size must be between 1 byte and 10 MiB',
+    ],
     [
       { originalname: 'a.txt', buffer: Buffer.alloc(10 * 1024 * 1024 + 1), mimetype: 'text/plain' },
       'Upload size must be between 1 byte and 10 MiB',
     ],
-    [{ originalname: 'a.txt', buffer: Buffer.from('x'), mimetype: 'bad' }, 'Invalid upload MIME type'],
+    [
+      { originalname: 'a.txt', buffer: Buffer.from('x'), mimetype: 'bad' },
+      'Invalid upload MIME type',
+    ],
   ])('rejects invalid uploads %#', (file, error) => {
     expect(parseUploadFile(file)).toEqual({ ok: false, error });
   });
