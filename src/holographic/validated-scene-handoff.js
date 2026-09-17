@@ -13,6 +13,14 @@ const HANDOFF_KEYS = Object.freeze([
   'safety',
   'handoffFingerprint',
 ]);
+const CREATE_INPUT_KEYS = Object.freeze([
+  'envelope',
+  'scene',
+  'snapshotId',
+  'sceneId',
+  'provenanceRef',
+]);
+const VERIFY_OPTION_KEYS = Object.freeze(['envelope']);
 const ACCEPTANCE_KEYS = Object.freeze([
   'accepted',
   'provenanceValid',
@@ -40,6 +48,45 @@ function canonical(value) {
     );
   }
   return value;
+}
+
+function captureDataEnvelope(value, expectedKeys, path) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new TypeError(`${path} must be a plain object`);
+  }
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError(`${path} must be a plain object`);
+  }
+  if (Object.getOwnPropertySymbols(value).length > 0) {
+    throw new TypeError(`${path} must not contain symbol properties`);
+  }
+
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const unexpected = Object.keys(descriptors).find((key) => !expectedKeys.includes(key));
+  if (unexpected) throw new TypeError(`${path} contains unsupported field: ${unexpected}`);
+
+  const copy = {};
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (!descriptor.enumerable) throw new TypeError(`${path}.${key} must be enumerable data`);
+    if ('get' in descriptor || 'set' in descriptor) {
+      throw new TypeError(`${path}.${key} must not use accessors`);
+    }
+    Object.defineProperty(copy, key, {
+      value: descriptor.value,
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+  }
+  return copy;
+}
+
+function text(value, name) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new TypeError(`${name} must be a non-empty string`);
+  }
+  return value.trim();
 }
 
 function snapshotArray(value, path, seen) {
@@ -77,7 +124,12 @@ function snapshotObject(value, path, seen) {
     if ('get' in descriptor || 'set' in descriptor) {
       throw new TypeError(`${path}.${key} must not use accessors`);
     }
-    copy[key] = snapshotEvidence(descriptor.value, `${path}.${key}`, seen);
+    Object.defineProperty(copy, key, {
+      value: snapshotEvidence(descriptor.value, `${path}.${key}`, seen),
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
   }
   return copy;
 }
@@ -138,18 +190,17 @@ function verifyAcceptance(acceptance) {
 }
 
 /** Build the final advisory handoff only after provenance, fingerprint, and safety checks pass. */
-export function createValidatedHolographicSceneHandoff({
-  envelope,
-  scene,
-  snapshotId,
-  sceneId,
-  provenanceRef,
-} = {}) {
+export function createValidatedHolographicSceneHandoff(input = {}) {
+  const { envelope, scene, snapshotId, sceneId, provenanceRef } = captureDataEnvelope(
+    input,
+    CREATE_INPUT_KEYS,
+    'handoff input',
+  );
   const capturedEnvelope = deepFreeze(snapshotEvidence(envelope, 'envelope'));
   const capturedScene = deepFreeze(snapshotEvidence(scene, 'scene'));
-  const normalizedSnapshotId = String(snapshotId).trim();
-  const normalizedSceneId = String(sceneId).trim();
-  const normalizedProvenanceRef = String(provenanceRef).trim();
+  const normalizedSnapshotId = text(snapshotId, 'snapshotId');
+  const normalizedSceneId = text(sceneId, 'sceneId');
+  const normalizedProvenanceRef = text(provenanceRef, 'provenanceRef');
   const sceneFingerprint = fingerprintHolographicScene(capturedScene);
   const acceptance = evaluateHolographicAcceptance({
     envelope: capturedEnvelope,
@@ -183,8 +234,10 @@ export function createValidatedHolographicSceneHandoff({
 }
 
 /** Verify a handoff structurally; pass the source envelope to re-run the independent provenance gate. */
-export function verifyValidatedHolographicSceneHandoff(handoff, { envelope = null } = {}) {
+export function verifyValidatedHolographicSceneHandoff(handoff, options = {}) {
   try {
+    const verifyOptions = captureDataEnvelope(options, VERIFY_OPTION_KEYS, 'verification options');
+    const envelope = Object.hasOwn(verifyOptions, 'envelope') ? verifyOptions.envelope : null;
     const normalized = snapshotEvidence(handoff, 'handoff');
     if (!hasExactKeys(normalized, HANDOFF_KEYS)) return false;
     if (!/^[a-f0-9]{64}$/.test(normalized.handoffFingerprint)) return false;
