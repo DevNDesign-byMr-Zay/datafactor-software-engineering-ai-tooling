@@ -11,7 +11,7 @@ Treat the repository as an engineering corpus with a maintained executable surfa
 3. Add or change one focused behavior.
 4. Add tests that pin the behavior in the same commit whenever practical.
 5. Run `make check` before pushing.
-6. Keep Drive import/verification separate from product or utility changes.
+6. Keep Drive import/verification separate from product or utility changes; corpus automation must remain transactional and publish changes through reviewed pull requests.
 
 ## Commit discipline
 
