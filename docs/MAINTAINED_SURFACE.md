@@ -12,7 +12,7 @@ The maintained surface is expected to satisfy blocking CI requirements for linti
 
 `Software Engineering & AI Tooling/` preserves deidentified, versioned development history. Repeated and near-duplicate snapshots are retained intentionally because they record implementation progression, debugging, refactoring, and workflow evolution. They are not silently deduplicated or rewritten to improve repository-wide style metrics.
 
-Most historical files are therefore excluded from blocking production coverage calculations by design. A separate non-blocking `npm run lint:legacy` baseline scans the historical JavaScript tree for syntax/debt signals without pretending the archive is a homogeneous production application.
+Most historical files are therefore excluded from routine maintained linting and blocking production coverage by design. Historical artifacts enter lint/coverage only when a specific implementation is intentionally promoted with focused tests. Corpus integrity and provenance are verified through the separate import/verification controls rather than a soft-failing pseudo-production lint lane.
 
 ## Promotion rule
 
