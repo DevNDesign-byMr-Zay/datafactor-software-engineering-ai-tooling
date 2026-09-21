@@ -1,4 +1,4 @@
-.PHONY: setup test test-js test-python lint lint-legacy format-check audit check verify-fresh
+.PHONY: setup test test-js test-python lint format-check audit check verify-fresh
 
 setup:
 	npm ci --ignore-scripts
@@ -16,9 +16,6 @@ test-python:
 lint:
 	npm run lint
 	python -m ruff check .
-
-lint-legacy:
-	npm run lint:legacy
 
 format-check:
 	npm run format:check
