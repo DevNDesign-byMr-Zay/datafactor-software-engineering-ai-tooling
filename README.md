@@ -165,6 +165,8 @@ This approach improves architecture and maintainability without deleting the his
 
 ## Corpus maintenance and development history
 
-Drive import and live verification remain manual-only and are not required to build/test the library. New fixes and features should land as small focused commits paired with the tests that prove them. Historical corpus files are not bulk-reformatted, and repository history is never backdated or fabricated for assessment purposes.
+Drive import and live verification remain manual-only and are not required to build/test the library. Corpus refreshes are transactional: every selected source/configuration file is downloaded into a temporary tree first, and any blocked fetch aborts the refresh without replacing the currently verified corpus. A complete refresh must pass `make verify-fresh` before automation publishes a dedicated pull request. Live verification report changes follow the same reviewed-PR path; mismatches fail before publication and leave `main` untouched.
+
+New fixes and features should land as small focused commits paired with the tests that prove them. Historical corpus files are not bulk-reformatted, and repository history is never backdated or fabricated for assessment purposes.
 
 See `CONTRIBUTING.md`, `IMPORT_REPORT.md`, `VERIFY_REPORT.md`, and `docs/MAINTAINED_SURFACE.md` for additional provenance and quality-surface details.
