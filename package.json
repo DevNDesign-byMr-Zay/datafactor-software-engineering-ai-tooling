@@ -20,7 +20,8 @@
     "./application-bootstrap": "./src/bootstrap/application-bootstrap-executor.js",
     "./application-bootstrap-readiness": "./src/bootstrap/application-bootstrap-readiness.js",
     "./application-runtime-acceptance": "./src/runtime/application-runtime-acceptance.js",
-    "./holographic-scene-planner": "./src/holographic/scene-planner.js"
+    "./holographic-scene-planner": "./src/holographic/scene-planner.js",
+    "./holographic-capability-negotiation": "./src/holographic/capability-negotiation.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
