@@ -4,7 +4,7 @@ This repository intentionally contains two different engineering surfaces and do
 
 ## Maintained surface
 
-The maintained production-facing surface lives under `src/` together with its focused tests under `tests/js/` and `tests/python/`. Selected historical artifacts are promoted into the maintained quality gate only when they are directly exercised by tests or used as an authenticated reference implementation.
+The maintained production-facing surface lives under `src/` together with its focused tests under `tests/js/` and `tests/python/`. Selected historical artifacts are promoted into the maintained quality gate only when they are directly exercised by tests or used as an authenticated reference implementation. The holographic maintained surface includes a renderer-neutral capability-negotiation seam that validates an accepted scene handoff against an explicit target capability descriptor, returns advisory compatibility evidence, and never dispatches or actuates a device.
 
 The maintained surface is expected to satisfy blocking CI requirements for linting, formatting, tests, coverage, dependency auditing, and reproducible installation.
 
