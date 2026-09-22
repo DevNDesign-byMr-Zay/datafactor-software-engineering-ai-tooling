@@ -12,6 +12,7 @@ export * from './holographic/acceptance-gate.js';
 export * from './holographic/capability-negotiation.js';
 export * from './holographic/evidence-envelope.js';
 export * from './holographic/interaction-normalization.js';
+export * from './holographic/readiness-routing.js';
 export * from './holographic/provenance-chain.js';
 export * from './holographic/scene-fingerprint.js';
 export * from './holographic/scene-planner.js';
