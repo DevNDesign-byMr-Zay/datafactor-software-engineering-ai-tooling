@@ -9,6 +9,7 @@ export * from './deployment/cloud-run-reliable-workflow.js';
 export * from './deployment/cloud-run-release-evidence.js';
 export * from './frontend/erase-mask.js';
 export * from './holographic/acceptance-gate.js';
+export * from './holographic/capability-negotiation.js';
 export * from './holographic/evidence-envelope.js';
 export * from './holographic/provenance-chain.js';
 export * from './holographic/scene-fingerprint.js';
