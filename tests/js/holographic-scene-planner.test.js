@@ -45,7 +45,6 @@ describe('holographic scene planner', () => {
     expect(validateHolographicEvidenceEnvelope(result.evidence)).toBe(true);
   });
 
-
   test('defensively snapshots and recursively freezes planning constraints and animation', () => {
     const constraints = {
       hard: [{ type: 'bounds', limits: { minX: 0, maxX: 100 } }],
@@ -53,7 +52,10 @@ describe('holographic scene planner', () => {
     };
     const animation = {
       durationMs: 900,
-      keyframes: [{ at: 0, opacity: 0 }, { at: 1, opacity: 1 }],
+      keyframes: [
+        { at: 0, opacity: 0 },
+        { at: 1, opacity: 1 },
+      ],
     };
 
     const result = planHolographicScene({
