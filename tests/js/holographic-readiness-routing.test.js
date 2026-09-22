@@ -147,9 +147,9 @@ describe('advisory multi-device readiness routing', () => {
 
     const symbolic = { id: 'device-s', target: 'holo-mat', capabilities: [] };
     symbolic[Symbol('hidden')] = true;
-    expect(() =>
-      evaluateHolographicReadiness({ handoff: accepted, devices: [symbolic] }),
-    ).toThrow(/symbol properties/);
+    expect(() => evaluateHolographicReadiness({ handoff: accepted, devices: [symbolic] })).toThrow(
+      /symbol properties/,
+    );
 
     expect(() =>
       evaluateHolographicReadiness({
