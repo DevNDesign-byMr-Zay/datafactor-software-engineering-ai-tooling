@@ -21,6 +21,55 @@ function finite(value, name) {
   return value;
 }
 
+function snapshotPlanningEvidence(value, path = 'planningEvidence', seen = new WeakSet()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number') return finite(value, path);
+  if (!value || typeof value !== 'object') {
+    throw new TypeError(`${path} must contain JSON-compatible evidence`);
+  }
+  if (seen.has(value)) throw new TypeError(`${path} must not contain circular references`);
+  seen.add(value);
+
+  let copy;
+  if (Array.isArray(value)) {
+    if (Object.getOwnPropertySymbols(value).length > 0) {
+      throw new TypeError(`${path} must not contain symbol properties`);
+    }
+    const allowed = new Set(['length']);
+    copy = [];
+    for (let index = 0; index < value.length; index += 1) {
+      const key = String(index);
+      allowed.add(key);
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor) throw new TypeError(`${path} must not contain sparse arrays`);
+      if (!descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+        throw new TypeError(`${path}[${index}] must be enumerable data`);
+      }
+      copy.push(snapshotPlanningEvidence(descriptor.value, `${path}[${index}]`, seen));
+    }
+    if (Reflect.ownKeys(value).some((key) => typeof key !== 'string' || !allowed.has(key))) {
+      throw new TypeError(`${path} arrays must not contain extra properties`);
+    }
+  } else {
+    if (Object.getPrototypeOf(value) !== Object.prototype) {
+      throw new TypeError(`${path} must use plain objects`);
+    }
+    if (Object.getOwnPropertySymbols(value).length > 0) {
+      throw new TypeError(`${path} must not contain symbol properties`);
+    }
+    copy = {};
+    for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+      if (!descriptor.enumerable || 'get' in descriptor || 'set' in descriptor) {
+        throw new TypeError(`${path}.${key} must be enumerable data`);
+      }
+      copy[key] = snapshotPlanningEvidence(descriptor.value, `${path}.${key}`, seen);
+    }
+  }
+
+  seen.delete(value);
+  return copy;
+}
+
 function deepFreeze(value) {
   if (!value || typeof value !== 'object') return value;
   for (const child of Object.values(value)) deepFreeze(child);
@@ -40,6 +89,8 @@ export function planHolographicScene({
   objects = [],
   alerts = [],
   depthScale = 1,
+  constraints,
+  animation,
 } = {}) {
   const cleanSnapshotId = text(snapshotId, 'snapshotId');
   const cleanProvenanceRef = text(provenanceRef, 'provenanceRef');
@@ -72,6 +123,11 @@ export function planHolographicScene({
     };
   });
 
+  const capturedConstraints =
+    constraints === undefined ? undefined : snapshotPlanningEvidence(constraints, 'constraints');
+  const capturedAnimation =
+    animation === undefined ? undefined : snapshotPlanningEvidence(animation, 'animation');
+
   const scene = deepFreeze({
     sceneVersion: 1,
     sceneId,
@@ -80,6 +136,8 @@ export function planHolographicScene({
     target: cleanTarget,
     nodes,
     alerts: alerts.map((alert, index) => text(alert, `alerts[${index}]`)),
+    ...(capturedConstraints === undefined ? {} : { constraints: capturedConstraints }),
+    ...(capturedAnimation === undefined ? {} : { animation: capturedAnimation }),
     safety: {
       advisoryOnly: true,
       authoritative: false,
