@@ -52,11 +52,7 @@ function freezeRoute(route) {
   return Object.freeze(route);
 }
 
-export function evaluateHolographicReadiness({
-  handoff,
-  devices,
-  requiredCapabilities = [],
-} = {}) {
+export function evaluateHolographicReadiness({ handoff, devices, requiredCapabilities = [] } = {}) {
   if (!verifyValidatedHolographicSceneHandoff(handoff)) {
     throw new TypeError('handoff must be a valid accepted holographic scene handoff');
   }
