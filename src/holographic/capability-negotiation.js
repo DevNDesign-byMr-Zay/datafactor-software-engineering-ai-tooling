@@ -96,21 +96,14 @@ function buildCore({ handoff, capabilityDescriptor, requiredCapabilities }) {
     throw new TypeError('handoff must be a valid accepted holographic scene handoff');
   }
 
-  const descriptor = dataObject(
-    capabilityDescriptor,
-    DESCRIPTOR_KEYS,
-    'capabilityDescriptor',
-  );
+  const descriptor = dataObject(capabilityDescriptor, DESCRIPTOR_KEYS, 'capabilityDescriptor');
   const target = text(descriptor.target, 'capabilityDescriptor.target');
   if (target !== handoff.scene.target) {
     throw new TypeError('capability target must match the accepted handoff target');
   }
 
   const required = stringList(requiredCapabilities, 'requiredCapabilities');
-  const available = stringList(
-    descriptor.capabilities,
-    'capabilityDescriptor.capabilities',
-  );
+  const available = stringList(descriptor.capabilities, 'capabilityDescriptor.capabilities');
   const availableSet = new Set(available);
   const missing = Object.freeze(required.filter((name) => !availableSet.has(name)));
 
