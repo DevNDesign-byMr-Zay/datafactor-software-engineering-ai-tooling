@@ -52,11 +52,10 @@ function finite(value, path, fallback = 0) {
   return value;
 }
 
-function exactKeys(value, expected, path) {
-  const actual = Object.keys(value).sort();
-  const wanted = [...expected].sort();
-  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
-    throw new TypeError(`${path} contains unsupported or missing fields`);
+function assertAllowedKeys(value, allowed, path) {
+  const unsupported = Object.keys(value).find((key) => !allowed.includes(key));
+  if (unsupported) {
+    throw new TypeError(`${path} contains unsupported field: ${unsupported}`);
   }
 }
 
@@ -67,7 +66,7 @@ export function normalizeHolographicInteraction(input = {}) {
     throw new TypeError(`unsupported holographic interaction type: ${type}`);
   }
 
-  exactKeys(value, KEYS_BY_TYPE[type], 'interaction');
+  assertAllowedKeys(value, KEYS_BY_TYPE[type], 'interaction');
 
   switch (type) {
     case 'orbit':
