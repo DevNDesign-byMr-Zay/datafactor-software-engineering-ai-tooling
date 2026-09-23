@@ -88,8 +88,11 @@ jobs:
           git add package-lock.json requirements.lock.txt
           git commit -m "build: refresh verified dependency lockfiles"
           git push --set-upstream origin "$branch"
-          gh pr create \
+          if ! gh pr create \
             --base main \
             --head "$branch" \
             --title "build: refresh verified dependency lockfiles" \
-            --body "Regenerates the JavaScript and Python lockfiles from the current manifests. The refresh workflow completed clean installs, dependency audits, linting, formatting checks, maintained test coverage, the sustainability demo, Python dependency validation, and Python coverage before opening this PR. Normal repository CI and security analysis should still validate this exact PR head before merge."
+            --body "Regenerates the JavaScript and Python lockfiles from the current manifests. The refresh workflow completed clean installs, dependency audits, linting, formatting checks, maintained test coverage, the sustainability demo, Python dependency validation, and Python coverage before opening this PR. Normal repository CI and security analysis should still validate this exact PR head before merge."; then
+            echo "::notice title=Lockfile branch published::GitHub Actions cannot open pull requests in this repository. Open a PR from $branch to main."
+            echo "Verified dependency branch $branch was published; repository policy requires a human or connected app to open the PR." >> "$GITHUB_STEP_SUMMARY"
+          fi
