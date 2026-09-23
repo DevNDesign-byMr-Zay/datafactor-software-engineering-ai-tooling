@@ -92,6 +92,7 @@ describe('signed URL file access final route', () => {
 
     expect(routeLogger.error).toHaveBeenCalledWith(
       {
+        schemaVersion: 1,
         event: 'sign.failed',
         errorName: 'Error',
         errorCode: 'SIGNING_DOWN',
