@@ -166,7 +166,9 @@ function boundedContext(context) {
   /** @type {Record<string, string | number | boolean | null>} */
   const safe = {};
   for (const [key, value] of Object.entries(context ?? {})) {
-    if (value === null || typeof value === 'boolean' || typeof value === 'number') {
+    if (value === null) {
+      safe[key] = null;
+    } else if (typeof value === 'boolean' || typeof value === 'number') {
       safe[key] = value;
     } else if (typeof value === 'string') {
       safe[key] = value.slice(0, 256);
