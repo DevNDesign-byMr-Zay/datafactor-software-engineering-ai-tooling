@@ -152,6 +152,7 @@ describe('structured route failure logging', () => {
 
     expect(logger.error).toHaveBeenCalledWith(
       {
+        schemaVersion: 1,
         event: 'route.failed',
         objectName: 'x'.repeat(256),
         attempt: 2,
@@ -175,7 +176,7 @@ describe('structured route failure logging', () => {
       }),
     ).toBe(true);
     expect(warn).toHaveBeenCalledWith(
-      { event: 'route.warning', value: null },
+      { schemaVersion: 1, event: 'route.warning', value: null },
       'Route operation failed',
     );
 
