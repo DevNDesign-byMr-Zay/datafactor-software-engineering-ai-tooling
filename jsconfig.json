@@ -9,10 +9,14 @@
     "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "maxNodeModuleJsDepth": 0
   },
   "files": [
+    "src/api/route-safety.js",
     "src/api/cors-policy.js",
     "src/auth/token-auth.js",
     "src/frontend/erase-mask.js",
