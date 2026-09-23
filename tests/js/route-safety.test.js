@@ -195,4 +195,16 @@ describe('structured route failure logging', () => {
   test('requires an event name', () => {
     expect(() => logRouteFailure({ logger: { error: jest.fn() } })).toThrow('event is required');
   });
+
+  test('rejects unsupported log levels before touching the sink', () => {
+    const logger = { error: jest.fn() };
+    expect(() =>
+      logRouteFailure({
+        logger,
+        level: 'trace',
+        event: 'route.failed',
+      }),
+    ).toThrow('level must be one of: error, warn, info');
+    expect(logger.error).not.toHaveBeenCalled();
+  });
 });
