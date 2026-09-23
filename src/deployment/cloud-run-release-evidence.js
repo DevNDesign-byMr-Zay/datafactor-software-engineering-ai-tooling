@@ -150,10 +150,9 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
   const evidence = buildProcessEvidence(stage, args, rawResult);
 
   if (evidence.exitCode !== 0) {
-    throw Object.assign(
-      new Error(`${stage} failed with exit code ${evidence.exitCode}`),
-      { evidence },
-    );
+    throw Object.assign(new Error(`${stage} failed with exit code ${evidence.exitCode}`), {
+      evidence,
+    });
   }
 
   let service;
