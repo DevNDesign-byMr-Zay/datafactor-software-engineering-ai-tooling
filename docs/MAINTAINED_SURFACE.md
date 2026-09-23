@@ -21,3 +21,7 @@ When historical behavior becomes part of the maintained library surface, the pro
 ## Why the separation matters
 
 The repository is both a software-engineering corpus and a maintained executable reference surface. Preserving the historical sequence protects the value of the corpus, while isolating the maintained surface keeps build, test, lint, and coverage signals meaningful for buyers and maintainers.
+## Machine-readable surface boundary
+
+`config/maintained-surface.json` is the canonical machine-readable declaration of maintained roots, the preserved historical corpus root, and the exact historical artifacts intentionally promoted into blocking quality gates. `npm run verify:surface` validates that declaration in CI and rejects wildcards, path escapes, missing artifacts, duplicate promotions, or any attempt to classify the historical corpus as a maintained root.
+

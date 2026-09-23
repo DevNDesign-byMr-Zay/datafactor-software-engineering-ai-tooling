@@ -1,4 +1,4 @@
-.PHONY: setup test test-js test-python typecheck lint format-check audit check verify-fresh
+.PHONY: setup test test-js test-python surface-check typecheck lint format-check audit check verify-fresh
 
 setup:
 	npm ci --ignore-scripts
@@ -12,6 +12,9 @@ test-js:
 test-python:
 	python -m coverage run -m pytest
 	python -m coverage report --include="Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+
+surface-check:
+	npm run verify:surface
 
 typecheck:
 	npm run typecheck
@@ -28,6 +31,6 @@ audit:
 	python -m pip check
 	pip-audit -r requirements.lock.txt
 
-check: typecheck lint format-check test audit
+check: surface-check typecheck lint format-check test audit
 
 verify-fresh: setup check
