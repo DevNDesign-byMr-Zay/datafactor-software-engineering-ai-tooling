@@ -80,6 +80,18 @@ function deepFreeze(value) {
 /**
  * Turn an AI/operator intent into a deterministic, renderer-neutral scene plan.
  * This is a planning boundary only: it cannot authorize physical actuation.
+ *
+ * @param {{
+ *   snapshotId?: string,
+ *   provenanceRef?: string,
+ *   intent?: string,
+ *   target?: string,
+ *   objects?: Array<Record<string, unknown>>,
+ *   alerts?: unknown[],
+ *   depthScale?: number,
+ *   constraints?: unknown,
+ *   animation?: unknown
+ * }} [options]
  */
 export function planHolographicScene({
   snapshotId,

@@ -25,6 +25,8 @@
     "src/holographic/interaction-normalization.js",
     "src/sustainability/energy-receipt-validator.js",
     "src/sustainability/efficiency-observation.js",
-    "src/sustainability/execution-receipt.js"
+    "src/sustainability/execution-receipt.js",
+    "src/deployment/cloud-run-release-evidence.js",
+    "src/holographic/scene-planner.js"
   ]
 }
