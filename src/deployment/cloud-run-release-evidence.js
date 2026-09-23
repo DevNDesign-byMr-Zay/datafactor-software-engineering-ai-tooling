@@ -14,6 +14,7 @@ function requirePercent(value) {
   return value;
 }
 
+/** @param {Record<string, unknown>} [result] */
 function normalizeProcessResult(result = {}) {
   return {
     exitCode: Number(result.exitCode ?? result.code ?? 0),
@@ -55,6 +56,7 @@ function normalizeTraffic(traffic) {
     .filter((entry) => entry.revisionName);
 }
 
+/** @param {{ serviceName?: string, region?: string }} [options] */
 export function buildCloudRunServiceDescribeArgs({ serviceName, region = DEFAULT_REGION } = {}) {
   return [
     'run',
@@ -67,6 +69,14 @@ export function buildCloudRunServiceDescribeArgs({ serviceName, region = DEFAULT
   ];
 }
 
+/**
+ * @param {{
+ *   serviceName?: string,
+ *   revisionName?: string,
+ *   region?: string,
+ *   percent?: number
+ * }} [options]
+ */
 export function buildCloudRunTrafficShiftArgs({
   serviceName,
   revisionName,
@@ -111,6 +121,11 @@ export function parseCloudRunServiceEvidence(value) {
   };
 }
 
+/**
+ * @param {string} stage
+ * @param {string[]} args
+ * @param {{ execFile?: (command: string, args: string[]) => Promise<Record<string, unknown>> }} [options]
+ */
 async function executeGcloudJson(stage, args, { execFile } = {}) {
   if (typeof execFile !== 'function') {
     throw new TypeError('execFile must be a function');
@@ -121,38 +136,49 @@ async function executeGcloudJson(stage, args, { execFile } = {}) {
     rawResult = await execFile('gcloud', args);
   } catch (error) {
     const evidence = buildProcessEvidence(stage, args, error);
-    const failure = new Error(
-      evidence.exitCode !== 0
-        ? `${stage} failed with exit code ${evidence.exitCode}`
-        : `${stage} failed before a process result was returned`,
-      { cause: error },
+    throw Object.assign(
+      new Error(
+        evidence.exitCode !== 0
+          ? `${stage} failed with exit code ${evidence.exitCode}`
+          : `${stage} failed before a process result was returned`,
+        { cause: error },
+      ),
+      { evidence },
     );
-    failure.evidence = evidence;
-    throw failure;
   }
 
   const evidence = buildProcessEvidence(stage, args, rawResult);
 
   if (evidence.exitCode !== 0) {
-    const failure = new Error(`${stage} failed with exit code ${evidence.exitCode}`);
-    failure.evidence = evidence;
-    throw failure;
+    throw Object.assign(
+      new Error(`${stage} failed with exit code ${evidence.exitCode}`),
+      { evidence },
+    );
   }
 
   let service;
   try {
     service = parseCloudRunServiceEvidence(evidence.stdout);
   } catch (cause) {
-    const failure = new Error(`${stage} failed to parse service evidence: ${cause.message}`, {
-      cause,
-    });
-    failure.evidence = evidence;
-    throw failure;
+    throw Object.assign(
+      new Error(
+        `${stage} failed to parse service evidence: ${cause instanceof Error ? cause.message : String(cause)}`,
+        { cause },
+      ),
+      { evidence },
+    );
   }
 
   return { ...evidence, service };
 }
 
+/**
+ * @param {{
+ *   serviceName?: string,
+ *   region?: string,
+ *   execFile?: (command: string, args: string[]) => Promise<Record<string, unknown>>
+ * }} [options]
+ */
 export async function inspectCloudRunRelease({
   serviceName,
   region = DEFAULT_REGION,
@@ -162,6 +188,15 @@ export async function inspectCloudRunRelease({
   return executeGcloudJson('revision-inspect', args, { execFile });
 }
 
+/**
+ * @param {{
+ *   serviceName?: string,
+ *   revisionName?: string,
+ *   region?: string,
+ *   percent?: number,
+ *   execFile?: (command: string, args: string[]) => Promise<Record<string, unknown>>
+ * }} [options]
+ */
 export async function shiftCloudRunTraffic({
   serviceName,
   revisionName,
@@ -178,6 +213,14 @@ export async function shiftCloudRunTraffic({
   return executeGcloudJson('traffic-shift', args, { execFile });
 }
 
+/**
+ * @param {{
+ *   serviceName?: string,
+ *   priorRevisionName?: string,
+ *   region?: string,
+ *   execFile?: (command: string, args: string[]) => Promise<Record<string, unknown>>
+ * }} [options]
+ */
 export async function rollbackCloudRunTraffic({
   serviceName,
   priorRevisionName,
