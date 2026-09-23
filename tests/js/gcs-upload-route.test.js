@@ -151,6 +151,7 @@ describe('GCS upload pipeline final route', () => {
 
     expect(routeLogger.error).toHaveBeenCalledWith(
       {
+        schemaVersion: 1,
         event: 'upload.persist_failed',
         errorName: 'Error',
         errorCode: 'STORAGE_DOWN',

@@ -1,3 +1,4 @@
+import { createRouteFailureRecord } from './route-failure-schema.js';
 import { Buffer } from 'node:buffer';
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -159,25 +160,6 @@ export function parseChatRequestBody(body) {
 }
 
 /**
- * @param {Record<string, unknown> | null | undefined} context
- * @returns {Record<string, string | number | boolean | null>}
- */
-function boundedContext(context) {
-  /** @type {Record<string, string | number | boolean | null>} */
-  const safe = {};
-  for (const [key, value] of Object.entries(context ?? {})) {
-    if (value === null) {
-      safe[key] = null;
-    } else if (typeof value === 'boolean' || typeof value === 'number') {
-      safe[key] = value;
-    } else if (typeof value === 'string') {
-      safe[key] = value.slice(0, 256);
-    }
-  }
-  return safe;
-}
-
-/**
  * Emit a bounded, structured route-failure record without leaking raw upstream errors.
  *
  * @param {RouteFailureOptions} [options]
@@ -201,22 +183,10 @@ export function logRouteFailure(options = {}) {
   const method = logger?.[level];
   if (typeof method !== 'function') return false;
 
-  /** @type {Record<string, string | number | boolean | null>} */
-  const metadata = { event, ...boundedContext(context) };
-  const errorLike =
-    error && typeof error === 'object'
-      ? /** @type {{ name?: unknown, code?: unknown }} */ (error)
-      : null;
-
-  if (typeof errorLike?.name === 'string' && errorLike.name) {
-    metadata.errorName = errorLike.name;
-  }
-  if (typeof errorLike?.code === 'string' && errorLike.code) {
-    metadata.errorCode = errorLike.code;
-  }
+  const metadata = createRouteFailureRecord({ event, error, context });
 
   try {
-    method.call(logger, Object.freeze(metadata), message);
+    method.call(logger, metadata, message);
     return true;
   } catch {
     return false;

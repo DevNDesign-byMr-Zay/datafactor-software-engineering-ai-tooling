@@ -1,4 +1,5 @@
 export * from './api/cors-policy.js';
+export * from './api/route-failure-schema.js';
 export * from './auth/token-auth.js';
 export * from './bootstrap/application-bootstrap-executor.js';
 export * from './bootstrap/application-bootstrap-readiness.js';
