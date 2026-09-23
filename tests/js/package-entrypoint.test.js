@@ -9,6 +9,10 @@ describe('canonical package entrypoint', () => {
     expect(typeof library.createAdaptiveDurationProgressController).toBe('function');
     expect(typeof library.createTokenAuthMiddleware).toBe('function');
     expect(typeof library.createCorsPolicy).toBe('function');
+    expect(typeof library.buildHolographicEvidenceEnvelope).toBe('function');
+    expect(typeof library.validateHolographicEvidenceEnvelope).toBe('function');
+    expect(typeof library.buildRuntimeAcceptanceReceipt).toBe('function');
+    expect(typeof library.consumeRuntimeAcceptanceEvidence).toBe('function');
   });
 
   test('routes behavior through the public package surface', () => {
@@ -23,5 +27,15 @@ describe('canonical package entrypoint', () => {
       project: null,
       bucket: null,
     });
+
+    const envelope = library.buildHolographicEvidenceEnvelope({
+      snapshotId: 'entrypoint-snapshot',
+      sceneId: 'entrypoint-scene',
+      provenanceRef: 'entrypoint-receipt',
+      target: 'web-dashboard',
+      renderer: 'renderer-neutral',
+      payload: { mode: 'preview' },
+    });
+    expect(library.validateHolographicEvidenceEnvelope(envelope)).toBe(true);
   });
 });
