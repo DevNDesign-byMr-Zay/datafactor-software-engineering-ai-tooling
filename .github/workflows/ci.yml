@@ -27,6 +27,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Audit JavaScript dependencies
         run: npm audit --audit-level=moderate
+      - name: Type-check maintained JavaScript
+        run: npm run typecheck
       - name: Lint maintained JavaScript
         run: npm run lint
       - name: Check maintained JavaScript formatting
