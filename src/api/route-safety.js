@@ -9,6 +9,22 @@ const MAX_CHAT_FILES = 8;
 const MAX_MIME_TYPE_LENGTH = 128;
 const MIME_TYPE_PATTERN = /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/iu;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/u;
+const ROUTE_LOG_LEVELS = Object.freeze(['error', 'warn', 'info']);
+const ROUTE_LOG_LEVEL_SET = new Set(ROUTE_LOG_LEVELS);
+
+/**
+ * @typedef {Record<string, ((metadata: Readonly<Record<string, string | number | boolean | null>>, message: string) => unknown) | undefined>} RouteLogger
+ */
+
+/**
+ * @typedef {object} RouteFailureOptions
+ * @property {RouteLogger | null | undefined} [logger]
+ * @property {'error' | 'warn' | 'info'} [level]
+ * @property {string} [event]
+ * @property {string} [message]
+ * @property {unknown} [error]
+ * @property {Record<string, unknown>} [context]
+ */
 
 function ok(value) {
   return Object.freeze({ ok: true, value: Object.freeze(value) });
@@ -142,10 +158,17 @@ export function parseChatRequestBody(body) {
   return ok({ sessionId, text, files: Object.freeze(files) });
 }
 
+/**
+ * @param {Record<string, unknown> | null | undefined} context
+ * @returns {Record<string, string | number | boolean | null>}
+ */
 function boundedContext(context) {
+  /** @type {Record<string, string | number | boolean | null>} */
   const safe = {};
   for (const [key, value] of Object.entries(context ?? {})) {
-    if (value === null || typeof value === 'boolean' || typeof value === 'number') {
+    if (value === null) {
+      safe[key] = null;
+    } else if (typeof value === 'boolean' || typeof value === 'number') {
       safe[key] = value;
     } else if (typeof value === 'string') {
       safe[key] = value.slice(0, 256);
@@ -154,21 +177,43 @@ function boundedContext(context) {
   return safe;
 }
 
-export function logRouteFailure({
-  logger = globalThis.routeLogger,
-  level = 'error',
-  event,
-  message = 'Route operation failed',
-  error,
-  context = {},
-} = {}) {
+/**
+ * Emit a bounded, structured route-failure record without leaking raw upstream errors.
+ *
+ * @param {RouteFailureOptions} [options]
+ * @returns {boolean}
+ */
+export function logRouteFailure(options = {}) {
+  const {
+    logger = /** @type {RouteLogger | undefined} */ (globalThis['routeLogger']),
+    level = 'error',
+    event,
+    message = 'Route operation failed',
+    error,
+    context = {},
+  } = options;
+
   if (typeof event !== 'string' || !event) throw new TypeError('event is required');
+  if (!ROUTE_LOG_LEVEL_SET.has(level)) {
+    throw new TypeError('level must be one of: error, warn, info');
+  }
+
   const method = logger?.[level];
   if (typeof method !== 'function') return false;
 
+  /** @type {Record<string, string | number | boolean | null>} */
   const metadata = { event, ...boundedContext(context) };
-  if (typeof error?.name === 'string' && error.name) metadata.errorName = error.name;
-  if (typeof error?.code === 'string' && error.code) metadata.errorCode = error.code;
+  const errorLike =
+    error && typeof error === 'object'
+      ? /** @type {{ name?: unknown, code?: unknown }} */ (error)
+      : null;
+
+  if (typeof errorLike?.name === 'string' && errorLike.name) {
+    metadata.errorName = errorLike.name;
+  }
+  if (typeof errorLike?.code === 'string' && errorLike.code) {
+    metadata.errorCode = errorLike.code;
+  }
 
   try {
     method.call(logger, Object.freeze(metadata), message);
