@@ -9,8 +9,18 @@
     "strict": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "maxNodeModuleJsDepth": 0
   },
-  "include": ["src/**/*.js", "scripts/**/*.mjs"],
-  "exclude": ["node_modules", "src/**/*.test.js"]
+  "files": [
+    "src/api/cors-policy.js",
+    "src/auth/token-auth.js",
+    "src/frontend/erase-mask.js",
+    "src/holographic/scene-fingerprint.js",
+    "src/holographic/evidence-envelope.js",
+    "src/holographic/interaction-normalization.js",
+    "src/sustainability/energy-receipt-validator.js",
+    "src/sustainability/efficiency-observation.js",
+    "src/sustainability/execution-receipt.js"
+  ]
 }
