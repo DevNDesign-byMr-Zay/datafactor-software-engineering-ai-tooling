@@ -181,6 +181,7 @@ describe('file-aware Gemini chat final route', () => {
 
     expect(routeLogger.warn).toHaveBeenCalledWith(
       {
+        schemaVersion: 1,
         event: 'chat.file_sign_failed',
         objectName: 'uploads/a.pdf',
         errorName: 'Error',
@@ -226,6 +227,7 @@ describe('file-aware Gemini chat final route', () => {
 
     expect(routeLogger.error).toHaveBeenCalledWith(
       {
+        schemaVersion: 1,
         event: 'chat.failed',
         errorName: 'Error',
         errorCode: 'MODEL_DOWN',
