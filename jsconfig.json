@@ -25,6 +25,11 @@
     "src/holographic/interaction-normalization.js",
     "src/sustainability/energy-receipt-validator.js",
     "src/sustainability/efficiency-observation.js",
-    "src/sustainability/execution-receipt.js"
+    "src/sustainability/execution-receipt.js",
+    "src/deployment/cloud-run-release-evidence.js",
+    "src/runtime/application-runtime-acceptance.js",
+    "src/holographic/scene-planner.js",
+    "src/holographic/capability-negotiation.js",
+    "src/holographic/readiness-routing.js"
   ]
 }
