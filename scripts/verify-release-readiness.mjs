@@ -47,11 +47,12 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql] = await Promise.all([
+  const [pkg, changelog, ci, codeql, release] = await Promise.all([
     json('package.json'),
     text('CHANGELOG.md'),
     text('.github/workflows/ci.yml'),
     text('.github/workflows/codeql.yml'),
+    text('.github/workflows/release.yml'),
   ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
@@ -112,6 +113,20 @@ async function main() {
   assert(
     /javascript-typescript/u.test(codeql) && /python/u.test(codeql),
     'CodeQL must analyze JavaScript and Python',
+  );
+  assert(/workflow_dispatch:/u.test(release), 'GitHub release workflow must remain manual-only');
+  assert(/github\.ref == 'refs\/heads\/main'/u.test(release), 'release workflow must require main');
+  assert(
+    /make verify-fresh/u.test(release),
+    'release workflow must verify a fresh maintained checkout',
+  );
+  assert(
+    /Requested tag must equal/u.test(release),
+    'release workflow must bind the tag to package version',
+  );
+  assert(
+    /gh release create/u.test(release),
+    'release workflow must publish through GitHub Releases',
   );
 
   process.stdout.write(
