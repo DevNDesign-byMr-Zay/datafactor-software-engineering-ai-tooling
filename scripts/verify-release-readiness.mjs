@@ -58,17 +58,8 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [
-    pkg,
-    changelog,
-    ci,
-    codeql,
-    release,
-    envExample,
-    classification,
-    projectScope,
-    lockfile,
-  ] = await Promise.all([
+  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope, lockfile] =
+    await Promise.all([
       json('package.json'),
       text('CHANGELOG.md'),
       text('.github/workflows/ci.yml'),
