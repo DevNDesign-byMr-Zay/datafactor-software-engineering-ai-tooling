@@ -2,6 +2,7 @@
 
 ## Unreleased — maintained-surface promotions
 
+- Gated releases now attach a CycloneDX Node dependency SBOM, Python dependency snapshot, exact commit evidence, and SHA-256 checksums.
 - Current package candidate: `1.2.0`. This remains unreleased until the gated manual release workflow publishes the matching tag.
 - Added a fail-closed holographic evidence envelope with deterministic fingerprints, renderer-neutral target validation, immutable captured payloads, and advisory-only/non-actuating safety semantics.
 - Added validated scene handoff, provenance-chain, capability-negotiation, readiness-routing, and adversarial tamper coverage for portable presentation clients.
