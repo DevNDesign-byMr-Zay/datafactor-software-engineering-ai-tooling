@@ -29,6 +29,8 @@ jobs:
         run: npm audit --audit-level=moderate
       - name: Verify maintained/historical surface manifest
         run: npm run verify:surface
+      - name: Verify release-readiness contract
+        run: npm run verify:release
       - name: Type-check maintained JavaScript
         run: npm run typecheck
       - name: Lint maintained JavaScript
