@@ -58,7 +58,7 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope] =
+  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope, lockfile] =
     await Promise.all([
       json('package.json'),
       text('CHANGELOG.md'),
@@ -68,6 +68,7 @@ async function main() {
       text('.env.example'),
       json('.repo-class.json'),
       text('docs/PROJECT_SCOPE.md'),
+      json('package-lock.json'),
     ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
@@ -88,6 +89,22 @@ async function main() {
   assert(
     typeof pkg.engines?.node === 'string' && pkg.engines.node.includes('22'),
     'Node 22+ runtime contract is required',
+  );
+  assert(
+    pkg.devDependencies?.typescript === '5.9.3',
+    'locked TypeScript toolchain must remain exactly 5.9.3',
+  );
+  assert(
+    lockfile.packages?.['']?.devDependencies?.typescript === '5.9.3',
+    'package-lock root TypeScript pin must match package.json',
+  );
+  assert(
+    lockfile.packages?.['node_modules/typescript']?.version === '5.9.3',
+    'installed TypeScript lock entry must remain exactly 5.9.3',
+  );
+  assert(
+    pkg.scripts?.typecheck === 'tsc -p jsconfig.json',
+    'typecheck must use the locally locked TypeScript binary',
   );
 
   for (const name of REQUIRED_SCRIPTS) {
