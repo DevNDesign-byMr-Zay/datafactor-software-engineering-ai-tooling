@@ -58,6 +58,8 @@ jobs:
             echo "::endgroup::"
             exit "$status"
           fi
+      - name: Run conventional JavaScript test suite
+        run: npm test
       - name: Run JavaScript tests with enforced coverage
         run: npm run test:coverage
       - name: Retain JavaScript coverage evidence
