@@ -98,11 +98,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
-      - name: Validate Compose configuration
-        run: docker compose config --quiet
+      - name: Validate canonical Compose configuration
+        run: docker compose -f docker-compose.yml config --quiet
       - name: Build and run maintained checks in container
         shell: bash
         run: |
           set -euo pipefail
+          export COMPOSE_FILE=docker-compose.yml
           trap 'docker compose down --volumes --remove-orphans' EXIT
           docker compose up --build --abort-on-container-exit --exit-code-from verify

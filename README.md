@@ -146,7 +146,7 @@ CI performs reproducible installation, dependency audits, lint/format enforcemen
 The Docker image installs both committed lockfiles and defaults to the same `make check` contract used by contributors. Compose provides the one-command reproducible verification path:
 
 ```bash
-docker compose up --build --abort-on-container-exit --exit-code-from verify
+docker compose -f docker-compose.yml up --build --abort-on-container-exit --exit-code-from verify
 ```
 
 The `verify` service has no ports or cloud credentials because this repository is a maintained library/tooling package rather than a long-running web service. It exits non-zero if lint, formatting, dependency audits, JavaScript coverage, or Python coverage fail. CI validates the Compose configuration and runs this container from a fresh checkout.

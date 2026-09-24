@@ -1,8 +1,11 @@
 import { access, readFile } from 'node:fs/promises';
 
+const REQUIRED_ENV_KEYS = Object.freeze(['GITHUB_SHA', 'RELEASE_TAG']);
+
 const REQUIRED_FILES = Object.freeze([
   'Dockerfile',
   'compose.yaml',
+  'docker-compose.yml',
   '.env.example',
   'CHANGELOG.md',
   'docs/MAINTAINED_SURFACE.md',
@@ -52,12 +55,13 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql, release] = await Promise.all([
+  const [pkg, changelog, ci, codeql, release, envExample] = await Promise.all([
     json('package.json'),
     text('CHANGELOG.md'),
     text('.github/workflows/ci.yml'),
     text('.github/workflows/codeql.yml'),
     text('.github/workflows/release.yml'),
+    text('.env.example'),
   ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
@@ -100,6 +104,10 @@ async function main() {
     /No synthetic historical dates, contributors, or tags are asserted/iu.test(changelog),
     'changelog must preserve truthful release-history language',
   );
+  for (const key of REQUIRED_ENV_KEYS) {
+    assert(new RegExp(`^${key}=`, 'mu').test(envExample), `.env.example must document ${key}`);
+  }
+
   assert(/pull_request:/u.test(ci), 'engineering CI must run for pull requests');
   assert(/npm ci --ignore-scripts/u.test(ci), 'engineering CI must use reproducible npm install');
   assert(
@@ -117,6 +125,7 @@ async function main() {
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
   );
+  assert(/docker compose -f docker-compose\.yml config --quiet/u.test(ci), 'engineering CI must validate canonical docker-compose.yml');
   assert(/docker compose up --build/u.test(ci), 'engineering CI must prove container verification');
   assert(/pull_request:/u.test(codeql), 'CodeQL must run for pull requests');
   assert(
