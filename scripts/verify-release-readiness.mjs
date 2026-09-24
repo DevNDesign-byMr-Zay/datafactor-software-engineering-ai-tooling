@@ -9,6 +9,10 @@ const REQUIRED_FILES = Object.freeze([
   'docs/RELEASE_READINESS.md',
   'requirements.lock.txt',
   'package-lock.json',
+  'SECURITY.md',
+  'CONTRIBUTING.md',
+  '.github/CODEOWNERS',
+  '.github/pull_request_template.md',
 ]);
 
 const REQUIRED_SCRIPTS = Object.freeze([
