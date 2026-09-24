@@ -27,6 +27,8 @@
     "src/sustainability/efficiency-observation.js",
     "src/sustainability/execution-receipt.js",
     "src/deployment/cloud-run-release-evidence.js",
-    "src/holographic/scene-planner.js"
+    "src/holographic/scene-planner.js",
+    "src/observability/json-logger.js",
+    "src/observability/error-reporter.js"
   ]
 }
