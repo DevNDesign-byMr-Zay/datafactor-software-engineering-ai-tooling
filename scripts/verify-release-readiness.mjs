@@ -73,11 +73,22 @@ async function main() {
       typeof pkg.exports?.[name] === 'string' && pkg.exports[name].trim(),
       `missing maintained package export: ${name}`,
     );
+    const target = pkg.exports[name];
+    assert(
+      target.startsWith('./'),
+      `maintained package export must remain repository-relative: ${name}`,
+    );
+    await access(new URL(target, root));
   }
+  assert(pkg.main === pkg.exports['.'], 'package main must match the canonical root export');
 
   assert(
     /## Unreleased/u.test(changelog),
     'changelog must describe the unreleased maintained surface',
+  );
+  assert(
+    /No synthetic historical dates, contributors, or tags are asserted/iu.test(changelog),
+    'changelog must preserve truthful release-history language',
   );
   assert(/pull_request:/u.test(ci), 'engineering CI must run for pull requests');
   assert(/npm ci --ignore-scripts/u.test(ci), 'engineering CI must use reproducible npm install');
