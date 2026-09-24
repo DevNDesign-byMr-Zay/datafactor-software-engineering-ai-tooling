@@ -177,3 +177,7 @@ See `CONTRIBUTING.md`, `IMPORT_REPORT.md`, `VERIFY_REPORT.md`, and `docs/MAINTAI
 `npm run verify:release` verifies the repository-level release contract before a real semantic tag is cut: maintained package exports, reproducible lockfiles and CI, dependency audits, container verification, CodeQL coverage, and current changelog evidence. `npm run check` includes this gate so the fresh-clone maintained verification path fails before release metadata drifts.
 
 See `docs/RELEASE_READINESS.md` for the exact boundary. A release-ready commit is not represented as a published release until an actual tag/release is created.
+
+## Shared JavaScript observability
+
+The maintained JavaScript surface exposes `src/observability/json-logger.js` as a shared structured logger. Records contain `timestamp`, `level`, `logger`, `message`, an event name when supplied, and bounded primitive metadata. Route-failure reporting uses this logger by default while preserving explicit injected loggers for tests and integration boundaries.
