@@ -121,6 +121,7 @@ async function main() {
   );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
+  assert(/npm test/u.test(ci), 'engineering CI must expose the conventional npm test suite');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
   assert(
     /path:\s*coverage\//u.test(ci) &&
