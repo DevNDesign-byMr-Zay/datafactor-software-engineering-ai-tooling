@@ -88,6 +88,10 @@ async function main() {
     'changelog must describe the unreleased maintained surface',
   );
   assert(
+    changelog.includes(`Current package candidate: \`${pkg.version}\``),
+    'changelog candidate version must match package.json',
+  );
+  assert(
     /No synthetic historical dates, contributors, or tags are asserted/iu.test(changelog),
     'changelog must preserve truthful release-history language',
   );
