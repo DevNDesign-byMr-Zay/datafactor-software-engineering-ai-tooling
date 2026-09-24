@@ -125,7 +125,10 @@ async function main() {
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
   );
-  assert(/docker compose -f docker-compose\.yml config --quiet/u.test(ci), 'engineering CI must validate canonical docker-compose.yml');
+  assert(
+    /docker compose -f docker-compose\.yml config --quiet/u.test(ci),
+    'engineering CI must validate canonical docker-compose.yml',
+  );
   assert(/docker compose up --build/u.test(ci), 'engineering CI must prove container verification');
   assert(/pull_request:/u.test(codeql), 'CodeQL must run for pull requests');
   assert(
