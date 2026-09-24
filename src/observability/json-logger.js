@@ -31,13 +31,11 @@ function boundedMetadata(value = {}) {
 
 export function getLogger(
   name,
-  {
-    sink = process.stdout,
-    now = () => new Date().toISOString(),
-  } = {},
+  { sink = process.stdout, now = () => new Date().toISOString() } = {},
 ) {
   const loggerName = boundedName(name);
-  if (!sink || typeof sink.write !== 'function') throw new TypeError('logger sink must provide write()');
+  if (!sink || typeof sink.write !== 'function')
+    throw new TypeError('logger sink must provide write()');
   if (typeof now !== 'function') throw new TypeError('logger clock must be a function');
 
   function emit(level, metadata, message) {
