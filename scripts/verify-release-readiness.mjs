@@ -58,20 +58,31 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql, release, envExample] = await Promise.all([
+  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope] = await Promise.all([
     json('package.json'),
     text('CHANGELOG.md'),
     text('.github/workflows/ci.yml'),
     text('.github/workflows/codeql.yml'),
     text('.github/workflows/release.yml'),
     text('.env.example'),
+    json('.repo-class.json'),
+    text('docs/PROJECT_SCOPE.md'),
   ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
   assert(pkg.private === true, 'package must remain private');
-  assert(classification.primaryClass === 'developer-tooling-library', 'repository classification must remain developer-tooling-library');
-  assert(classification.excludedClasses?.includes('infrastructure-as-code'), 'repository classification must explicitly exclude infrastructure-as-code');
-  assert(/developer-tooling and reusable-library package/iu.test(projectScope), 'project scope must preserve the maintained library classification');
+  assert(
+    classification.primaryClass === 'developer-tooling-library',
+    'repository classification must remain developer-tooling-library',
+  );
+  assert(
+    classification.excludedClasses?.includes('infrastructure-as-code'),
+    'repository classification must explicitly exclude infrastructure-as-code',
+  );
+  assert(
+    /developer-tooling and reusable-library package/iu.test(projectScope),
+    'project scope must preserve the maintained library classification',
+  );
   assert(pkg.type === 'module', 'package must remain ESM');
   assert(
     typeof pkg.engines?.node === 'string' && pkg.engines.node.includes('22'),
