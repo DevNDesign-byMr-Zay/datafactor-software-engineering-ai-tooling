@@ -122,6 +122,13 @@ async function main() {
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
   assert(
+    /path:\s*coverage\//u.test(ci) &&
+      /coverage xml -o python-coverage\.xml/u.test(ci) &&
+      /path:\s*python-coverage\.xml/u.test(ci) &&
+      /actions\/upload-artifact@v7/u.test(ci),
+    'engineering CI must retain JavaScript and Python coverage evidence',
+  );
+  assert(
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
   );

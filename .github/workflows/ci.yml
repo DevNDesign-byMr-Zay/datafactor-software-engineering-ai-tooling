@@ -60,6 +60,13 @@ jobs:
           fi
       - name: Run JavaScript tests with enforced coverage
         run: npm run test:coverage
+      - name: Retain JavaScript coverage evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: javascript-coverage-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: coverage/
       - name: Run sustainability evidence demo
         run: npm run demo:sustainability
 
@@ -90,6 +97,14 @@ jobs:
         run: |
           python -m coverage run -m pytest
           python -m coverage report --include="python_support/*.py,Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+          python -m coverage xml -o python-coverage.xml
+      - name: Retain Python coverage evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-coverage-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: python-coverage.xml
 
   container:
     name: Container verification

@@ -181,3 +181,8 @@ See `docs/RELEASE_READINESS.md` for the exact boundary. A release-ready commit i
 ## Shared JavaScript observability
 
 The maintained JavaScript surface exposes `src/observability/json-logger.js` as a shared structured logger. Records contain `timestamp`, `level`, `logger`, `message`, an event name when supplied, and bounded primitive metadata. Route-failure reporting uses this logger by default while preserving explicit injected loggers for tests and integration boundaries.
+
+
+## Coverage evidence artifacts
+
+The blocking JavaScript and Python coverage gates now retain their outputs as workflow artifacts tied to the tested commit. Jest's generated `coverage/` directory and a standard Python `python-coverage.xml` file are retained for 30 days. Existing coverage thresholds are unchanged.
