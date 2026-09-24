@@ -129,6 +129,18 @@ async function main() {
     'release workflow must bind the tag to package version',
   );
   assert(
+    /npm sbom --sbom-format=cyclonedx/u.test(release),
+    'release workflow must generate a dependency SBOM',
+  );
+  assert(
+    /python -m pip list --format=json/u.test(release),
+    'release workflow must snapshot Python dependencies',
+  );
+  assert(
+    /release-artifacts\.sha256/u.test(release),
+    'release workflow must checksum attached evidence',
+  );
+  assert(
     /gh release create/u.test(release),
     'release workflow must publish through GitHub Releases',
   );

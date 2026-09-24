@@ -47,6 +47,15 @@ jobs:
           docker compose config --quiet
           docker compose up --build --abort-on-container-exit --exit-code-from verify
 
+      - name: Build release evidence bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm sbom --sbom-format=cyclonedx > sbom.cdx.json
+          python -m pip list --format=json > python-dependencies.json
+          printf '%s\n' "$GITHUB_SHA" > release-commit.txt
+          sha256sum sbom.cdx.json python-dependencies.json release-commit.txt > release-artifacts.sha256
+
       - name: Validate requested tag
         shell: bash
         run: |
@@ -67,6 +76,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ inputs.tag }}" \
+            sbom.cdx.json python-dependencies.json release-commit.txt release-artifacts.sha256 \
             --target "$GITHUB_SHA" \
             --title "${{ inputs.tag }}" \
             --generate-notes
