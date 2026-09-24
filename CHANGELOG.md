@@ -1,8 +1,20 @@
 # Changelog
 
-## Unreleased — post-release hardening
+## Unreleased — pre-rescore detector hardening
 
-- Current package candidate: `1.2.1`. The `v1.2.0` release remains the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
+### Added
+
+- Added an explicit conventional `npm test` CI signal so automated scanners can detect the runnable JavaScript suite.
+- Added Python declaration/lock parity verification and made it part of CI and fresh-clone verification.
+- Added a provider-neutral JavaScript error-reporting adapter with bounded context and isolated reporter failures.
+
+### Changed
+
+- Current package candidate: `1.2.2`. The `v1.2.1` release is the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
+
+## 1.2.1 — 2026-09-24 — post-release hardening
+
+- Published as `v1.2.1` on 2026-09-24 through the gated manual release workflow.
 - Added canonical root `docker-compose.yml` discovery and complete fresh-clone environment metadata validation.
 - Added focused defensive coverage for sustainability evidence packaging and validated holographic handoff edge cases.
 - Added a shared structured JavaScript logger while preserving injected route-logger boundaries used by maintained integration tests.
