@@ -53,5 +53,12 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "keywords": [
+    "developer-tooling",
+    "software-engineering",
+    "reusable-library",
+    "application-tooling",
+    "provenance"
+  ]
 }
