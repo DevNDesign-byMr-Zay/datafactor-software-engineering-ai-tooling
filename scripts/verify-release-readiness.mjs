@@ -116,9 +116,18 @@ async function main() {
   );
   assert(/workflow_dispatch:/u.test(release), 'GitHub release workflow must remain manual-only');
   assert(/github\.ref == 'refs\/heads\/main'/u.test(release), 'release workflow must require main');
-  assert(/make verify-fresh/u.test(release), 'release workflow must verify a fresh maintained checkout');
-  assert(/Requested tag must equal/u.test(release), 'release workflow must bind the tag to package version');
-  assert(/gh release create/u.test(release), 'release workflow must publish through GitHub Releases');
+  assert(
+    /make verify-fresh/u.test(release),
+    'release workflow must verify a fresh maintained checkout',
+  );
+  assert(
+    /Requested tag must equal/u.test(release),
+    'release workflow must bind the tag to package version',
+  );
+  assert(
+    /gh release create/u.test(release),
+    'release workflow must publish through GitHub Releases',
+  );
 
   process.stdout.write(
     `release readiness verified: v${pkg.version}, maintained exports and reproducible quality gates present\n`,
