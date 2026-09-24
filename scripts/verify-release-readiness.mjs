@@ -75,18 +75,33 @@ async function main() {
     );
   }
 
-  assert(/## Unreleased/u.test(changelog), 'changelog must describe the unreleased maintained surface');
+  assert(
+    /## Unreleased/u.test(changelog),
+    'changelog must describe the unreleased maintained surface',
+  );
   assert(/pull_request:/u.test(ci), 'engineering CI must run for pull requests');
   assert(/npm ci --ignore-scripts/u.test(ci), 'engineering CI must use reproducible npm install');
-  assert(/npm audit --audit-level=moderate/u.test(ci), 'engineering CI must audit npm dependencies');
-  assert(/npm run verify:surface/u.test(ci), 'engineering CI must verify maintained/reference boundaries');
+  assert(
+    /npm audit --audit-level=moderate/u.test(ci),
+    'engineering CI must audit npm dependencies',
+  );
+  assert(
+    /npm run verify:surface/u.test(ci),
+    'engineering CI must verify maintained/reference boundaries',
+  );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
-  assert(/pip-audit -r requirements\.lock\.txt/u.test(ci), 'engineering CI must audit Python dependencies');
+  assert(
+    /pip-audit -r requirements\.lock\.txt/u.test(ci),
+    'engineering CI must audit Python dependencies',
+  );
   assert(/docker compose up --build/u.test(ci), 'engineering CI must prove container verification');
   assert(/pull_request:/u.test(codeql), 'CodeQL must run for pull requests');
-  assert(/javascript-typescript/u.test(codeql) && /python/u.test(codeql), 'CodeQL must analyze JavaScript and Python');
+  assert(
+    /javascript-typescript/u.test(codeql) && /python/u.test(codeql),
+    'CodeQL must analyze JavaScript and Python',
+  );
 
   process.stdout.write(
     `release readiness verified: v${pkg.version}, maintained exports and reproducible quality gates present\n`,
