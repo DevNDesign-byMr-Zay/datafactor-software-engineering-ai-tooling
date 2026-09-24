@@ -170,3 +170,10 @@ Drive import and live verification remain manual-only and are not required to bu
 New fixes and features should land as small focused commits paired with the tests that prove them. Historical corpus files are not bulk-reformatted, and repository history is never backdated or fabricated for assessment purposes.
 
 See `CONTRIBUTING.md`, `IMPORT_REPORT.md`, `VERIFY_REPORT.md`, and `docs/MAINTAINED_SURFACE.md` for additional provenance and quality-surface details.
+
+
+## Release readiness
+
+`npm run verify:release` verifies the repository-level release contract before a real semantic tag is cut: maintained package exports, reproducible lockfiles and CI, dependency audits, container verification, CodeQL coverage, and current changelog evidence. `npm run check` includes this gate so the fresh-clone maintained verification path fails before release metadata drifts.
+
+See `docs/RELEASE_READINESS.md` for the exact boundary. A release-ready commit is not represented as a published release until an actual tag/release is created.
