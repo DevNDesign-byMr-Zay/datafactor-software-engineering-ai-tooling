@@ -145,6 +145,14 @@ async function main() {
     'release workflow must checksum attached evidence',
   );
   assert(
+    /release-manifest\.json/u.test(release),
+    'release workflow must attach an exact provenance manifest',
+  );
+  assert(
+    /RELEASE_TAG/u.test(release) && /GITHUB_SHA/u.test(release),
+    'release manifest must bind requested tag and exact commit',
+  );
+  assert(
     /gh release create/u.test(release),
     'release workflow must publish through GitHub Releases',
   );
