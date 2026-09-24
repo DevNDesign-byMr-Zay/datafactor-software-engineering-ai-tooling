@@ -1,5 +1,7 @@
-import { createRouteFailureRecord } from './route-failure-schema.js';
 import { Buffer } from 'node:buffer';
+
+import { getLogger } from '../observability/json-logger.js';
+import { createRouteFailureRecord } from './route-failure-schema.js';
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const MAX_FILENAME_LENGTH = 180;
@@ -12,6 +14,7 @@ const MIME_TYPE_PATTERN = /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/u;
 const ROUTE_LOG_LEVELS = Object.freeze(['error', 'warn', 'info']);
 const ROUTE_LOG_LEVEL_SET = new Set(ROUTE_LOG_LEVELS);
+const DEFAULT_ROUTE_LOGGER = getLogger('route-safety');
 
 /**
  * @typedef {Record<string, ((metadata: Readonly<Record<string, string | number | boolean | null>>, message: string) => unknown) | undefined>} RouteLogger
@@ -167,7 +170,7 @@ export function parseChatRequestBody(body) {
  */
 export function logRouteFailure(options = {}) {
   const {
-    logger = /** @type {RouteLogger | undefined} */ (globalThis['routeLogger']),
+    logger = /** @type {RouteLogger} */ (DEFAULT_ROUTE_LOGGER),
     level = 'error',
     event,
     message = 'Route operation failed',
