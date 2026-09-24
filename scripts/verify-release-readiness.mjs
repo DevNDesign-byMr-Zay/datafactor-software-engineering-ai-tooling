@@ -17,6 +17,7 @@ const REQUIRED_FILES = Object.freeze([
   '.github/CODEOWNERS',
   '.github/pull_request_template.md',
   'scripts/create-release-manifest.mjs',
+  'scripts/verify_python_lock.py',
 ]);
 
 const REQUIRED_SCRIPTS = Object.freeze([
@@ -131,6 +132,10 @@ async function main() {
   assert(
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
+  );
+  assert(
+    /python scripts\/verify_python_lock\.py/u.test(ci),
+    'engineering CI must verify Python declaration/lock parity',
   );
   assert(
     /docker compose -f docker-compose\.yml config --quiet/u.test(ci),
