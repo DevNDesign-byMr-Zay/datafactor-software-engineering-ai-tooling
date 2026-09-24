@@ -56,7 +56,9 @@ describe('holographic validated scene handoff evidence capture edges', () => {
     const node = { ...input.scene.nodes[0] };
     Object.defineProperty(node, 'hiddenAuthority', { enumerable: false, value: true });
     input.scene = { ...input.scene, nodes: [node] };
-    expect(() => createValidatedHolographicSceneHandoff(input)).toThrow(/must be enumerable evidence/);
+    expect(() => createValidatedHolographicSceneHandoff(input)).toThrow(
+      /must be enumerable evidence/,
+    );
 
     const handoff = createValidatedHolographicSceneHandoff(validInput());
     expect(verifyValidatedHolographicSceneHandoff(handoff, new Date())).toBe(false);
