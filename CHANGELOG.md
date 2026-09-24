@@ -1,12 +1,20 @@
 # Changelog
 
-## Unreleased — maintained-surface promotions
+## Unreleased — post-release hardening
+
+- Current package candidate: `1.2.1`. The `v1.2.0` release remains the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
+- Added canonical root `docker-compose.yml` discovery and complete fresh-clone environment metadata validation.
+- Added focused defensive coverage for sustainability evidence packaging and validated holographic handoff edge cases.
+- Added a shared structured JavaScript logger while preserving injected route-logger boundaries used by maintained integration tests.
+- Retained JavaScript and Python coverage evidence as 30-day workflow artifacts without lowering existing thresholds.
+
+## 1.2.0 — 2026-09-24 — maintained-surface promotions
 
 - Release readiness now preserves the security policy, contributor guide, CODEOWNERS routing, and pull-request validation template as required repository governance.
 - Gated releases now attach a CycloneDX Node dependency SBOM, Python dependency snapshot, exact commit evidence, and SHA-256 checksums.
 - Release evidence now includes a machine-readable manifest binding the requested tag, package version, and exact commit SHA.
 - Manual release evidence is checksum-verified and retained as a workflow artifact before GitHub publication so failed publication does not discard the verified bundle.
-- Current package candidate: `1.2.0`. This remains unreleased until the gated manual release workflow publishes the matching tag.
+- Published as `v1.2.0` on 2026-09-24 through the gated manual release workflow.
 - Added a fail-closed holographic evidence envelope with deterministic fingerprints, renderer-neutral target validation, immutable captured payloads, and advisory-only/non-actuating safety semantics.
 - Added validated scene handoff, provenance-chain, capability-negotiation, readiness-routing, and adversarial tamper coverage for portable presentation clients.
 - Added durable runtime-acceptance receipts, stable fingerprinting, a verified consumer boundary, and pure changed/unchanged/rejected decision semantics without storage or deployment authority.
