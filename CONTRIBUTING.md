@@ -27,6 +27,10 @@ Avoid combining corpus imports, mass formatting, refactors, and feature changes 
 
 Historical files are not bulk-reformatted. When a module becomes actively maintained, add it to the appropriate lint configuration and introduce tests before or alongside behavioral changes.
 
+## Security review
+
+Follow `SECURITY.md` for vulnerability reporting. Do not place exploit details, credentials, private identifiers, provider secrets, or raw environment dumps in public issues or durable evidence. Boundary changes should ship with the smallest regression that proves the failure is contained.
+
 ## Dependency changes
 
 Update source manifests first. The lockfile workflow resolves and commits `package-lock.json` and `requirements.lock.txt`. Dependabot also proposes weekly npm, pip, and GitHub Actions updates.
