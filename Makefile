@@ -1,4 +1,4 @@
-.PHONY: setup test test-js test-python surface-check typecheck lint format-check audit check verify-fresh
+.PHONY: setup test test-js test-python surface-check lock-check typecheck lint format-check audit check verify-fresh
 
 setup:
 	npm ci --ignore-scripts
@@ -16,6 +16,9 @@ test-python:
 surface-check:
 	npm run verify:surface
 
+lock-check:
+	python scripts/verify_python_lock.py
+
 typecheck:
 	npm run typecheck
 
@@ -31,6 +34,6 @@ audit:
 	python -m pip check
 	pip-audit -r requirements.lock.txt
 
-check: surface-check typecheck lint format-check test audit
+check: surface-check lock-check typecheck lint format-check test audit
 
 verify-fresh: setup check

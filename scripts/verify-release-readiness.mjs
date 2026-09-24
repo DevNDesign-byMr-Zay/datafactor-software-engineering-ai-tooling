@@ -17,6 +17,7 @@ const REQUIRED_FILES = Object.freeze([
   '.github/CODEOWNERS',
   '.github/pull_request_template.md',
   'scripts/create-release-manifest.mjs',
+  'scripts/verify_python_lock.py',
 ]);
 
 const REQUIRED_SCRIPTS = Object.freeze([
@@ -120,6 +121,7 @@ async function main() {
   );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
+  assert(/npm test/u.test(ci), 'engineering CI must expose the conventional npm test suite');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
   assert(
     /path:\s*coverage\//u.test(ci) &&
@@ -131,6 +133,10 @@ async function main() {
   assert(
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
+  );
+  assert(
+    /python scripts\/verify_python_lock\.py/u.test(ci),
+    'engineering CI must verify Python declaration/lock parity',
   );
   assert(
     /docker compose -f docker-compose\.yml config --quiet/u.test(ci),
