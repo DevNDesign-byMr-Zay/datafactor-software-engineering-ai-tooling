@@ -5,7 +5,7 @@ const REQUIRED_FILES = Object.freeze([
   'compose.yaml',
   '.env.example',
   'CHANGELOG.md',
-  'docs/ARCHITECTURE.md',
+  'docs/MAINTAINED_SURFACE.md',
   'docs/RELEASE_READINESS.md',
   'requirements.lock.txt',
   'package-lock.json',
