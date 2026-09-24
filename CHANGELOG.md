@@ -5,6 +5,7 @@
 - Release readiness now preserves the security policy, contributor guide, CODEOWNERS routing, and pull-request validation template as required repository governance.
 - Gated releases now attach a CycloneDX Node dependency SBOM, Python dependency snapshot, exact commit evidence, and SHA-256 checksums.
 - Release evidence now includes a machine-readable manifest binding the requested tag, package version, and exact commit SHA.
+- Manual release evidence is checksum-verified and retained as a workflow artifact before GitHub publication so failed publication does not discard the verified bundle.
 - Current package candidate: `1.2.0`. This remains unreleased until the gated manual release workflow publishes the matching tag.
 - Added a fail-closed holographic evidence envelope with deterministic fingerprints, renderer-neutral target validation, immutable captured payloads, and advisory-only/non-actuating safety semantics.
 - Added validated scene handoff, provenance-chain, capability-negotiation, readiness-routing, and adversarial tamper coverage for portable presentation clients.
