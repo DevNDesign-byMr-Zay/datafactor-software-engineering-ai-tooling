@@ -170,7 +170,8 @@ export function parseChatRequestBody(body) {
  */
 export function logRouteFailure(options = {}) {
   const {
-    logger = /** @type {RouteLogger} */ (DEFAULT_ROUTE_LOGGER),
+    logger =
+      /** @type {RouteLogger | undefined} */ (globalThis['routeLogger']) ?? DEFAULT_ROUTE_LOGGER,
     level = 'error',
     event,
     message = 'Route operation failed',
