@@ -58,16 +58,17 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope] = await Promise.all([
-    json('package.json'),
-    text('CHANGELOG.md'),
-    text('.github/workflows/ci.yml'),
-    text('.github/workflows/codeql.yml'),
-    text('.github/workflows/release.yml'),
-    text('.env.example'),
-    json('.repo-class.json'),
-    text('docs/PROJECT_SCOPE.md'),
-  ]);
+  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope] =
+    await Promise.all([
+      json('package.json'),
+      text('CHANGELOG.md'),
+      text('.github/workflows/ci.yml'),
+      text('.github/workflows/codeql.yml'),
+      text('.github/workflows/release.yml'),
+      text('.env.example'),
+      json('.repo-class.json'),
+      text('docs/PROJECT_SCOPE.md'),
+    ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
   assert(pkg.private === true, 'package must remain private');
