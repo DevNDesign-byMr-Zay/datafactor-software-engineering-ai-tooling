@@ -26,18 +26,35 @@ describe('sustainability evidence package defensive creation contract', () => {
   test('rejects non-object and incomplete execution inputs', () => {
     expect(() => createSustainabilityEvidencePackageFromExecution(null)).toThrow(/plain object/);
     expect(() => createSustainabilityEvidencePackageFromExecution([])).toThrow(/plain object/);
-    expect(() => createSustainabilityEvidencePackageFromExecution({ workload: { name: 'missing-duration' }, estimatedEnergyWh: 1 })).toThrow(/missing required field: durationMs/);
+    expect(() =>
+      createSustainabilityEvidencePackageFromExecution({
+        workload: { name: 'missing-duration' },
+        estimatedEnergyWh: 1,
+      }),
+    ).toThrow(/missing required field: durationMs/);
   });
 
   test('rejects hidden and unsupported execution fields before package construction', () => {
     const hidden = executionInput();
     Object.defineProperty(hidden, 'durationMs', { enumerable: false, value: hidden.durationMs });
-    expect(() => createSustainabilityEvidencePackageFromExecution(hidden)).toThrow(/durationMs must be enumerable evidence/);
-    expect(() => createSustainabilityEvidencePackageFromExecution({ ...executionInput(), deployNow: true })).toThrow(/unsupported field: deployNow/);
+    expect(() => createSustainabilityEvidencePackageFromExecution(hidden)).toThrow(
+      /durationMs must be enumerable evidence/,
+    );
+    expect(() =>
+      createSustainabilityEvidencePackageFromExecution({ ...executionInput(), deployNow: true }),
+    ).toThrow(/unsupported field: deployNow/);
   });
 
   test('rejects an invalid lineage artifact even when the remaining artifacts are valid', () => {
     const valid = createSustainabilityEvidencePackageFromExecution(executionInput());
-    expect(() => createSustainabilityEvidencePackage({ receipt: {}, observation: valid.observation, bundle: valid.bundle, chain: valid.chain, evidenceExport: valid.evidenceExport })).toThrow(/validated sustainability receipt is required/);
+    expect(() =>
+      createSustainabilityEvidencePackage({
+        receipt: {},
+        observation: valid.observation,
+        bundle: valid.bundle,
+        chain: valid.chain,
+        evidenceExport: valid.evidenceExport,
+      }),
+    ).toThrow(/validated sustainability receipt is required/);
   });
 });
