@@ -29,7 +29,8 @@
     "./runtime-acceptance-receipt": "./src/runtime/runtime-acceptance-receipt.js",
     "./runtime-acceptance-consumer": "./src/runtime/runtime-acceptance-consumer.js",
     "./runtime-acceptance-decision": "./src/runtime/runtime-acceptance-decision.js",
-    "./json-logger": "./src/observability/json-logger.js"
+    "./json-logger": "./src/observability/json-logger.js",
+    "./error-reporter": "./src/observability/error-reporter.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",

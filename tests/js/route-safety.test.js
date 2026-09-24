@@ -165,6 +165,29 @@ describe('structured route failure logging', () => {
     expect(JSON.stringify(logger.error.mock.calls)).not.toContain(error.message);
   });
 
+  test('forwards bounded route failure metadata to an optional reporter', () => {
+    const logger = { error: jest.fn() };
+    const capture = jest.fn();
+    const error = new Error('private upstream detail');
+
+    expect(
+      logRouteFailure({
+        logger,
+        errorReporter: { capture },
+        event: 'route.failed',
+        error,
+        context: { requestId: 'x'.repeat(300), nested: { ignored: true } },
+      }),
+    ).toBe(true);
+
+    expect(capture).toHaveBeenCalledWith(error, {
+      schemaVersion: 1,
+      event: 'route.failed',
+      requestId: 'x'.repeat(256),
+      errorName: 'Error',
+    });
+  });
+
   test('supports warning sinks and treats missing or broken loggers as non-fatal', () => {
     const warn = jest.fn();
     expect(

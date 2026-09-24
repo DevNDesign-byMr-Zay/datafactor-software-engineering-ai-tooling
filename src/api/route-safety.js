@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer';
 
+import { createErrorReporter } from '../observability/error-reporter.js';
 import { getLogger } from '../observability/json-logger.js';
 import { createRouteFailureRecord } from './route-failure-schema.js';
 
@@ -15,6 +16,7 @@ const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/u;
 const ROUTE_LOG_LEVELS = Object.freeze(['error', 'warn', 'info']);
 const ROUTE_LOG_LEVEL_SET = new Set(ROUTE_LOG_LEVELS);
 const DEFAULT_ROUTE_LOGGER = getLogger('route-safety');
+const DEFAULT_ERROR_REPORTER = createErrorReporter();
 
 /**
  * @typedef {Record<string, ((metadata: Readonly<Record<string, string | number | boolean | null>>, message: string) => unknown) | undefined>} RouteLogger
@@ -28,6 +30,7 @@ const DEFAULT_ROUTE_LOGGER = getLogger('route-safety');
  * @property {string} [message]
  * @property {unknown} [error]
  * @property {Record<string, unknown>} [context]
+ * @property {{ capture?: (error: unknown, context?: Record<string, unknown>) => unknown } | null | undefined} [errorReporter]
  */
 
 function ok(value) {
@@ -177,6 +180,7 @@ export function logRouteFailure(options = {}) {
     message = 'Route operation failed',
     error,
     context = {},
+    errorReporter = globalThis['routeErrorReporter'] ?? DEFAULT_ERROR_REPORTER,
   } = options;
 
   if (typeof event !== 'string' || !event) throw new TypeError('event is required');
@@ -191,6 +195,7 @@ export function logRouteFailure(options = {}) {
 
   try {
     method.call(logger, metadata, message);
+    errorReporter?.capture?.(error, metadata);
     return true;
   } catch {
     return false;
