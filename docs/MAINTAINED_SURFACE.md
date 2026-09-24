@@ -25,3 +25,9 @@ The repository is both a software-engineering corpus and a maintained executable
 
 `config/maintained-surface.json` is the canonical machine-readable declaration of maintained roots, the preserved historical corpus root, and the exact historical artifacts intentionally promoted into blocking quality gates. `npm run verify:surface` validates that declaration in CI and rejects wildcards, path escapes, missing artifacts, duplicate promotions, or any attempt to classify the historical corpus as a maintained root.
 
+
+## Repository statistics boundary
+
+`.gitattributes` marks the preserved `Software Engineering & AI Tooling/**` corpus as `linguist-detectable=false` so automated repository statistics do not treat versioned historical snapshots as the active product surface. Each artifact listed in `config/maintained-surface.json` under `promotedHistoricalArtifacts` is explicitly re-enabled with an exact-path `linguist-detectable=true` rule because those files participate in blocking lint, test, or coverage gates.
+
+This classification changes statistics only. It does not remove, ignore, rewrite, or exclude corpus files from Git, Drive verification, provenance review, archive packaging, or licensing scope. `npm run verify:surface` regression-protects the broad historical rule and every promoted override.
