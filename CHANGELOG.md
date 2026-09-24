@@ -4,6 +4,7 @@
 
 ### Added
 
+- Pinned TypeScript 5.9.3 as a local development dependency with a synchronized npm lockfile and release-readiness enforcement.
 - Added an explicit conventional `npm test` CI signal so automated scanners can detect the runnable JavaScript suite.
 - Added Python declaration/lock parity verification and made it part of CI and fresh-clone verification.
 - Added a provider-neutral JavaScript error-reporting adapter with bounded context and isolated reporter failures.
