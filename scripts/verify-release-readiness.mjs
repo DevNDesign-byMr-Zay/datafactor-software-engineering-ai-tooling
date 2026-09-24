@@ -18,6 +18,8 @@ const REQUIRED_FILES = Object.freeze([
   '.github/pull_request_template.md',
   'scripts/create-release-manifest.mjs',
   'scripts/verify_python_lock.py',
+  '.repo-class.json',
+  'docs/PROJECT_SCOPE.md',
 ]);
 
 const REQUIRED_SCRIPTS = Object.freeze([
@@ -67,6 +69,9 @@ async function main() {
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
   assert(pkg.private === true, 'package must remain private');
+  assert(classification.primaryClass === 'developer-tooling-library', 'repository classification must remain developer-tooling-library');
+  assert(classification.excludedClasses?.includes('infrastructure-as-code'), 'repository classification must explicitly exclude infrastructure-as-code');
+  assert(/developer-tooling and reusable-library package/iu.test(projectScope), 'project scope must preserve the maintained library classification');
   assert(pkg.type === 'module', 'package must remain ESM');
   assert(
     typeof pkg.engines?.node === 'string' && pkg.engines.node.includes('22'),
