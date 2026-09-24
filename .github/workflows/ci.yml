@@ -89,7 +89,7 @@ jobs:
       - name: Run Python tests with enforced coverage
         run: |
           python -m coverage run -m pytest
-          python -m coverage report --include="Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+          python -m coverage report --include="python_support/*.py,Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
 
   container:
     name: Container verification
