@@ -7,6 +7,7 @@
 - Added durable runtime-acceptance receipts, stable fingerprinting, a verified consumer boundary, and pure changed/unchanged/rejected decision semantics without storage or deployment authority.
 - Added sustainability execution/evidence contracts and comparison surfaces that keep energy and renewable metrics descriptive rather than scheduling or deployment controls.
 - Expanded the public package surface with explicit subpath exports for holographic evidence and runtime-acceptance contracts so downstream clients do not need historical corpus paths.
+- Added release-readiness integrity checks that prove required public export targets exist on disk and the package root remains aligned with the canonical maintained entrypoint.
 - Expanded staged JavaScript type-check coverage across maintained runtime surfaces and refreshed current npm/Python lockfiles through verified CI paths.
 - Added promotion-readiness criteria that require authenticated role, behavioral substance, deidentification safety, Drive-independent execution, non-redundancy, and focused testability before historical artifacts become maintained modules.
 - Promoted authenticated Cloud Run environment-deployment behavior into `src/deployment/cloud-run.js` with credential-free deploy argument planning, comma-delimited env-var risk detection, env-file-sensitive key reporting, and authenticated `/health` + `/chat` smoke-request planning.
