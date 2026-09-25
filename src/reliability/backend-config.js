@@ -21,6 +21,12 @@ export function isAuthorizedRequest({ configuredToken = '', providedToken = '' }
   return providedToken === configuredToken;
 }
 
+/**
+ * @param {{
+ *   env?: Record<string, string | undefined>,
+ *   allowedOrigins?: string[]
+ * }} [options]
+ */
 export function healthSnapshot({ env = {}, allowedOrigins = [] } = {}) {
   const token = env.APP_API_TOKEN || '';
   return {

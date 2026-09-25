@@ -32,6 +32,8 @@
     "src/observability/error-reporter.js",
     "src/runtime/runtime-acceptance-decision.js",
     "src/runtime/runtime-acceptance-consumer.js",
-    "src/runtime/runtime-acceptance-receipt.js"
+    "src/runtime/runtime-acceptance-receipt.js",
+    "src/reliability/backend-config.js",
+    "src/bootstrap/package-manifest.js"
   ]
 }
