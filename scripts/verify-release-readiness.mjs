@@ -18,6 +18,7 @@ const REQUIRED_FILES = Object.freeze([
   '.github/pull_request_template.md',
   'scripts/create-release-manifest.mjs',
   'scripts/verify_python_lock.py',
+  'jest.config.js',
   '.repo-class.json',
   'docs/PROJECT_SCOPE.md',
 ]);
@@ -58,18 +59,29 @@ async function main() {
   const root = new URL('../', import.meta.url);
   await Promise.all(REQUIRED_FILES.map((path) => access(new URL(path, root))));
 
-  const [pkg, changelog, ci, codeql, release, envExample, classification, projectScope, lockfile] =
-    await Promise.all([
-      json('package.json'),
-      text('CHANGELOG.md'),
-      text('.github/workflows/ci.yml'),
-      text('.github/workflows/codeql.yml'),
-      text('.github/workflows/release.yml'),
-      text('.env.example'),
-      json('.repo-class.json'),
-      text('docs/PROJECT_SCOPE.md'),
-      json('package-lock.json'),
-    ]);
+  const [
+    pkg,
+    changelog,
+    ci,
+    codeql,
+    release,
+    envExample,
+    classification,
+    projectScope,
+    lockfile,
+    jestConfig,
+  ] = await Promise.all([
+    json('package.json'),
+    text('CHANGELOG.md'),
+    text('.github/workflows/ci.yml'),
+    text('.github/workflows/codeql.yml'),
+    text('.github/workflows/release.yml'),
+    text('.env.example'),
+    json('.repo-class.json'),
+    text('docs/PROJECT_SCOPE.md'),
+    json('package-lock.json'),
+    text('jest.config.js'),
+  ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
   assert(pkg.private === true, 'package must remain private');
@@ -141,6 +153,22 @@ async function main() {
   );
   for (const key of REQUIRED_ENV_KEYS) {
     assert(new RegExp(`^${key}=`, 'mu').test(envExample), `.env.example must document ${key}`);
+  }
+
+  assert(
+    /coverageThreshold:\s*\{/u.test(jestConfig),
+    'Jest coverage thresholds must remain configured',
+  );
+  for (const [metric, floor] of Object.entries({
+    branches: 75,
+    functions: 85,
+    lines: 85,
+    statements: 85,
+  })) {
+    assert(
+      new RegExp(`${metric}:\\s*${floor}`, 'u').test(jestConfig),
+      `Jest ${metric} coverage floor must remain ${floor}%`,
+    );
   }
 
   assert(/pull_request:/u.test(ci), 'engineering CI must run for pull requests');
