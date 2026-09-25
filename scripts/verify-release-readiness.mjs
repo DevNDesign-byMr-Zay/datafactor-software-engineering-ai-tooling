@@ -19,6 +19,7 @@ const REQUIRED_FILES = Object.freeze([
   'scripts/create-release-manifest.mjs',
   'scripts/verify_python_lock.py',
   'jest.config.js',
+  'jsconfig.json',
   '.repo-class.json',
   'docs/PROJECT_SCOPE.md',
 ]);
@@ -70,6 +71,7 @@ async function main() {
     projectScope,
     lockfile,
     jestConfig,
+    typeConfig,
   ] = await Promise.all([
     json('package.json'),
     text('CHANGELOG.md'),
@@ -81,6 +83,7 @@ async function main() {
     text('docs/PROJECT_SCOPE.md'),
     json('package-lock.json'),
     text('jest.config.js'),
+    json('jsconfig.json'),
   ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
@@ -118,6 +121,22 @@ async function main() {
     pkg.scripts?.typecheck === 'tsc -p jsconfig.json',
     'typecheck must use the locally locked TypeScript binary',
   );
+  assert(
+    typeConfig.compilerOptions?.checkJs === true,
+    'maintained JavaScript checkJs must remain enabled',
+  );
+  for (const path of [
+    'src/reliability/backend-config.js',
+    'src/bootstrap/package-manifest.js',
+    'src/runtime/runtime-acceptance-receipt.js',
+    'src/observability/json-logger.js',
+    'src/observability/error-reporter.js',
+  ]) {
+    assert(
+      typeConfig.files?.includes(path),
+      `critical maintained typecheck surface missing: ${path}`,
+    );
+  }
 
   for (const name of REQUIRED_SCRIPTS) {
     assert(
