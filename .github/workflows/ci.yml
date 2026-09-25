@@ -41,6 +41,8 @@ jobs:
 
       - name: Type-check maintained JavaScript
         run: npm run typecheck
+      - name: Strictly type-check critical public JavaScript APIs
+        run: npm run typecheck:strict
       - name: Lint maintained JavaScript
         run: npm run lint
       - name: Check maintained JavaScript formatting

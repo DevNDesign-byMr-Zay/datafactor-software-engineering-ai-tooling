@@ -29,6 +29,7 @@ const REQUIRED_SCRIPTS = Object.freeze([
   'lint',
   'format:check',
   'typecheck',
+  'typecheck:strict',
   'verify:surface',
   'verify:release',
   'check',
@@ -122,6 +123,14 @@ async function main() {
     'typecheck must use the locally locked TypeScript binary',
   );
   assert(
+    pkg.scripts?.['typecheck:strict'] === 'tsc -p jsconfig.strict.json',
+    'strict typecheck must use the locally locked TypeScript binary',
+  );
+  assert(
+    pkg.scripts?.check?.includes('npm run typecheck:strict'),
+    'maintained quality check must include critical strict type checking',
+  );
+  assert(
     typeConfig.compilerOptions?.checkJs === true,
     'maintained JavaScript checkJs must remain enabled',
   );
@@ -135,6 +144,21 @@ async function main() {
     assert(
       typeConfig.files?.includes(path),
       `critical maintained typecheck surface missing: ${path}`,
+    );
+  }
+  const strictTypeConfig = await json('jsconfig.strict.json');
+  assert(
+    strictTypeConfig.compilerOptions?.strict === true,
+    'critical public JavaScript APIs must retain strict type checking',
+  );
+  for (const path of [
+    'src/auth/token-auth.js',
+    'src/api/cors-policy.js',
+    'src/reliability/backend-config.js',
+  ]) {
+    assert(
+      strictTypeConfig.files?.includes(path),
+      `critical strict typecheck surface missing: ${path}`,
     );
   }
 
@@ -201,6 +225,10 @@ async function main() {
     'engineering CI must verify maintained/reference boundaries',
   );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
+  assert(
+    /npm run typecheck:strict/u.test(ci),
+    'engineering CI must strictly type-check critical public JavaScript APIs',
+  );
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
   assert(/npm test/u.test(ci), 'engineering CI must expose the conventional npm test suite');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
