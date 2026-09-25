@@ -167,6 +167,13 @@ export function createPackageBootstrapPlan(input, { mode = 'production' } = {}) 
   };
 }
 
+/**
+ * @param {{
+ *   frontendManifest?: unknown,
+ *   backendManifest?: unknown,
+ *   mode?: string
+ * }} [options]
+ */
 export function createApplicationBootstrapPlan({
   frontendManifest,
   backendManifest,
