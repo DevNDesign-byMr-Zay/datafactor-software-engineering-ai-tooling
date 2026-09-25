@@ -12,7 +12,7 @@ src/index.js
 
 That entrypoint exposes maintained functionality from both canonical extractions and authenticated final corpus artifacts. Consumers and static analyzers no longer have to infer the active surface from hundreds of historical revisions.
 
-The current maintained surface spans **eleven behaviorally distinct artifacts across nine engineering areas**:
+The maintained surface spans behaviorally distinct artifacts across nine engineering areas:
 
 - Frontend Engineering — adaptive-duration progress controller from `Aster JavaScript v638.js`.
 - Frontend Engineering — `src/frontend/erase-mask.js`, a canonical extraction of repeated authenticated erase/mask geometry and brush behavior.
@@ -59,6 +59,8 @@ The maintained `src/` modules are deliberately extracted from authenticated hist
 
 JavaScript CI fails below 85% statements/functions/lines or 75% branches across the measured maintained surface. Python CI enforces its existing maintained-surface coverage floor.
 
+The ordinary `checkJs` pass covers a wider maintained subset. A separate strict TypeScript configuration blocks regressions in the public authentication, CORS, and backend-configuration APIs without forcing the historical corpus or the full bootstrap graph into strict mode.
+
 ## Fresh-clone install
 
 Requirements:
@@ -96,10 +98,27 @@ The package provides explicit export paths for the canonical and promoted module
 ./auth
 ./cors
 ./cloud-run
+./cloud-run-reliability
+./cloud-run-workflow
+./cloud-run-release-evidence
 ./package-manifest
+./application-bootstrap
+./application-bootstrap-readiness
+./application-runtime-acceptance
+./holographic-scene-planner
+./holographic-capability-negotiation
+./holographic-interaction-normalization
+./holographic-readiness-routing
+./holographic-evidence-envelope
+./validated-scene-handoff
+./runtime-acceptance-receipt
+./runtime-acceptance-consumer
+./runtime-acceptance-decision
+./json-logger
+./error-reporter
 ```
 
-This creates an ordinary discoverable software-library boundary while preserving all historical source beneath the corpus directory.
+The root export is `src/index.js`; the listed subpaths are the complete public API declared in `package.json`. This creates an ordinary discoverable software-library boundary while preserving all historical source beneath the corpus directory.
 
 ## Test
 

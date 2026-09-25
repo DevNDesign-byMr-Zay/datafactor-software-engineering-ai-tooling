@@ -1,5 +1,6 @@
 // Canonical maintained extraction from the authenticated restored backend entry point.
 
+/** @param {string | number | boolean | null | undefined} [value] */
 export function parseAllowedOrigins(value = '') {
   return String(value)
     .split(',')
@@ -7,15 +8,18 @@ export function parseAllowedOrigins(value = '') {
     .filter(Boolean);
 }
 
+/** @param {string | undefined} origin @param {string[]} allowedOrigins */
 export function isOriginAllowed(origin, allowedOrigins) {
   if (!origin) return true;
   return allowedOrigins.includes(origin);
 }
 
+/** @param {string | number | boolean | null | undefined} configuredToken */
 export function requiresAppToken(configuredToken) {
   return Boolean(configuredToken);
 }
 
+/** @param {{ configuredToken?: string, providedToken?: string }} request */
 export function isAuthorizedRequest({ configuredToken = '', providedToken = '' }) {
   if (!configuredToken) return false;
   return providedToken === configuredToken;

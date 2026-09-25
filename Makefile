@@ -21,6 +21,7 @@ lock-check:
 
 typecheck:
 	npm run typecheck
+	npm run typecheck:strict
 
 lint:
 	npm run lint
