@@ -31,6 +31,7 @@
     "src/observability/json-logger.js",
     "src/observability/error-reporter.js",
     "src/runtime/runtime-acceptance-decision.js",
-    "src/runtime/runtime-acceptance-consumer.js"
+    "src/runtime/runtime-acceptance-consumer.js",
+    "src/runtime/runtime-acceptance-receipt.js"
   ]
 }
