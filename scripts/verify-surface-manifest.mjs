@@ -131,7 +131,7 @@ for (const [index, artifact] of surface.promotedMaintainedArtifacts.entries()) {
   const archived = archiveByPath.get(artifact.archivePath);
   assert(archived, `archive path missing from full corpus manifest: ${artifact.archivePath}`);
   assert(
-    archived.git_blob_sha1 === artifact.gitBlobSha1,
+    archived.git_blob_sha1 === artifact.archiveGitBlobSha1,
     `archive blob identity mismatch: ${artifact.archivePath}`,
   );
   assert(archived.bytes === artifact.bytes, `archive byte count mismatch: ${artifact.archivePath}`);
@@ -139,8 +139,14 @@ for (const [index, artifact] of surface.promotedMaintainedArtifacts.entries()) {
   const data = await readFile(path);
   assert(data.length === artifact.bytes, `promoted byte count drift: ${artifact.path}`);
   assert(
-    gitBlobSha1(data) === artifact.gitBlobSha1,
-    `promoted Git blob identity drift: ${artifact.path}`,
+    gitBlobSha1(data) === artifact.maintainedGitBlobSha1,
+    `promoted maintained Git blob identity drift: ${artifact.path}`,
+  );
+  assert(
+    artifact.transformation === 'byte-identical' ||
+      artifact.transformation ===
+        'Relocation-only import rewrite: ../../../../src/api/route-safety.js -> ../api/route-safety.js',
+    `unsupported promoted transformation: ${artifact.path}`,
   );
 }
 
