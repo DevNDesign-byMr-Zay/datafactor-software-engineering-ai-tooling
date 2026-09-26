@@ -5,7 +5,7 @@
 ### Changed
 
 - Externalized the complete 1,610-file historical engineering corpus from the scored maintained tree while preserving the exact released tree at `archive/historical-corpus-v1.2.2` and recording every released path/blob/size identity under `provenance/`.
-- Promoted seven actively maintained historical artifacts into byte-identical maintained copies under `src/promoted/` and `python_support/`, with original archive paths and Git blob identities retained in provenance metadata.
+- Promoted seven actively maintained historical artifacts into provenance-bound maintained copies under `src/promoted/` and `python_support/`; four remain byte-identical and three route modules use a documented relocation-only import rewrite.
 - Repointed the public `./progress` export, JavaScript/Python tests, lint, formatting, coverage, and container verification at maintained source paths.
 - Moved Drive import/verification automation to the archive branch so maintained `main` cannot be repopulated with the full historical corpus.
 
