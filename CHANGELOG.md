@@ -8,6 +8,7 @@
 - Promoted seven actively maintained historical artifacts into provenance-bound maintained copies under `src/promoted/` and `python_support/`; four remain byte-identical and three route modules use a documented relocation-only import rewrite.
 - Repointed the public `./progress` export, JavaScript/Python tests, lint, formatting, coverage, and container verification at maintained source paths.
 - Moved Drive import/verification automation to the archive branch so maintained `main` cannot be repopulated with the full historical corpus.
+- Added plainly named JavaScript/Python quality jobs, a zero-cache fresh-clone + no-cache container verification path, and scheduled JavaScript/Python dependency-freshness artifacts.
 
 ### Added
 
