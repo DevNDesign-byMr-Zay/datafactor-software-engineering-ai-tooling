@@ -1,0 +1,53 @@
+name: dependency-freshness
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "37 11 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-freshness:
+    name: dependency-freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install locked dependencies
+        run: |
+          npm ci --ignore-scripts
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements.lock.txt
+      - name: Capture JavaScript dependency freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          npm outdated --json > npm-outdated.json
+          status=$?
+          set -e
+          if [ "$status" -gt 1 ]; then
+            exit "$status"
+          fi
+          node -e "JSON.parse(require('node:fs').readFileSync('npm-outdated.json','utf8') || '{}')"
+      - name: Capture Python dependency freshness
+        run: python -m pip list --outdated --format=json > python-outdated.json
+      - name: Retain dependency freshness evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: dependency-freshness-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            npm-outdated.json
+            python-outdated.json
