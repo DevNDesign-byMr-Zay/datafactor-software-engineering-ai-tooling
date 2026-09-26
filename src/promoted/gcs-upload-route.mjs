@@ -1,4 +1,4 @@
-import { logRouteFailure, parseUploadFile } from '../../../../src/api/route-safety.js';
+import { logRouteFailure, parseUploadFile } from '../api/route-safety.js';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
