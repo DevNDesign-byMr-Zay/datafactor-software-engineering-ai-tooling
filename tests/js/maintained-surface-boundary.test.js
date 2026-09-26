@@ -40,10 +40,7 @@ test('surface manifest binds promoted copies to immutable archive provenance', a
 
   assert.equal(surface.schemaVersion, 2);
   assert.equal(surface.historicalArchive.releaseTag, 'v1.2.2');
-  assert.equal(
-    surface.historicalArchive.releaseCommit,
-    '25bf8b9e36b327b3001f8b12cd0709cf7f1b84ad',
-  );
+  assert.equal(surface.historicalArchive.releaseCommit, '25bf8b9e36b327b3001f8b12cd0709cf7f1b84ad');
   assert.equal(surface.historicalArchive.fileCount, 1610);
   assert.equal(surface.promotedMaintainedArtifacts.length, 7);
   assert.match(doc, /archive\/historical-corpus-v1\.2\.2/u);
