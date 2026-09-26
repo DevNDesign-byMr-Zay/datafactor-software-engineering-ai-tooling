@@ -34,7 +34,7 @@ The scored tree contains the maintained software package only. The complete rele
 
 The archive preserves **1,610 files / 40 directories / 1,733,733 bytes**. The complete released path/blob/size inventory is committed at `provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json` with inventory digest `cc5592a67d0d68009489b0cc1a6a575f553ff800e7b3d9775c62206d8f863409`.
 
-Historically sourced maintained behavior lives in byte-identical copies under `src/promoted/` and `python_support/`, with original archive paths and Git blob identities recorded in provenance metadata.
+Historically sourced maintained behavior lives in provenance-bound copies under `src/promoted/` and `python_support/`. Four remain byte-identical; three route modules use a documented relocation-only relative-import rewrite. Original archive paths, archive blob identities, maintained blob identities, and transformations are recorded in provenance metadata.
 
 ## Maintained architecture
 
