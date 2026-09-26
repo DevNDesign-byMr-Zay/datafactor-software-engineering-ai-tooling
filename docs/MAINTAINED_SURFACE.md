@@ -12,9 +12,9 @@ The active engineering surface lives under:
 - `tests/python/`
 - `scripts/`
 
-Seven historically sourced artifacts remain under active quality gates as byte-identical maintained copies. Six live under `src/promoted/`; one Python utility lives at `python_support/aster_python_v002.py`.
+Seven historically sourced artifacts remain under active quality gates as provenance-bound maintained copies. Four remain byte-identical; three route modules contain only a relocation-required relative-import rewrite so they can resolve `src/api/route-safety.js` from their maintained location. Six live under `src/promoted/`; one Python utility lives at `python_support/aster_python_v002.py`.
 
-Each maintained copy retains its original released archive path, byte count, and Git blob identity in `config/maintained-surface.json` and `provenance/PROMOTED_HISTORICAL_ARTIFACTS.json`.
+Each maintained copy records its original released archive path and archive Git blob identity plus its maintained Git blob identity and allowed transformation in `config/maintained-surface.json` and `provenance/PROMOTED_HISTORICAL_ARTIFACTS.json`.
 
 ## Historical archive
 
