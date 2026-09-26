@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE =
-  '../../src/promoted/auth-middleware.mjs';
+const SOURCE = '../../src/promoted/auth-middleware.mjs';
 let importId = 0;
 const originalToken = process.env.APP_API_TOKEN;
 
