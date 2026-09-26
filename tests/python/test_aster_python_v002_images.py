@@ -7,7 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
-MODULE_PATH = ROOT / "Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py"
+MODULE_PATH = ROOT / "python_support/aster_python_v002.py"
 SPEC = importlib.util.spec_from_file_location("aster_python_v002_images", MODULE_PATH)
 assert SPEC and SPEC.loader
 aster = importlib.util.module_from_spec(SPEC)
