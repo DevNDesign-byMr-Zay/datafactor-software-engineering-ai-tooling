@@ -22,6 +22,10 @@ const REQUIRED_FILES = Object.freeze([
   'jsconfig.json',
   '.repo-class.json',
   'docs/PROJECT_SCOPE.md',
+  'config/maintained-surface.json',
+  'provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json',
+  'provenance/PROMOTED_HISTORICAL_ARTIFACTS.json',
+  'docs/HISTORICAL_CORPUS_SEPARATION.md',
 ]);
 
 const REQUIRED_SCRIPTS = Object.freeze([
@@ -73,6 +77,8 @@ async function main() {
     lockfile,
     jestConfig,
     typeConfig,
+    surface,
+    archiveManifest,
   ] = await Promise.all([
     json('package.json'),
     text('CHANGELOG.md'),
@@ -85,6 +91,8 @@ async function main() {
     json('package-lock.json'),
     text('jest.config.js'),
     json('jsconfig.json'),
+    json('config/maintained-surface.json'),
+    json('provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json'),
   ]);
 
   assert(/^\d+\.\d+\.\d+$/u.test(pkg.version), 'package version must be a stable semantic version');
@@ -181,6 +189,39 @@ async function main() {
     await access(new URL(target, root));
   }
   assert(pkg.main === pkg.exports['.'], 'package main must match the canonical root export');
+  assert(
+    pkg.exports?.['./progress'] === './src/promoted/adaptive-duration-progress.js',
+    'progress export must resolve inside the maintained source tree',
+  );
+  assert(surface.schemaVersion === 2, 'maintained surface must use external-archive schema');
+  assert(
+    surface.historicalArchive?.releaseCommit === archiveManifest.release_commit,
+    'historical archive release commit must match the full inventory manifest',
+  );
+  assert(
+    surface.historicalArchive?.releaseTree === archiveManifest.release_tree,
+    'historical archive release tree must match the full inventory manifest',
+  );
+  assert(
+    surface.historicalArchive?.fileCount === 1610 &&
+      archiveManifest.corpus_file_count === 1610 &&
+      archiveManifest.files?.length === 1610,
+    'historical archive must preserve all 1610 released files',
+  );
+  assert(
+    surface.historicalArchive?.canonicalInventorySha256 ===
+      archiveManifest.canonical_inventory_sha256,
+    'historical archive inventory digest must match the surface contract',
+  );
+  let corpusPresent = true;
+  try {
+    await access(new URL('../Software Engineering & AI Tooling/', import.meta.url));
+  } catch (error) {
+    if (error?.code === 'ENOENT') corpusPresent = false;
+    else throw error;
+  }
+  assert(!corpusPresent, 'historical corpus must remain outside the scored maintained tree');
+
 
   assert(
     /## Unreleased/u.test(changelog),
@@ -222,7 +263,7 @@ async function main() {
   );
   assert(
     /npm run verify:surface/u.test(ci),
-    'engineering CI must verify maintained/reference boundaries',
+    'engineering CI must verify maintained/archive boundaries',
   );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
   assert(
