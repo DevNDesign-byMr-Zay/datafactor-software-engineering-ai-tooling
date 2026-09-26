@@ -1,6 +1,6 @@
 import { describe, expect, jest, test } from '@jest/globals';
 
-import { createAdaptiveDurationProgressController } from '../../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
+import { createAdaptiveDurationProgressController } from '../../src/promoted/adaptive-duration-progress.js';
 import { makeV638Harness } from './v638-harness.js';
 
 function scheduling() {
