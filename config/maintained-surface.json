@@ -23,44 +23,58 @@
     {
       "path": "src/promoted/adaptive-duration-progress.js",
       "archivePath": "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
-      "gitBlobSha1": "c6b5c16e3a40472dcf2445c4ffab44cccac851fa",
-      "bytes": 6871
+      "bytes": 6871,
+      "archiveGitBlobSha1": "c6b5c16e3a40472dcf2445c4ffab44cccac851fa",
+      "maintainedGitBlobSha1": "c6b5c16e3a40472dcf2445c4ffab44cccac851fa",
+      "transformation": "byte-identical"
     },
     {
       "path": "src/promoted/auth-middleware.mjs",
       "archivePath": "Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs",
-      "gitBlobSha1": "f1cc6cff92b3784580910d10bdb219303eb96832",
-      "bytes": 314
+      "bytes": 314,
+      "archiveGitBlobSha1": "f1cc6cff92b3784580910d10bdb219303eb96832",
+      "maintainedGitBlobSha1": "f1cc6cff92b3784580910d10bdb219303eb96832",
+      "transformation": "byte-identical"
     },
     {
       "path": "src/promoted/cors-policy.mjs",
       "archivePath": "Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs",
-      "gitBlobSha1": "3e97cdf62fab3ea6e769ac9be9155c725e1670f2",
-      "bytes": 521
+      "bytes": 521,
+      "archiveGitBlobSha1": "3e97cdf62fab3ea6e769ac9be9155c725e1670f2",
+      "maintainedGitBlobSha1": "3e97cdf62fab3ea6e769ac9be9155c725e1670f2",
+      "transformation": "byte-identical"
     },
     {
       "path": "src/promoted/gcs-upload-route.mjs",
       "archivePath": "Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs",
-      "gitBlobSha1": "e32fb5ceb64a81ecac25ef33392895149d364203",
-      "bytes": 1022
+      "bytes": 1022,
+      "archiveGitBlobSha1": "e32fb5ceb64a81ecac25ef33392895149d364203",
+      "maintainedGitBlobSha1": "176d5f63d0da35ca54e5089070abbf87cc9dc867",
+      "transformation": "Relocation-only import rewrite: ../../../../src/api/route-safety.js -> ../api/route-safety.js"
     },
     {
       "path": "src/promoted/signed-url-route.mjs",
       "archivePath": "Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs",
-      "gitBlobSha1": "8462f7d578ae1f0d5340315d9dd81aae612bcd26",
-      "bytes": 821
+      "bytes": 821,
+      "archiveGitBlobSha1": "8462f7d578ae1f0d5340315d9dd81aae612bcd26",
+      "maintainedGitBlobSha1": "ea2b207005131d2d2a4b0bcf95deef5680d17bf1",
+      "transformation": "Relocation-only import rewrite: ../../../../src/api/route-safety.js -> ../api/route-safety.js"
     },
     {
       "path": "src/promoted/file-aware-chat-route.mjs",
       "archivePath": "Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs",
-      "gitBlobSha1": "46c1040830e7eea0b16fe57b5429f96f4d220566",
-      "bytes": 1701
+      "bytes": 1701,
+      "archiveGitBlobSha1": "46c1040830e7eea0b16fe57b5429f96f4d220566",
+      "maintainedGitBlobSha1": "4be53797930bee2db94f547bf16bc357fec5bd4a",
+      "transformation": "Relocation-only import rewrite: ../../../../src/api/route-safety.js -> ../api/route-safety.js"
     },
     {
       "path": "python_support/aster_python_v002.py",
       "archivePath": "Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py",
-      "gitBlobSha1": "0c74d72591a50759931f0b11f59d61290c8f88f5",
-      "bytes": 7467
+      "bytes": 7467,
+      "archiveGitBlobSha1": "0c74d72591a50759931f0b11f59d61290c8f88f5",
+      "maintainedGitBlobSha1": "0c74d72591a50759931f0b11f59d61290c8f88f5",
+      "transformation": "byte-identical"
     }
   ],
   "classification": {
