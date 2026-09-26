@@ -222,7 +222,6 @@ async function main() {
   }
   assert(!corpusPresent, 'historical corpus must remain outside the scored maintained tree');
 
-
   assert(
     /## Unreleased/u.test(changelog),
     'changelog must describe the unreleased maintained surface',
