@@ -269,16 +269,34 @@ async function main() {
   );
 
   assert(/\n  typecheck:\n/u.test(ci), 'CI must expose a plainly named typecheck job');
-  assert(/\n  strict-typecheck:\n/u.test(ci), 'CI must expose a plainly named strict-typecheck job');
+  assert(
+    /\n  strict-typecheck:\n/u.test(ci),
+    'CI must expose a plainly named strict-typecheck job',
+  );
   assert(/\n  lint:\n/u.test(ci), 'CI must expose a plainly named lint job');
   assert(/\n  test:\n/u.test(ci), 'CI must expose a plainly named test job');
   assert(/\n  coverage:\n/u.test(ci), 'CI must expose a plainly named coverage job');
   assert(/\n  python-test:\n/u.test(ci), 'CI must expose a plainly named python-test job');
-  assert(/\n  dependency-audit:\n/u.test(ci), 'CI must expose a plainly named dependency-audit job');
-  assert(/\n  fresh-clone-smoke:\n/u.test(ci), 'CI must expose a plainly named fresh-clone-smoke job');
-  assert(/rm -rf node_modules coverage \.coverage \.pytest_cache/u.test(ci), 'fresh-clone CI must remove prior local build state');
-  assert(/--no-cache-dir -r requirements\.lock\.txt/u.test(ci), 'fresh-clone CI must avoid the Python package cache');
-  assert(/docker compose -f docker-compose\.yml build --no-cache/u.test(ci), 'fresh-clone CI must rebuild the verification container without cached layers');
+  assert(
+    /\n  dependency-audit:\n/u.test(ci),
+    'CI must expose a plainly named dependency-audit job',
+  );
+  assert(
+    /\n  fresh-clone-smoke:\n/u.test(ci),
+    'CI must expose a plainly named fresh-clone-smoke job',
+  );
+  assert(
+    /rm -rf node_modules coverage \.coverage \.pytest_cache/u.test(ci),
+    'fresh-clone CI must remove prior local build state',
+  );
+  assert(
+    /--no-cache-dir -r requirements\.lock\.txt/u.test(ci),
+    'fresh-clone CI must avoid the Python package cache',
+  );
+  assert(
+    /docker compose -f docker-compose\.yml build --no-cache/u.test(ci),
+    'fresh-clone CI must rebuild the verification container without cached layers',
+  );
   assert(/npm run typecheck/u.test(ci), 'engineering CI must type-check maintained JavaScript');
   assert(
     /npm run typecheck:strict/u.test(ci),
@@ -308,10 +326,22 @@ async function main() {
   );
   assert(/docker compose up --build/u.test(ci), 'engineering CI must prove container verification');
 
-  assert(/schedule:/u.test(dependencyFreshness), 'dependency freshness evidence must run on a schedule');
-  assert(/npm outdated --json/u.test(dependencyFreshness), 'dependency freshness workflow must inspect JavaScript versions');
-  assert(/pip list --outdated --format=json/u.test(dependencyFreshness), 'dependency freshness workflow must inspect Python versions');
-  assert(/actions\/upload-artifact@v7/u.test(dependencyFreshness), 'dependency freshness workflow must retain machine-readable evidence');
+  assert(
+    /schedule:/u.test(dependencyFreshness),
+    'dependency freshness evidence must run on a schedule',
+  );
+  assert(
+    /npm outdated --json/u.test(dependencyFreshness),
+    'dependency freshness workflow must inspect JavaScript versions',
+  );
+  assert(
+    /pip list --outdated --format=json/u.test(dependencyFreshness),
+    'dependency freshness workflow must inspect Python versions',
+  );
+  assert(
+    /actions\/upload-artifact@v7/u.test(dependencyFreshness),
+    'dependency freshness workflow must retain machine-readable evidence',
+  );
   assert(/pull_request:/u.test(codeql), 'CodeQL must run for pull requests');
   assert(
     /javascript-typescript/u.test(codeql) && /python/u.test(codeql),
