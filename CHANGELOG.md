@@ -2,6 +2,15 @@
 
 ## Unreleased — pre-rescore detector hardening
 
+### Changed
+
+- Externalized the complete 1,610-file historical engineering corpus from the scored maintained tree while preserving the exact released tree at `archive/historical-corpus-v1.2.2` and recording every released path/blob/size identity under `provenance/`.
+- Promoted seven actively maintained historical artifacts into byte-identical maintained copies under `src/promoted/` and `python_support/`, with original archive paths and Git blob identities retained in provenance metadata.
+- Repointed the public `./progress` export, JavaScript/Python tests, lint, formatting, coverage, and container verification at maintained source paths.
+- Moved Drive import/verification automation to the archive branch so maintained `main` cannot be repopulated with the full historical corpus.
+
+### Added
+
 ### Added
 
 - Pinned TypeScript 5.9.3 as a local development dependency with a synchronized npm lockfile and release-readiness enforcement.
