@@ -36,4 +36,4 @@ export * from './sustainability/package-comparison.js';
 export * from './sustainability/receipt-status.js';
 export * from './workflows/cloud-file-workflow.js';
 
-export { createAdaptiveDurationProgressController } from '../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
+export { createAdaptiveDurationProgressController } from './promoted/adaptive-duration-progress.js';
