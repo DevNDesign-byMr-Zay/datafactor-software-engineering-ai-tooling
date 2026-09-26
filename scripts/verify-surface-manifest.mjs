@@ -134,10 +134,16 @@ for (const [index, artifact] of surface.promotedMaintainedArtifacts.entries()) {
     archived.git_blob_sha1 === artifact.archiveGitBlobSha1,
     `archive blob identity mismatch: ${artifact.archivePath}`,
   );
-  assert(archived.bytes === artifact.bytes, `archive byte count mismatch: ${artifact.archivePath}`);
+  assert(
+    archived.bytes === artifact.archiveBytes,
+    `archive byte count mismatch: ${artifact.archivePath}`,
+  );
 
   const data = await readFile(path);
-  assert(data.length === artifact.bytes, `promoted byte count drift: ${artifact.path}`);
+  assert(
+    data.length === artifact.maintainedBytes,
+    `promoted maintained byte count drift: ${artifact.path}`,
+  );
   assert(
     gitBlobSha1(data) === artifact.maintainedGitBlobSha1,
     `promoted maintained Git blob identity drift: ${artifact.path}`,
