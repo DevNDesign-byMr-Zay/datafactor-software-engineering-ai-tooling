@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE =
-  '../../src/promoted/gcs-upload-route.mjs';
+const SOURCE = '../../src/promoted/gcs-upload-route.mjs';
 let importId = 0;
 
 async function loadRoute(bucket) {
