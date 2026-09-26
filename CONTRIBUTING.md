@@ -2,7 +2,7 @@
 
 ## Principle
 
-Treat the repository as an engineering corpus with a maintained executable surface. Preserve historical artifacts, but make active changes testable and reproducible.
+Treat the scored repository tree as a maintained executable library surface. Preserve historical provenance through the immutable archive branch and committed manifests.
 
 ## Local workflow
 
@@ -11,7 +11,7 @@ Treat the repository as an engineering corpus with a maintained executable surfa
 3. Add or change one focused behavior.
 4. Add tests that pin the behavior in the same commit whenever practical.
 5. Run `make check` before pushing.
-6. Keep Drive import/verification separate from product or utility changes; corpus automation must remain transactional and publish changes through reviewed pull requests.
+6. Keep archive maintenance separate from library changes; archive automation must remain transactional and must never repopulate application/library `main`.
 
 ## Commit discipline
 
@@ -25,7 +25,7 @@ Avoid combining corpus imports, mass formatting, refactors, and feature changes 
 
 ## Quality scope
 
-Historical files are not bulk-reformatted. When a module becomes actively maintained, add it to the appropriate lint configuration and introduce tests before or alongside behavioral changes.
+Historical files remain on the archive branch. When historically sourced behavior becomes actively maintained, copy it into a maintained path, record its archive identity, and add tests before or alongside behavioral changes.
 
 ## Security review
 
