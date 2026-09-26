@@ -1,4 +1,4 @@
-import { logRouteFailure, parseChatRequestBody } from '../../../../src/api/route-safety.js';
+import { logRouteFailure, parseChatRequestBody } from '../api/route-safety.js';
 
 app.post('/chat', async (req, res) => {
   try {
