@@ -56,7 +56,7 @@ jobs:
           if [ "$status" -ne 0 ]; then
             npm run format >/dev/null
             echo "::group::Required Prettier changes"
-            git --no-pager diff -- src tests/js scripts "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js"
+            git --no-pager diff -- src tests/js scripts
             echo "::endgroup::"
             exit "$status"
           fi
@@ -102,7 +102,7 @@ jobs:
       - name: Run Python tests with enforced coverage
         run: |
           python -m coverage run -m pytest
-          python -m coverage report --include="python_support/*.py,Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+          python -m coverage report --include="python_support/*.py" --fail-under=85
           python -m coverage xml -o python-coverage.xml
       - name: Retain Python coverage evidence
         uses: actions/upload-artifact@v7
