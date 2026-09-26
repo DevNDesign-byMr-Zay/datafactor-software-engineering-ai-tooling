@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE =
-  '../../Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs';
+const SOURCE = '../../src/promoted/cors-policy.mjs';
 let importId = 0;
 const originalOrigins = process.env.ALLOWED_ORIGINS;
 

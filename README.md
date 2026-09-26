@@ -1,6 +1,6 @@
-# Software Engineering & AI Tooling — Maintained Library + Deidentified Corpus
+# Software Engineering & AI Tooling — Maintained Developer Tooling Library
 
-This repository contains a deidentified software-engineering/AI-tooling corpus **and a canonical maintained library surface at `src/`**. The historical corpus remains preserved under `Software Engineering & AI Tooling/`; the root package exposes selected authenticated/final implementations through a conventional package entrypoint so static analysis can distinguish maintained software from historical provenance.
+This repository is a maintained **developer-tooling and reusable-library package** with a canonical public surface under `src/`, maintained Python utilities under `python_support/`, reproducible JavaScript/Python verification, container checks, security analysis, and explicit package exports. The complete historical engineering corpus is preserved outside the scored tree at `archive/historical-corpus-v1.2.2` and release `v1.2.2`.
 
 ## Canonical package entrypoint
 
@@ -10,13 +10,13 @@ This repository contains a deidentified software-engineering/AI-tooling corpus *
 src/index.js
 ```
 
-That entrypoint exposes maintained functionality from both canonical extractions and authenticated final corpus artifacts. Consumers and static analyzers no longer have to infer the active surface from hundreds of historical revisions.
+That entrypoint exposes maintained functionality from canonical modules and byte-identical promoted copies under maintained source paths. Consumers and static analyzers do not need to traverse historical revisions.
 
 The maintained surface spans behaviorally distinct artifacts across nine engineering areas:
 
-- Frontend Engineering — adaptive-duration progress controller from `Aster JavaScript v638.js`.
+- Frontend Engineering — adaptive-duration progress controller at `src/promoted/adaptive-duration-progress.js`, preserved byte-for-byte from the released historical source.
 - Frontend Engineering — `src/frontend/erase-mask.js`, a canonical extraction of repeated authenticated erase/mask geometry and brush behavior.
-- Backend Engineering — `Aster Python v002.py` prompt, URL, image-prefill, and mask-feather utilities.
+- Backend Engineering — `python_support/aster_python_v002.py` prompt, URL, image-prefill, and mask-feather utilities, preserved byte-for-byte from the released historical source.
 - Authentication & Security — final token-authentication middleware.
 - API Foundations — final CORS policy middleware.
 - Storage & File Services — final GCS upload route.
@@ -26,15 +26,15 @@ The maintained surface spans behaviorally distinct artifacts across nine enginee
 - Cloud Deployment — `src/deployment/cloud-run.js`, a credential-free planner that preserves the authenticated Cloud Run env-file deployment and smoke-test behavior while detecting the historical comma-delimited env-var failure shape.
 - Application Bootstrap — `src/bootstrap/package-manifest.js`, ESM package-manifest parsing, role-aware bootstrap validation, and npm-script planning derived from the corrected frontend/backend package manifests.
 
-Historical/versioned files remain provenance material and are not bulk-modified or falsely counted as maintained production code.
+Historical/versioned files remain immutable archive provenance and are not present in the scored maintained tree.
 
 ## Repository scope and provenance
 
-The full corpus spans frontend engineering, backend engineering, full-stack workflows, API foundations, AI model integration, cloud/deployment patterns, authentication/security, storage/file services, application bootstrap, and reliability/infrastructure material.
+The scored tree contains the maintained software package only. The complete released historical corpus remains recoverable from `archive/historical-corpus-v1.2.2`, which points at release commit `25bf8b9e36b327b3001f8b12cd0709cf7f1b84ad`.
 
-`VERIFY_REPORT.md` records the independent Drive-to-GitHub corpus verification. The mirrored corpus is **1,610 / 1,610 files with zero missing and zero unexpected paths**.
+The archive preserves **1,610 files / 40 directories / 1,733,733 bytes**. The complete released path/blob/size inventory is committed at `provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json` with inventory digest `cc5592a67d0d68009489b0cc1a6a575f553ff800e7b3d9775c62206d8f863409`.
 
-The maintained `src/` modules are deliberately extracted from authenticated historical behavior rather than invented replacements. Their original historical implementations remain intact for provenance and trajectory analysis.
+Historically sourced maintained behavior lives in provenance-bound copies under `src/promoted/` and `python_support/`. Four remain byte-identical; three route modules use a documented relocation-only relative-import rewrite. Original archive paths, archive blob identities, maintained blob identities, and transformations are recorded in provenance metadata.
 
 ## Maintained architecture
 
@@ -118,7 +118,7 @@ The package provides explicit export paths for the canonical and promoted module
 ./error-reporter
 ```
 
-The root export is `src/index.js`; the listed subpaths are the complete public API declared in `package.json`. This creates an ordinary discoverable software-library boundary while preserving all historical source beneath the corpus directory.
+The root export is `src/index.js`; the listed subpaths are the complete public API declared in `package.json`. This creates an ordinary discoverable software-library boundary while preserving the complete historical source on the immutable archive branch.
 
 ## Test
 
@@ -142,7 +142,7 @@ make lint
 make format-check
 ```
 
-JavaScript linting covers `src/`, promoted authenticated/final artifacts, and tests. Python checks remain scoped to the maintained Python surface. Historical provenance stays unchanged unless an artifact is intentionally promoted into active maintenance.
+JavaScript linting covers `src/` and tests. Python checks remain scoped to `python_support/` and maintained Python tests. Promoted copies retain archive-linked content identities and are not formatter-rewritten.
 
 ## Dependency and security audit
 
@@ -184,7 +184,7 @@ This approach improves architecture and maintainability without deleting the his
 
 ## Corpus maintenance and development history
 
-Drive import and live verification remain manual-only and are not required to build/test the library. Corpus refreshes are transactional: every selected source/configuration file is downloaded into a temporary tree first, and any blocked fetch aborts the refresh without replacing the currently verified corpus. A complete refresh must pass `make verify-fresh` before automation publishes a dedicated pull request. Live verification report changes follow the same reviewed-PR path; mismatches fail before publication and leave `main` untouched.
+Drive import and verification remain manual-only archive maintenance and are not required to build/test the library. Archive refresh workflows target the archive branch rather than library `main`; the scored tree must remain independent of the historical corpus.
 
 New fixes and features should land as small focused commits paired with the tests that prove them. Historical corpus files are not bulk-reformatted, and repository history is never backdated or fabricated for assessment purposes.
 

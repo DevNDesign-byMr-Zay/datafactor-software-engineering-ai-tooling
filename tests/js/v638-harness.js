@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import { createAdaptiveDurationProgressController } from '../../Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js';
+import { createAdaptiveDurationProgressController } from '../../src/promoted/adaptive-duration-progress.js';
 
 export function makeV638Harness(options = {}) {
   let clock = 1000;

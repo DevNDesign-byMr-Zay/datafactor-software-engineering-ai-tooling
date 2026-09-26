@@ -26,7 +26,7 @@ line-length = 100
 include = [
   "tests/python/*.py",
   "python_support/*.py",
-  "Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py",
+  "python_support/aster_python_v002.py",
 ]
 
 [tool.ruff.lint]

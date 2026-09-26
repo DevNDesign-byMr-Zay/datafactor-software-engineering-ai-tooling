@@ -1,8 +1,8 @@
 # Project Scope
 
-This repository is primarily a **developer-tooling and reusable-library package** backed by a preserved deidentified software-engineering corpus.
+This repository is primarily a **developer-tooling and reusable-library package**. Its complete deidentified historical engineering corpus is preserved outside the scored tree as immutable release provenance.
 
-The maintained executable/library surface is under `src/`, `python_support/`, `tests/js/`, and `scripts/`. Historical artifacts under `Software Engineering & AI Tooling/` remain provenance material unless an exact artifact is explicitly promoted into the maintained-surface manifest and blocking quality gates.
+The maintained executable/library surface is under `src/`, `python_support/`, `tests/js/`, and `scripts/`. Historically sourced behavior participates in the maintained package only through explicit byte-identical copies recorded in the maintained-surface manifest.
 
 ## Primary maintained concerns
 
@@ -13,6 +13,6 @@ The maintained executable/library surface is under `src/`, `python_support/`, `t
 
 ## Classification boundary
 
-The root package is not intended to be scored as a single-purpose backend API service or as infrastructure-as-code. Docker/Compose exist for reproducibility and verification. Historical corpus files are preserved for authenticated engineering provenance and are not equivalent to the maintained library surface.
+The root package is not intended to be scored as a single-purpose backend API service or as infrastructure-as-code. Docker/Compose exist for reproducibility and verification. The historical corpus is preserved at `archive/historical-corpus-v1.2.2` and is intentionally absent from the scored maintained tree.
 
 The root `.repo-class.json`, `config/maintained-surface.json`, and `docs/MAINTAINED_SURFACE.md` jointly define this boundary.

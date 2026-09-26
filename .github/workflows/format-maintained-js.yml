@@ -23,4 +23,4 @@ jobs:
           npx prettier --check
           src
           tests/js
-          'Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js'
+          'src/promoted/adaptive-duration-progress.js'

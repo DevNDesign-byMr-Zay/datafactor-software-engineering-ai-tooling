@@ -1,33 +1,53 @@
-# Maintained Surface vs Historical Corpus
+# Maintained Surface and Historical Archive
 
-This repository intentionally contains two different engineering surfaces and does not treat them as interchangeable.
+This repository's scored tree is a maintained developer-tooling/reusable-library package.
 
 ## Maintained surface
 
-The maintained production-facing surface lives under `src/` together with its focused tests under `tests/js/` and `tests/python/`. Selected historical artifacts are promoted into the maintained quality gate only when they are directly exercised by tests or used as an authenticated reference implementation. The holographic maintained surface includes a renderer-neutral capability-negotiation seam that validates an accepted scene handoff against an explicit target capability descriptor, returns advisory compatibility evidence, and never dispatches or actuates a device. Scene planning also accepts optional nested `constraints` and `animation` evidence only through defensive JSON-compatible capture; caller-owned objects are copied, recursively frozen in the resulting scene, and rejected if they contain accessors, symbols, sparse/decorated arrays, cycles, or non-finite numbers. Renderer-neutral interaction intent is normalized separately into frozen orbit/pan/zoom/select/focus/clear-selection evidence; the normalizer validates exact allowed fields and finite values but does not call a renderer, handler, device, browser, or persistence layer. Multi-device readiness is evaluated as deterministic advisory evidence only: explicit device descriptors are compared to the accepted handoff, routes are sorted by device identity, target mismatches are blocked rather than auto-retargeted, and no device is selected or dispatched.
+The active engineering surface lives under:
 
-The maintained surface is expected to satisfy blocking CI requirements for linting, formatting, tests, coverage, dependency auditing, and reproducible installation.
+- `src/`
+- `python_support/`
+- `tests/js/`
+- `tests/python/`
+- `scripts/`
 
-## Historical corpus
+Seven historically sourced artifacts remain under active quality gates as provenance-bound maintained copies. Four remain byte-identical; three route modules contain only a relocation-required relative-import rewrite so they can resolve `src/api/route-safety.js` from their maintained location. Six live under `src/promoted/`; one Python utility lives at `python_support/aster_python_v002.py`.
 
-`Software Engineering & AI Tooling/` preserves deidentified, versioned development history. Repeated and near-duplicate snapshots are retained intentionally because they record implementation progression, debugging, refactoring, and workflow evolution. They are not silently deduplicated or rewritten to improve repository-wide style metrics.
+Each maintained copy records its original released archive path and archive Git blob identity plus its maintained Git blob identity and allowed transformation in `config/maintained-surface.json` and `provenance/PROMOTED_HISTORICAL_ARTIFACTS.json`.
 
-Most historical files are therefore excluded from routine maintained linting and blocking production coverage by design. Historical artifacts enter lint/coverage only when a specific implementation is intentionally promoted with focused tests. Corpus integrity and provenance are verified through the separate import/verification controls rather than a soft-failing pseudo-production lint lane.
+## Historical archive
+
+The complete historical engineering corpus is intentionally external to the scored maintained tree.
+
+- Release: `v1.2.2`
+- Release commit: `25bf8b9e36b327b3001f8b12cd0709cf7f1b84ad`
+- Archive branch: `archive/historical-corpus-v1.2.2`
+- Historical files: **1,610**
+- Historical directories: **40**
+- Historical bytes: **1,733,733**
+- Inventory SHA-256: `cc5592a67d0d68009489b0cc1a6a575f553ff800e7b3d9775c62206d8f863409`
+
+The complete released path/blob/size inventory is committed at `provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json`.
+
+## Boundary enforcement
+
+`npm run verify:surface` fails if:
+
+- the physical historical corpus appears in the scored tree;
+- the archive release/tag/tree/count/digest contract drifts;
+- the full manifest stops listing all 1,610 released files;
+- a promoted maintained copy no longer matches its released Git blob identity.
+
+The ordinary lint, formatting, JavaScript/Python tests, coverage, typechecking, package exports, and container checks operate without the archive directory.
 
 ## Promotion rule
 
-When historical behavior becomes part of the maintained library surface, the promoted implementation must land with a focused test in the same change. New work should prefer small feature-or-fix commits with the corresponding proving test rather than bulk mixed commits.
+Historically sourced behavior enters the maintained package only as an explicit maintained copy with:
 
-## Why the separation matters
+1. a recorded original archive path and content identity;
+2. focused tests;
+3. maintained lint/coverage/type boundaries where applicable; and
+4. normal pull-request CI and security review.
 
-The repository is both a software-engineering corpus and a maintained executable reference surface. Preserving the historical sequence protects the value of the corpus, while isolating the maintained surface keeps build, test, lint, and coverage signals meaningful for buyers and maintainers.
-## Machine-readable surface boundary
-
-`config/maintained-surface.json` is the canonical machine-readable declaration of maintained roots, the preserved historical corpus root, and the exact historical artifacts intentionally promoted into blocking quality gates. `npm run verify:surface` validates that declaration in CI and rejects wildcards, path escapes, missing artifacts, duplicate promotions, or any attempt to classify the historical corpus as a maintained root.
-
-
-## Repository statistics boundary
-
-`.gitattributes` marks the preserved `Software Engineering & AI Tooling/**` corpus as `linguist-detectable=false` so automated repository statistics do not treat versioned historical snapshots as the active product surface. Each artifact listed in `config/maintained-surface.json` under `promotedHistoricalArtifacts` is explicitly re-enabled with an exact-path `linguist-detectable=true` rule because those files participate in blocking lint, test, or coverage gates.
-
-This classification changes statistics only. It does not remove, ignore, rewrite, or exclude corpus files from Git, Drive verification, provenance review, archive packaging, or licensing scope. `npm run verify:surface` regression-protects the broad historical rule and every promoted override.
+No historical snapshot becomes maintained code merely because it exists in the archive.

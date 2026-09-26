@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE =
-  '../../Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs';
+const SOURCE = '../../src/promoted/file-aware-chat-route.mjs';
 let importId = 0;
 
 async function loadRoute({ geminiModel = {}, bucket = null, generateReply = jest.fn() } = {}) {

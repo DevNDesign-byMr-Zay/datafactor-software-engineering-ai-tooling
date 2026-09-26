@@ -4,7 +4,7 @@ export default [
       "src/**/*.js",
       "tests/js/**/*.js",
       "tests/js/**/*.mjs",
-      "Software Engineering & AI Tooling/Frontend Engineering/JavaScript/Aster JavaScript v638.js",
+      "src/promoted/adaptive-duration-progress.js",
     ],
     languageOptions: {
       ecmaVersion: "latest",
@@ -24,11 +24,11 @@ export default [
   },
   {
     files: [
-      "Software Engineering & AI Tooling/Authentication & Security/Token Authentication Regression/06 FINAL CORRECTED CODE/auth_middleware.mjs",
-      "Software Engineering & AI Tooling/API Foundations/Express Gemini Backend Foundation/06 FINAL CORRECTED CODE/cors_policy.mjs",
-      "Software Engineering & AI Tooling/Storage & File Services/GCS Upload Pipeline/06 FINAL CORRECTED CODE/upload_route.mjs",
-      "Software Engineering & AI Tooling/Storage & File Services/Signed URL File Access/06 FINAL CORRECTED CODE/sign_route.mjs",
-      "Software Engineering & AI Tooling/AI Model Integration/Gemini File Aware Chat Pipeline/06 FINAL CORRECTED CODE/chat_route.mjs",
+      "src/promoted/auth-middleware.mjs",
+      "src/promoted/cors-policy.mjs",
+      "src/promoted/gcs-upload-route.mjs",
+      "src/promoted/signed-url-route.mjs",
+      "src/promoted/file-aware-chat-route.mjs",
     ],
     languageOptions: {
       ecmaVersion: "latest",
