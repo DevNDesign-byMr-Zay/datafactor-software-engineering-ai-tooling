@@ -11,7 +11,7 @@ test-js:
 
 test-python:
 	python -m coverage run -m pytest
-	python -m coverage report --include="Software Engineering & AI Tooling/Backend Engineering/Python/Aster Python v002.py" --fail-under=85
+	python -m coverage report --include="python_support/*.py" --fail-under=85
 
 surface-check:
 	npm run verify:surface
