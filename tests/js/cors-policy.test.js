@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-const SOURCE =
-  '../../src/promoted/cors-policy.mjs';
+const SOURCE = '../../src/promoted/cors-policy.mjs';
 let importId = 0;
 const originalOrigins = process.env.ALLOWED_ORIGINS;
 
