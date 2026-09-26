@@ -150,7 +150,7 @@ JavaScript linting covers `src/` and tests. Python checks remain scoped to `pyth
 make audit
 ```
 
-This runs npm audit at the moderate threshold and pip-audit against the committed Python lock. Dependabot tracks npm, pip, and GitHub Actions. CodeQL analyzes JavaScript/TypeScript and Python.
+This runs npm audit at the moderate threshold and pip-audit against the committed Python lock. Dependabot tracks npm, pip, and GitHub Actions. A scheduled dependency-freshness workflow records `npm outdated --json` and Python's outdated-package list as 30-day machine-readable artifacts without automatically changing dependencies. CodeQL analyzes JavaScript/TypeScript and Python.
 
 ## One-command quality check
 
@@ -158,7 +158,7 @@ This runs npm audit at the moderate threshold and pip-audit against the committe
 make check
 ```
 
-CI performs reproducible installation, dependency audits, lint/format enforcement, tests, coverage gates, and an independent containerized verification run on pushes and pull requests.
+CI performs reproducible installation, dependency audits, lint/format enforcement, tests, coverage gates, and an independent containerized verification run on pushes and pull requests. It also exposes plainly named `typecheck`, `strict-typecheck`, `lint`, `test`, `coverage`, `python-test`, and `dependency-audit` jobs so automated scanners do not need to infer those gates from aggregate scripts. A separate `fresh-clone-smoke` job disables dependency caches, removes local build state, installs both committed locks, runs the full maintained check, rebuilds the verification container with `--no-cache`, and executes it from that clean build.
 
 ## Container verification
 
