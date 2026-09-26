@@ -1,4 +1,4 @@
-import { logRouteFailure, parseStorageObjectName } from '../../../../src/api/route-safety.js';
+import { logRouteFailure, parseStorageObjectName } from '../api/route-safety.js';
 
 app.get('/sign', async (req, res) => {
   try {
