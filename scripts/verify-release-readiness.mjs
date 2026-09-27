@@ -16,6 +16,7 @@ const REQUIRED_FILES = Object.freeze([
   'CONTRIBUTING.md',
   '.github/CODEOWNERS',
   '.github/pull_request_template.md',
+  '.github/workflows/ci.yml',
   'scripts/create-release-manifest.mjs',
   'scripts/verify_python_lock.py',
   'jest.config.js',
@@ -272,6 +273,34 @@ async function main() {
   assert(/npm run format:check/u.test(ci), 'engineering CI must enforce formatting');
   assert(/npm test/u.test(ci), 'engineering CI must expose the conventional npm test suite');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
+  for (const [signal, commandPattern] of [
+    ['dependency-audit', /- name:\s*dependency-audit[\s\S]*?run:\s*npm audit --audit-level=moderate/u],
+    ['root-node-test', /- name:\s*root-node-test[\s\S]*?run:\s*npm test/u],
+    ['root-node-coverage', /- name:\s*root-node-coverage[\s\S]*?run:\s*npm run test:coverage/u],
+    ['python-test', /- name:\s*python-test[\s\S]*?run:\s*python -m pytest/u],
+    ['python-coverage', /- name:\s*python-coverage[\s\S]*?python -m coverage report/u],
+  ]) {
+    assert(
+      commandPattern.test(ci),
+      `engineering CI must retain scanner-visible signal and command: ${signal}`,
+    );
+  }
+  assert(
+    /^  fresh-clone-smoke:\s*$/mu.test(ci) &&
+      /name:\s*fresh-clone-smoke/u.test(ci) &&
+      /Check out repository without cache/u.test(ci) &&
+      /Set up Node\.js without cache/u.test(ci) &&
+      /Set up Python without cache/u.test(ci) &&
+      /run:\s*make verify-fresh/u.test(ci),
+    'engineering CI must retain the scanner-visible fresh-clone-smoke verification path',
+  );
+  assert(
+    /^  container:\s*$/mu.test(ci) &&
+      /name:\s*container-smoke/u.test(ci) &&
+      /docker compose -f docker-compose\.yml config --quiet/u.test(ci) &&
+      /docker compose up --build/u.test(ci),
+    'engineering CI must retain the scanner-visible container-smoke verification path',
+  );
   assert(
     /path:\s*coverage\//u.test(ci) &&
       /coverage xml -o python-coverage\.xml/u.test(ci) &&
