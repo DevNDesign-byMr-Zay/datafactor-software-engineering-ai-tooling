@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Python / pytest
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+coverage.xml
+python-coverage.xml
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Environment
+.env
+.venv/
+env/
+venv/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
