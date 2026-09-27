@@ -58,7 +58,7 @@ jobs:
             echo "::group::Required Prettier changes"
             git --no-pager diff -- src tests/js scripts
             echo "::endgroup::"
-            return "$status"
+            exit "$status"
           fi
       - name: root-node-test
         run: npm test
