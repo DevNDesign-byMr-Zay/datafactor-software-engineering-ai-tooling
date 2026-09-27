@@ -11,8 +11,6 @@
 
 ### Added
 
-### Added
-
 - Pinned TypeScript 5.9.3 as a local development dependency with a synchronized npm lockfile and release-readiness enforcement.
 - Added an explicit conventional `npm test` CI signal so automated scanners can detect the runnable JavaScript suite.
 - Added Python declaration/lock parity verification and made it part of CI and fresh-clone verification.
@@ -20,7 +18,7 @@
 
 ### Changed
 
-- Current package candidate: `1.2.2`. The `v1.2.1` release is the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
+- Current package candidate: `1.2.3`. The `v1.2.2` release is the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
 
 ## 1.2.1 — 2026-09-24 — post-release hardening
 
