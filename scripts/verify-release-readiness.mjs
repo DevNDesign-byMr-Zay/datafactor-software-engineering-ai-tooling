@@ -274,7 +274,10 @@ async function main() {
   assert(/npm test/u.test(ci), 'engineering CI must expose the conventional npm test suite');
   assert(/npm run test:coverage/u.test(ci), 'engineering CI must enforce JavaScript coverage');
   for (const [signal, commandPattern] of [
-    ['dependency-audit', /- name:\s*dependency-audit[\s\S]*?run:\s*npm audit --audit-level=moderate/u],
+    [
+      'dependency-audit',
+      /- name:\s*dependency-audit[\s\S]*?run:\s*npm audit --audit-level=moderate/u,
+    ],
     ['root-node-test', /- name:\s*root-node-test[\s\S]*?run:\s*npm test/u],
     ['root-node-coverage', /- name:\s*root-node-coverage[\s\S]*?run:\s*npm run test:coverage/u],
     ['python-test', /- name:\s*python-test[\s\S]*?run:\s*python -m pytest/u],
