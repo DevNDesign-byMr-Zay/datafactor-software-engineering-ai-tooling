@@ -25,7 +25,7 @@ jobs:
           cache: npm
       - name: Reproducible npm install
         run: npm ci --ignore-scripts
-      - name: Audit JavaScript dependencies
+      - name: dependency-audit
         run: npm audit --audit-level=moderate
       - name: Verify maintained/historical surface manifest
         run: npm run verify:surface
@@ -58,11 +58,11 @@ jobs:
             echo "::group::Required Prettier changes"
             git --no-pager diff -- src tests/js scripts
             echo "::endgroup::"
-            exit "$status"
+            return "$status"
           fi
-      - name: Run conventional JavaScript test suite
+      - name: root-node-test
         run: npm test
-      - name: Run JavaScript tests with enforced coverage
+      - name: root-node-coverage
         run: npm run test:coverage
       - name: Retain JavaScript coverage evidence
         uses: actions/upload-artifact@v7
@@ -99,7 +99,9 @@ jobs:
         run: python -m py_compile .github/scripts/import_drive.py .github/scripts/verify_drive.py
       - name: Lint maintained Python
         run: python -m ruff check .
-      - name: Run Python tests with enforced coverage
+      - name: python-test
+        run: python -m pytest
+      - name: python-coverage
         run: |
           python -m coverage run -m pytest
           python -m coverage report --include="python_support/*.py" --fail-under=85
@@ -112,8 +114,26 @@ jobs:
           retention-days: 30
           path: python-coverage.xml
 
+  fresh-clone-smoke:
+    name: fresh-clone-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository without cache
+        uses: actions/checkout@v7
+      - name: Set up Node.js without cache
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Set up Python without cache
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Run fresh clone verification suite
+        run: make verify-fresh
+
   container:
-    name: Container verification
+    name: container-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
