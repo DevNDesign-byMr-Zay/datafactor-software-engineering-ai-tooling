@@ -7,6 +7,9 @@ import {
   parseChatRequestBody,
   parseStorageObjectName,
   parseUploadFile,
+  validateChatRequestBody,
+  validateStorageObjectName,
+  validateUploadFile,
 } from '../../src/api/route-safety.js';
 
 describe('route safety boundaries', () => {
@@ -230,5 +233,36 @@ describe('structured route failure logging', () => {
       }),
     ).toThrow('level must be one of: error, warn, info');
     expect(logger.error).not.toHaveBeenCalled();
+  });
+});
+
+describe('pre-execution validation boundary guarantees', () => {
+  test('aliases match primary parser functions exactly', () => {
+    expect(validateUploadFile).toBe(parseUploadFile);
+    expect(validateStorageObjectName).toBe(parseStorageObjectName);
+    expect(validateChatRequestBody).toBe(parseChatRequestBody);
+  });
+
+  test('rejects malformed upload before cloud/filesystem operations', () => {
+    const invalidFile = {
+      originalname: '../etc/passwd',
+      buffer: 'invalid-type',
+      mimetype: 'invalid',
+    };
+    const result = validateUploadFile(invalidFile);
+    expect(result.ok).toBe(false);
+  });
+
+  test('rejects path traversal object names before storage lookups', () => {
+    const result = validateStorageObjectName('uploads/../../secret.txt');
+    expect(result.ok).toBe(false);
+  });
+
+  test('rejects invalid chat payload before AI provider invocation', () => {
+    const result = validateChatRequestBody({
+      sessionId: '123',
+      files: [{ objectName: 'invalid-prefix.pdf' }],
+    });
+    expect(result.ok).toBe(false);
   });
 });

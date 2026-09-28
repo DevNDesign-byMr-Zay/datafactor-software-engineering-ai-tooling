@@ -16,3 +16,8 @@ The maintained executable/library surface is under `src/`, `python_support/`, `t
 The root package is not intended to be scored as a single-purpose backend API service or as infrastructure-as-code. Docker/Compose exist for reproducibility and verification. The historical corpus is preserved at `archive/historical-corpus-v1.2.2` and is intentionally absent from the scored maintained tree.
 
 The root `.repo-class.json`, `config/maintained-surface.json`, and `docs/MAINTAINED_SURFACE.md` jointly define this boundary.
+
+
+## Runtime Dependencies
+
+The root JavaScript library (`package.json`) purposefully asserts `dependencies: {}` (zero external direct runtime dependencies). All core functionality—including cryptography, hashing, buffering, process control, and module exports—relies exclusively on standard Node.js built-ins (`node:buffer`, `node:crypto`, `node:process`). Build, formatting, typechecking, and testing packages are categorized strictly under `devDependencies`.

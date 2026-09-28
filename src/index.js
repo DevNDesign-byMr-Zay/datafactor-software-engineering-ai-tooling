@@ -37,3 +37,4 @@ export * from './sustainability/receipt-status.js';
 export * from './workflows/cloud-file-workflow.js';
 
 export { createAdaptiveDurationProgressController } from './promoted/adaptive-duration-progress.js';
+export * from './api/route-safety.js';
