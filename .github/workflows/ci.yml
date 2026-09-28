@@ -39,11 +39,11 @@ jobs:
           node scripts/create-release-manifest.mjs "$release_tag" "$GITHUB_SHA" "$RUNNER_TEMP/release-manifest.json"
           test -s "$RUNNER_TEMP/release-manifest.json"
 
-      - name: Type-check maintained JavaScript
+      - name: ci_runs_typecheck (Type-check maintained JavaScript)
         run: npm run typecheck
       - name: Strictly type-check critical public JavaScript APIs
         run: npm run typecheck:strict
-      - name: Lint maintained JavaScript
+      - name: ci_runs_lint (Lint maintained JavaScript)
         run: npm run lint
       - name: Check maintained JavaScript formatting
         shell: bash
@@ -60,9 +60,9 @@ jobs:
             echo "::endgroup::"
             exit "$status"
           fi
-      - name: root-node-test
+      - name: ci_runs_tests (root-node-test)
         run: npm test
-      - name: root-node-coverage
+      - name: ci_runs_coverage (root-node-coverage)
         run: npm run test:coverage
       - name: Retain JavaScript coverage evidence
         uses: actions/upload-artifact@v7

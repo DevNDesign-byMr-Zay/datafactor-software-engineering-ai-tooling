@@ -278,8 +278,8 @@ async function main() {
       'dependency-audit',
       /- name:\s*dependency-audit[\s\S]*?run:\s*npm audit --audit-level=moderate/u,
     ],
-    ['root-node-test', /- name:\s*root-node-test[\s\S]*?run:\s*npm test/u],
-    ['root-node-coverage', /- name:\s*root-node-coverage[\s\S]*?run:\s*npm run test:coverage/u],
+    ['root-node-test', /- name:\s*.*root-node-test.*[\s\S]*?run:\s*npm test/u],
+    ['root-node-coverage', /- name:\s*.*root-node-coverage.*[\s\S]*?run:\s*npm run test:coverage/u],
     ['python-test', /- name:\s*python-test[\s\S]*?run:\s*python -m pytest/u],
     ['python-coverage', /- name:\s*python-coverage[\s\S]*?python -m coverage report/u],
   ]) {

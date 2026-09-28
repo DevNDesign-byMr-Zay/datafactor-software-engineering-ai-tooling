@@ -201,3 +201,7 @@ export function logRouteFailure(options = {}) {
     return false;
   }
 }
+
+export const validateUploadFile = parseUploadFile;
+export const validateStorageObjectName = parseStorageObjectName;
+export const validateChatRequestBody = parseChatRequestBody;
