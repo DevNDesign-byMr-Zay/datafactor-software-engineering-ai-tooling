@@ -39,7 +39,6 @@ const modules = Object.freeze([
   { id:'storage', name:'Cloud File Workflow', category:'Storage', path:'./index', description:'Validated cloud upload, signed URL and chat boundaries', action:null },
   { id:'observability', name:'Observability', category:'Reliability', path:'./json-logger', description:'Structured logging and bounded error reporting', action:null }
 ]);
-
 function respond(res, code, body, type = 'application/json; charset=utf-8') {
   res.writeHead(code, {
     'Content-Type': type,
@@ -81,6 +80,24 @@ function runAction(body) {
     default: throw new TypeError('Unsupported workflow');
   }
 }
+function summary() {
+  const categories = [...new Set(modules.map(m => m.category))].map(category => ({
+    category,
+    count: modules.filter(m => m.category === category).length
+  }));
+  return {
+    source:'maintained-library',
+    moduleCount:modules.length,
+    categories,
+    quickActions:[
+      {id:'studio',label:'Open Workflow Studio',description:'Run bounded library calculations',page:'studio'},
+      {id:'modules',label:'Browse Module Library',description:'Inspect maintained capabilities',page:'modules'},
+      {id:'evidence',label:'Verify Evidence',description:'Fail-closed receipt inspection',page:'evidence'},
+      {id:'assets',label:'Open Asset Studio',description:'Review shipped ÆtherForge assets',page:'assets'}
+    ],
+    boundary:{cloudMutations:false,aiProvider:false,localAdapterOnly:true,externalNetworkCalls:false}
+  };
+}
 export function createWorkbenchServer({assetRoot = process.env.AETHERFORGE_DATA_DIR || join(root,'.local-assets')} = {}) {
   return createServer(async (req, res) => {
     try {
@@ -90,6 +107,9 @@ export function createWorkbenchServer({assetRoot = process.env.AETHERFORGE_DATA_
       }
       if (req.method === 'GET' && url.pathname === '/api/modules') {
         return respond(res, 200, {source:'canonical maintained exports', modules});
+      }
+      if (req.method === 'GET' && url.pathname === '/api/workbench/summary') {
+        return respond(res, 200, summary());
       }
       if (req.method === 'POST' && url.pathname === '/api/run') {
         if (req.headers['content-type']?.split(';')[0]?.trim() !== 'application/json') return respond(res, 415, {error:'JSON content type required'});
