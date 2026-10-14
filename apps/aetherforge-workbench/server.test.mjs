@@ -26,6 +26,22 @@ test('catalog is based on actual maintained library capabilities', async()=>{
   const v=await (await fetch(url+'/api/modules')).json();
   assert.ok(v.modules.length >= 8); assert.ok(v.modules.some(m=>m.id==='runtime'));
 });
+test('command-center summary exposes only truthful local capabilities',async()=>{
+  const v=await(await fetch(url+'/api/workbench/summary')).json();
+  assert.equal(v.source,'maintained-library');
+  assert.equal(v.boundary.cloudMutations,false);
+  assert.equal(v.boundary.aiProvider,false);
+  assert.equal(v.boundary.localAdapterOnly,true);
+  assert.ok(v.quickActions.some(x=>x.id==='studio'));
+  assert.ok(v.quickActions.some(x=>x.id==='evidence'));
+});
+test('application source declares the purposeful command-center surfaces',async()=>{
+  const js=await(await fetch(url+'/app.js')).text();
+  assert.match(js,/data-quick-action/);
+  assert.match(js,/activity-feed/);
+  assert.match(js,/module-filter/);
+  assert.match(js,/data-studio-action/);
+});
 test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
@@ -55,7 +71,6 @@ test('holo plan is advisory and yields evidence',async()=>{
   const r=await(await run('holo',{snapshotId:'test',provenanceRef:'reference-01',intent:'test visualization'})).json();
   assert.equal(r.advisoryOnly,true); assert.equal(r.result.scene.safety.physicalActuation,false);
 });
-
 test('local image uploads validate signatures and persist between requests',async()=>{
  const bytes=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLttAAAAABJRU5ErkJggg==','base64');
  const result=await fetch(url+'/api/assets/upload',{method:'POST',headers:{'content-type':'image/png','x-file-name':'brand-icon.png'},body:bytes});
