@@ -16,6 +16,9 @@ Open http://127.0.0.1:4545. No npm install, global privileges, Docker daemon, or
 
 The static HTML also opens directly in a browser, with interactive catalog, navigation, branding, and local file preview. Functions that require Node show **Disconnected** instead of fabricated results.
 
+## Windows one-click launcher
+Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` directory. It checks for Node.js, starts the local server in a separate command window, and opens your default browser. The server stops when its console closes. No administrator privileges or Docker required.
+
 ## Implemented
 - Home, real maintained-module catalog, structured search, detail inspector.
 - Workflow Studio with authenticated exports: Cloud Run argument **planning only**, Holographic scene **planning only**, and frontend mask normalization.
