@@ -26,7 +26,7 @@ test('catalog is based on actual maintained library capabilities', async()=>{
   const v=await (await fetch(url+'/api/modules')).json();
   assert.ok(v.modules.length >= 8); assert.ok(v.modules.some(m=>m.id==='runtime'));
 });
-test('reference registry is present and explicit about missing binaries',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);assert.match(v.note,/not yet in the GitHub tree/);});
+test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
   assert.equal(v.executed,false); assert.equal(v.result[0],'run'); assert.equal(v.result[1],'deploy');

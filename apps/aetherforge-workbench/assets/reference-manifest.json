@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "brand": "ÆtherForge",
   "date": "2026-10-14",
-  "note": "User-supplied original PNG sources. Checksums and dimensions recorded here; the original binary files are not yet in the GitHub tree. The shipped UI presently includes faithful vector derivatives, and the full originals are supplied separately.",
+  "note": "All six user-supplied PNG originals are preserved in the separate downloadable source ZIP. This GitHub branch includes optimized WebP versions of all six renders plus SVG derivatives. The originals' exact checksums and dimensions are recorded below.",
   "sources": [
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_55_59 PM-1.png",
@@ -10,7 +10,9 @@
       "width": 1491,
       "height": 1055,
       "bytes": 2371226,
-      "sha256": "8f64abf609481811d3f7f0b155931ee6ba9da64ff9b859083bf22a631f8f9d2f"
+      "sha256": "8f64abf609481811d3f7f0b155931ee6ba9da64ff9b859083bf22a631f8f9d2f",
+      "optimizedRepoPath": "assets/references/brand-identity-board.webp",
+      "optimizedReady": true
     },
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_55_59 PM-2.png",
@@ -18,7 +20,9 @@
       "width": 1672,
       "height": 941,
       "bytes": 2544695,
-      "sha256": "7d2cafb33004adf7b234284b136713caebc6d012354991404c6e295e0ecb2b95"
+      "sha256": "7d2cafb33004adf7b234284b136713caebc6d012354991404c6e295e0ecb2b95",
+      "optimizedRepoPath": "assets/references/desktop-ui-concept.webp",
+      "optimizedReady": true
     },
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_56_06 PM-3.png",
@@ -26,7 +30,9 @@
       "width": 941,
       "height": 1672,
       "bytes": 2664751,
-      "sha256": "214c1b0f45bdfd9965eb0492d42e622f26556edb6fd546752d30d9b6a1c0ad38"
+      "sha256": "214c1b0f45bdfd9965eb0492d42e622f26556edb6fd546752d30d9b6a1c0ad38",
+      "optimizedRepoPath": "assets/references/mobile-ui-concept.webp",
+      "optimizedReady": true
     },
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_56_24 PM-1.png",
@@ -34,7 +40,9 @@
       "width": 1448,
       "height": 1086,
       "bytes": 2141726,
-      "sha256": "cc8fc5814238e5e9930edb3effff6a8597e13612dccb28b13af85485e500c42e"
+      "sha256": "cc8fc5814238e5e9930edb3effff6a8597e13612dccb28b13af85485e500c42e",
+      "optimizedRepoPath": "assets/references/primary-logo.webp",
+      "optimizedReady": true
     },
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_56_25 PM-2.png",
@@ -42,7 +50,9 @@
       "width": 1254,
       "height": 1254,
       "bytes": 2159937,
-      "sha256": "cfc7e8c0c3adc687ff7cc2bf0090a9cae37f3d856d94d6a99633b5a1420cacb0"
+      "sha256": "cfc7e8c0c3adc687ff7cc2bf0090a9cae37f3d856d94d6a99633b5a1420cacb0",
+      "optimizedRepoPath": "assets/references/orbit-emblem.webp",
+      "optimizedReady": true
     },
     {
       "name": "ChatGPT Image Oct 14, 2026, 05_56_26 PM-3.png",
@@ -50,7 +60,9 @@
       "width": 1254,
       "height": 1254,
       "bytes": 2502849,
-      "sha256": "c9faefb1e598d9e629822572146f5853c5adfe936b1940f19d9fc11de65b39a4"
+      "sha256": "c9faefb1e598d9e629822572146f5853c5adfe936b1940f19d9fc11de65b39a4",
+      "optimizedRepoPath": "assets/references/app-icon.webp",
+      "optimizedReady": true
     }
   ]
 }

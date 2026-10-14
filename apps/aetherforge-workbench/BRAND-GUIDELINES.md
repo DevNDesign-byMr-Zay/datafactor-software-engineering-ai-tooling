@@ -11,7 +11,7 @@
 - Emblem: assets/aetherforge-emblem.svg — standalone orbit AE interpretation.
 - App icon: assets/aetherforge-icon.svg — rounded midnight-blue square with cyan-violet border.
 
-All SVGs are authored vector derivatives of the user-approved reference direction. The supplied raster sources are inventoried in assets/reference-manifest.json with exact checksums and dimensions. The original PNG bytes are not claimed as committed.
+All SVGs are authored vector derivatives of the user-approved reference direction. All six optimized WebP derivatives are committed under assets/references/. The original PNG source bytes are preserved in the separate supplied archive, and their checksums/dimensions are recorded in assets/reference-manifest.json.
 
 ## Palette
 | Token | Value | Purpose |

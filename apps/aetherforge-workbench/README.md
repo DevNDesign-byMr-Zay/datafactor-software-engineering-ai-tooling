@@ -47,7 +47,7 @@ Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` dire
 Before considering merge also run the unchanged repository quality gates (npm run check, Python tests, audits, fresh clone and Docker verification). Do not merge on faith; the PR is a review checkpoint.
 
 ## Source artwork
-The three repository SVG assets in assets/ are new lightweight vector derivatives of the supplied AE/AetherForge direction, not pixel-perfect conversions of the submitted raster renders. Original high-resolution boards should be preserved alongside the provided build ZIP; raster references are not required at app runtime.
+The three repository SVG assets in assets/ are new lightweight vector derivatives of the supplied direction. All six user-supplied brand/UI renders are also shipped under assets/references/ as optimized WebP files and display automatically in the Asset Studio. The original full-resolution PNGs remain preserved separately in the provided source ZIP; raster reference provenance is recorded in assets/reference-manifest.json.
 
 ## Design tokens
 Background #081223; surfaces #0D1E3A; Electric Cyan #27D6FF; Forge Blue #3A88FF; Violet Pulse #8A5CFF; Soft Silver #D9E7FF; Slate Steel #5B6E91.

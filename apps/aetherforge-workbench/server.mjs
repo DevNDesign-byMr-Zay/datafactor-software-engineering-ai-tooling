@@ -12,6 +12,12 @@ import {
 
 const root = dirname(fileURLToPath(import.meta.url));
 const staticRoutes = new Map([
+  ['/assets/references/app-icon.webp', ['assets/references/app-icon.webp', 'image/webp']],
+  ['/assets/references/brand-identity-board.webp', ['assets/references/brand-identity-board.webp', 'image/webp']],
+  ['/assets/references/desktop-ui-concept.webp', ['assets/references/desktop-ui-concept.webp', 'image/webp']],
+  ['/assets/references/mobile-ui-concept.webp', ['assets/references/mobile-ui-concept.webp', 'image/webp']],
+  ['/assets/references/orbit-emblem.webp', ['assets/references/orbit-emblem.webp', 'image/webp']],
+  ['/assets/references/primary-logo.webp', ['assets/references/primary-logo.webp', 'image/webp']],
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/app.css', ['app.css', 'text/css; charset=utf-8']],
