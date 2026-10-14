@@ -75,7 +75,7 @@ function runAction(body) {
     default: throw new TypeError('Unsupported workflow');
   }
 }
-export function createWorkbenchServer({assetRoot = join(root,'.local-assets')} = {}) {
+export function createWorkbenchServer({assetRoot = process.env.AETHERFORGE_DATA_DIR || join(root,'.local-assets')} = {}) {
   return createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://127.0.0.1');
