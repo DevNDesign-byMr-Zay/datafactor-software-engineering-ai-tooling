@@ -20,6 +20,8 @@ async function run(action, inputs) {
 test('serves branded application with no unsafe inline scripts',async()=>{
   const p=await fetch(url); const html=await p.text();
   assert.equal(p.status,200); assert.match(html,/ÆtherForge/);
+  assert.match(html,/app-v2\.css/);
+  assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
 test('catalog is based on actual maintained library capabilities', async()=>{
