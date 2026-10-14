@@ -22,6 +22,7 @@ test('catalog is based on actual maintained library capabilities', async()=>{
   const v=await (await fetch(url+'/api/modules')).json();
   assert.ok(v.modules.length >= 8); assert.ok(v.modules.some(m=>m.id==='runtime'));
 });
+test('reference registry is present and explicit about missing binaries',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);assert.match(v.note,/not yet in the GitHub tree/);});
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
   assert.equal(v.executed,false); assert.equal(v.result[0],'run'); assert.equal(v.result[1],'deploy');
