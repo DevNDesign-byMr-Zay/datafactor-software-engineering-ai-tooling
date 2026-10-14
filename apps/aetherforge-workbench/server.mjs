@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { saveLocalAsset, listLocalAssets, getLocalAsset } from './asset-store.mjs';
 import {
   buildCloudRunDeployArgs, clampBrushSize, clampFeather,
   normalizeBrushShape, computeStrokeSteps,
@@ -74,7 +75,7 @@ function runAction(body) {
     default: throw new TypeError('Unsupported workflow');
   }
 }
-export function createWorkbenchServer() {
+export function createWorkbenchServer({assetRoot = join(root,'.local-assets')} = {}) {
   return createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://127.0.0.1');
@@ -93,6 +94,23 @@ export function createWorkbenchServer() {
         }
         try { return respond(res, 200, runAction(JSON.parse(raw))); }
         catch { return respond(res, 422, {error:'Invalid workflow input. Review the required fields.'}); }
+      }
+      if(req.method==='GET' && url.pathname==='/api/assets'){
+        return respond(res,200,{assets:await listLocalAssets(assetRoot)});
+      }
+      if(req.method==='GET' && url.pathname.startsWith('/api/assets/')){
+        const id=url.pathname.slice('/api/assets/'.length);
+        if(!/^[a-f0-9]{64}\.(?:png|jpg|webp)$/.test(id))return respond(res,404,{error:'Invalid asset'});
+        try{const data=await getLocalAsset(assetRoot,id);return respond(res,200,data.bytes,data.mime);}
+        catch{return respond(res,404,{error:'Asset not found'});}
+      }
+      if(req.method==='POST' && url.pathname==='/api/assets/upload'){
+        const mime=String(req.headers['content-type']||'').trim();
+        let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}
+        const chunks=[];let size=0;
+        for await(const chunk of req){size+=chunk.length;if(size>6*1024*1024)return respond(res,413,{error:'File too large'});chunks.push(chunk);}
+        try{const item=await saveLocalAsset(assetRoot,Buffer.concat(chunks),name,mime);return respond(res,201,{asset:item});}
+        catch{return respond(res,415,{error:'File type, signature or size not supported'});}
       }
       const asset = staticRoutes.get(url.pathname);
       if (req.method === 'GET' && asset) {
