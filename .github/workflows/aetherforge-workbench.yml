@@ -1,0 +1,39 @@
+name: ÆtherForge Companion CI
+on:
+  push:
+    paths:
+      - 'apps/aetherforge-workbench/**'
+      - '.github/workflows/aetherforge-workbench.yml'
+  pull_request:
+    paths:
+      - 'apps/aetherforge-workbench/**'
+      - '.github/workflows/aetherforge-workbench.yml'
+permissions:
+  contents: read
+jobs:
+  workbench:
+    name: Companion UI Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: |
+          node --check apps/aetherforge-workbench/app.js
+          node --check apps/aetherforge-workbench/server.mjs
+          node --check apps/aetherforge-workbench/server.test.mjs
+      - name: Companion integration tests against maintained exports
+        run: node --test apps/aetherforge-workbench/server.test.mjs
+      - name: Verify isolation boundary
+        shell: bash
+        run: |
+          test -f apps/aetherforge-workbench/assets/aetherforge-logo.svg
+          test -f apps/aetherforge-workbench/assets/aetherforge-emblem.svg
+          test -f apps/aetherforge-workbench/assets/aetherforge-icon.svg
+          test -f apps/aetherforge-workbench/index.html
+          test -f apps/aetherforge-workbench/app.css
+          test -f apps/aetherforge-workbench/app.js
+          git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json src/ python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
