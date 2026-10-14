@@ -24,9 +24,15 @@ Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` dire
 - Workflow Studio with authenticated exports: Cloud Run argument **planning only**, Holographic scene **planning only**, and frontend mask normalization.
 - Evidence Center for uploading JSON receipts, fingerprint comparison using the existing library, and exporting the resulting verdict.
 - Sustainability Lab using real library math for user-supplied energy and duration inputs.
-- Asset Studio: previews local image files without uploading them to a server; shows shipped brand assets.
+- Asset Studio: previews shipped brand assets; securely stores PNG/JPEG/WebP files in a private localhost-only data directory when connected. With no adapter, selection is temporary and is not persisted.
 - About/settings, accessible navigation, responsive layouts, reduced motion support, dark/light theme.
 - Server binds to 127.0.0.1; request body and route allowlists; no external calls or storage; CSP and no directory traversal.
+
+## Local asset persistence
+- PNG, JPEG and WebP up to 6 MiB are accepted only at the loopback server with matching file signatures.
+- The private data folder is `apps/aetherforge-workbench/.local-assets/` (Git-ignored). Use `AETHERFORGE_DATA_DIR` for a future custom data directory only after setting an approved local path; the current default is local to the app.
+- Assets are indexed by content hash and persist between server restarts. No cloud provider is called and no source repository modification occurs.
+- Backup or delete `.local-assets/` explicitly to manage the locally held files. The root library storage API is not replaced.
 
 ## Architecture boundary
 - All real computation imports only existing maintained exports from ../../src/index.js.

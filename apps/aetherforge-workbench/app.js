@@ -91,7 +91,7 @@ function assets(){
  section('Shipped vector assets','Each image is included within this interface')+
  '<div class="preview-grid" id="assetGrid">'+assetCards()+'</div>'+registered+
  section('Local preview uploads','No file is transmitted or persisted')+
- '<label class="upload-zone"><span class="icon-tile">⇧</span><strong>Choose images to preview</strong><span>PNG, JPEG, WebP or SVG · up to 10 MB each · files stay in your browser session</span><input type="file" id="assetUpload" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple></label><div class="callout row-gap"><b>Assets vs runtime:</b> the three vector SVGs are shipped with the app. User-selected images are temporary previews; permanent cloud upload and storage need an authenticated storage provider and are not enabled.</div>',
+ '<label class="upload-zone"><span class="icon-tile">⇧</span><strong>Choose images to preview</strong><span>PNG, JPEG or WebP · 6 MiB maximum · local adapter stores securely on your device</span><input type="file" id="assetUpload" accept="image/png,image/jpeg,image/webp" multiple></label><div class="callout row-gap"><b>Assets vs runtime:</b> the three vector SVGs are shipped with the app. When the local server is connected, user-selected images persist in its private local data folder; without it, they are session-only. No cloud upload is enabled.</div>',
  'Asset Studio','LOGO · EMBLEM · APPLICATION ICON','SESSION PREVIEW');
 }
 function assistant(){
@@ -145,10 +145,17 @@ async function verifyEvidence(){
  let receipt;try{receipt=JSON.parse(value('receiptText'));}catch{showToast('Paste a valid JSON receipt.');return;}
  await execute('receipt',{receipt,receiptFingerprint:value('receiptFingerprint'),previousFingerprint:value('previousFingerprint')});
 }
-function loadAssets(files){
- const allowed=new Set(['image/png','image/jpeg','image/webp','image/svg+xml']);
- for(const f of files){if(!allowed.has(f.type)||f.size>10*1024*1024){showToast('Unsupported image or file too large: '+f.name);continue;}state.uploadAssets.push({name:f.name,url:URL.createObjectURL(f),bytes:f.size});}
- state.page='assets';render();showToast('Added to your current session preview. Nothing was uploaded.');
+async function loadAssets(files){
+ const allowed=new Set(['image/png','image/jpeg','image/webp']);
+ let count=0;
+ for(const f of files){
+  if(!allowed.has(f.type)||f.size>6*1024*1024){showToast('Please choose a PNG, JPEG or WebP under 6 MiB.');continue;}
+  if(state.connected){
+   try{const result=await fetch('/api/assets/upload',{method:'POST',headers:{'content-type':f.type,'x-file-name':encodeURIComponent(f.name)},body:f});if(!result.ok)throw new Error('Upload was rejected');const data=await result.json();if(!state.uploadAssets.some(x=>x.url===data.asset.url))state.uploadAssets.push({name:data.asset.name,url:data.asset.url,bytes:data.asset.size});count++;}
+   catch{showToast('Image could not be stored locally.');}
+  }else{state.uploadAssets.push({name:f.name,url:URL.createObjectURL(f),bytes:f.size});count++;}
+ }
+ state.page='assets';render();if(count)showToast(state.connected?'Images stored in local ÆtherForge data folder.':'Temporary preview only — start local server for persistence.');
 }
 function guide(){
  const q=value('guideInput').toLowerCase();if(!q.trim()){showToast('Enter an engineering question.');return;}
@@ -208,6 +215,7 @@ async function boot(){
   const h=await health.json();const m=await catalog.json();
   if(h.adapter!=='ready'||!Array.isArray(m.modules))throw new Error('Invalid adapter response');
   state.connected=true;state.modules=m.modules;
+  try{const stored=await fetch('/api/assets',{signal:controller.signal});if(stored.ok)state.uploadAssets=(await stored.json()).assets.map(x=>({name:x.name,url:x.url,bytes:x.size}));}catch{}
   try{const refResponse=await fetch('/assets/reference-manifest.json',{signal:controller.signal});if(refResponse.ok)state.referenceManifest=await refResponse.json();}catch{}
  }catch{state.connected=false;state.modules=defaults;}
  const badge=document.querySelector('#connectionBadge'),foot=document.querySelector('#sidebarStatus'),dot=document.querySelector('#sidebarDot');
