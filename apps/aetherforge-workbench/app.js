@@ -11,7 +11,7 @@ const defaults = [
  ['storage','Cloud File Workflow','Storage','./index','Safe upload, signed access and chat boundaries'],
  ['observability','Observability','Reliability','./json-logger','Structured logging and bounded error reporting']
 ].map(a=>({id:a[0],name:a[1],category:a[2],path:a[3],description:a[4]}));
-const state = {page:'overview', connected:false, modules:defaults, activeModule:null, uploadAssets:[], evidence:null, lastReport:null, search:''};
+const state = {page:'overview', connected:false, modules:defaults, activeModule:null, uploadAssets:[], referenceManifest:null, evidence:null, lastReport:null, search:''};
 const titleMap={overview:'Overview',modules:'Module Library',studio:'Workflow Studio',evidence:'Evidence Center',sustainability:'Sustainability Lab',assets:'Asset Studio',assistant:'AI Assistant',settings:'Settings & About'};
 const subMap={
  overview:'Your engineering cockpit · develop, verify and evolve with measurable confidence.',
@@ -85,9 +85,11 @@ function assetCards(){
  state.uploadAssets.map((a,i)=>'<div class="asset-card"><img src="'+a.url+'" alt="Session preview '+(i+1)+'"><div><strong>'+esc(a.name)+'</strong><small>Local session preview · '+Math.round(a.bytes/1024)+' KB</small></div></div>').join('');
 }
 function assets(){
+ const uncommitted = state.referenceManifest?.sources || [];
+ const registered = uncommitted.length ? '<div class="panel row-gap"><h3>Original raster source registry</h3><p>All six uploaded references are fingerprint-inventoried. Their original PNG bytes are not yet in GitHub; the vectors above are shipped and usable today.</p><div class="module-list">'+uncommitted.map(f=>'<div class="module-row" style="cursor:default"><span class="icon-tile">▣</span><span><strong>'+esc(f.role.replaceAll('-',' '))+'</strong><small>'+esc(f.name)+'</small></span><em style="color:var(--orange)">Pending PNG</em></div>').join('')+'</div></div>':'';
  return content('<div class="panel"><img class="brand-lockup" src="./assets/aetherforge-logo.svg" alt="ÆtherForge wordmark"><h3>Approved visual direction</h3><p>Gunmetal-silver structure, electric cyan precision, violet orbital intelligence and midnight-blue system surfaces.</p><div class="brand-system"><div class="swatch" style="background:#081223">#081223</div><div class="swatch" style="background:#0D1E3A">#0D1E3A</div><div class="swatch" style="background:#27D6FF;color:#051124">#27D6FF</div><div class="swatch" style="background:#3A88FF">#3A88FF</div><div class="swatch" style="background:#8A5CFF">#8A5CFF</div><div class="swatch" style="background:#5B6E91">#5B6E91</div></div></div>'+
  section('Shipped vector assets','Each image is included within this interface')+
- '<div class="preview-grid" id="assetGrid">'+assetCards()+'</div>'+
+ '<div class="preview-grid" id="assetGrid">'+assetCards()+'</div>'+registered+
  section('Local preview uploads','No file is transmitted or persisted')+
  '<label class="upload-zone"><span class="icon-tile">⇧</span><strong>Choose images to preview</strong><span>PNG, JPEG, WebP or SVG · up to 10 MB each · files stay in your browser session</span><input type="file" id="assetUpload" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple></label><div class="callout row-gap"><b>Assets vs runtime:</b> the three vector SVGs are shipped with the app. User-selected images are temporary previews; permanent cloud upload and storage need an authenticated storage provider and are not enabled.</div>',
  'Asset Studio','LOGO · EMBLEM · APPLICATION ICON','SESSION PREVIEW');
@@ -206,6 +208,7 @@ async function boot(){
   const h=await health.json();const m=await catalog.json();
   if(h.adapter!=='ready'||!Array.isArray(m.modules))throw new Error('Invalid adapter response');
   state.connected=true;state.modules=m.modules;
+  try{const refResponse=await fetch('/assets/reference-manifest.json',{signal:controller.signal});if(refResponse.ok)state.referenceManifest=await refResponse.json();}catch{}
  }catch{state.connected=false;state.modules=defaults;}
  const badge=document.querySelector('#connectionBadge'),foot=document.querySelector('#sidebarStatus'),dot=document.querySelector('#sidebarDot');
  badge.textContent=state.connected?'LOCAL ADAPTER CONNECTED':'OFFLINE PREVIEW';badge.classList.toggle('online',state.connected);
