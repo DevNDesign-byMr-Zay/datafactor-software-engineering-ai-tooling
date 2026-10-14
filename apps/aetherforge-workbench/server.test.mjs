@@ -21,6 +21,7 @@ test('serves branded application with no unsafe inline scripts',async()=>{
   const p=await fetch(url); const html=await p.text();
   assert.equal(p.status,200); assert.match(html,/ÆtherForge/);
   assert.match(html,/app-v2\.css/);
+  assert.match(html,/app-behavior\.js/);
   assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
@@ -39,10 +40,13 @@ test('command-center summary exposes only truthful local capabilities',async()=>
 });
 test('application source declares the purposeful command-center surfaces',async()=>{
   const js=await(await fetch(url+'/app.js')).text();
+  const guard=await(await fetch(url+'/app-behavior.js')).text();
   assert.match(js,/data-quick-action/);
   assert.match(js,/activity-feed/);
   assert.match(js,/module-filter/);
   assert.match(js,/data-studio-action/);
+  assert.match(guard,/stopImmediatePropagation/);
+  assert.match(guard,/globalSearch/);
 });
 test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
 test('cloud path plans but never executes', async()=>{
