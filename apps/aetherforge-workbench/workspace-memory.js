@@ -40,17 +40,19 @@
   };
   const pinButton = () => {
     const detail = document.querySelector('#moduleDetail .detail-box');
-    if (!detail || detail.querySelector('[data-pin-module]')) return;
+    if (!detail) return;
     const last = (() => { try { return JSON.parse(sessionStorage.getItem(LAST_MODULE_KEY) || 'null'); } catch { return null; } })();
     if (!last?.id) return;
     const toolbar = detail.querySelector('.toolbar');
     if (!toolbar) return;
-    const button = document.createElement('button');
-    const pinned = pins().some(item => item.id === last.id);
-    button.className = 'btn secondary small pin-module';
-    button.dataset.pinModule = last.id;
-    button.textContent = pinned ? 'Unpin capability' : 'Pin capability';
-    toolbar.prepend(button);
+    let button = toolbar.querySelector('[data-pin-module]');
+    if (!button) {
+      button = document.createElement('button');
+      button.className = 'btn secondary small pin-module';
+      button.dataset.pinModule = last.id;
+      toolbar.prepend(button);
+    }
+    button.textContent = pins().some(item => item.id === last.id) ? 'Unpin capability' : 'Pin capability';
   };
   const workspacePanel = () => {
     const content = document.querySelector('#main .content');
