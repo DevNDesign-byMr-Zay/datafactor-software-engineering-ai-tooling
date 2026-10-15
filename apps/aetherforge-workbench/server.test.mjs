@@ -25,6 +25,7 @@ test('serves branded application with no unsafe inline scripts',async()=>{
   assert.match(html,/workspace-memory\.js/);
   assert.match(html,/command-rail\.js/);
   assert.match(html,/workflow-studio\.js/);
+  assert.match(html,/workflow-studio-export\.js/);
   assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
@@ -95,7 +96,7 @@ test('Workflow Studio validation blocks empty required identifiers before adapte
   const js=await(await fetch(url+'/workflow-studio.js')).text();
   assert.match(js,/required workflow input/i);
   assert.match(js,/validation-error/);
-  assert.match(js,/state.*workflowStage.*validate|setStage\('validate'\)/);
+  assert.match(js,/setStage\('validate'\)/);
 });
 test('Workflow Studio presets populate inputs without executing workflows',async()=>{
   const js=await(await fetch(url+'/workflow-studio.js')).text();
@@ -103,6 +104,14 @@ test('Workflow Studio presets populate inputs without executing workflows',async
   assert.match(js,/dispatchEvent\(new Event\('input'/);
   assert.match(js,/executeWorkflow/);
   assert.match(js,/applyPreset\([^)]*true/);
+});
+test('Workflow Studio export remains scoped to the instrument result',async()=>{
+  const js=await(await fetch(url+'/workflow-studio-export.js')).text();
+  assert.match(js,/workflowStudioInstrument/);
+  assert.match(js,/workflowOutput/);
+  assert.match(js,/data-download/);
+  assert.match(js,/URL\.createObjectURL/);
+  assert.match(js,/aetherforge-\$\{action\}-result\.json/);
 });
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
