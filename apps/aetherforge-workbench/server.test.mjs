@@ -24,6 +24,7 @@ test('serves branded application with no unsafe inline scripts',async()=>{
   assert.match(html,/app-behavior\.js/);
   assert.match(html,/workspace-memory\.js/);
   assert.match(html,/command-rail\.js/);
+  assert.match(html,/workflow-studio\.js/);
   assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
@@ -73,8 +74,10 @@ test('command rail provides truthful local navigation suggestions',async()=>{
   assert.match(css,/\.command-result/);
 });
 test('Workflow Studio exposes staged validation, presets and result inspection',async()=>{
-  const js=await(await fetch(url+'/app.js')).text();
+  const js=await(await fetch(url+'/workflow-studio.js')).text();
+  const html=await(await fetch(url+'/')).text();
   const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(html,/workflow-studio\.js/);
   assert.match(js,/workflow-stage/);
   assert.match(js,/data-workflow-stage/);
   assert.match(js,/validateWorkflow/);
@@ -89,17 +92,17 @@ test('Workflow Studio exposes staged validation, presets and result inspection',
   assert.match(css,/\.workflow-history/);
 });
 test('Workflow Studio validation blocks empty required identifiers before adapter calls',async()=>{
-  const js=await(await fetch(url+'/app.js')).text();
+  const js=await(await fetch(url+'/workflow-studio.js')).text();
   assert.match(js,/required workflow input/i);
   assert.match(js,/validation-error/);
-  assert.match(js,/state\.workflowStage='validate'/);
+  assert.match(js,/state.*workflowStage.*validate|setStage\('validate'\)/);
 });
 test('Workflow Studio presets populate inputs without executing workflows',async()=>{
-  const js=await(await fetch(url+'/app.js')).text();
+  const js=await(await fetch(url+'/workflow-studio.js')).text();
   assert.match(js,/applyPreset/);
   assert.match(js,/dispatchEvent\(new Event\('input'/);
-  assert.match(js,/execute\(name,inputs\)/);
-  assert.match(js,/applyPreset\([^)]*false/);
+  assert.match(js,/executeWorkflow/);
+  assert.match(js,/applyPreset\([^)]*true/);
 });
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
