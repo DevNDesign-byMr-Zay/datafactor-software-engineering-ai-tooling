@@ -23,6 +23,7 @@ test('serves branded application with no unsafe inline scripts',async()=>{
   assert.match(html,/app-v2\.css/);
   assert.match(html,/app-behavior\.js/);
   assert.match(html,/workspace-memory\.js/);
+  assert.match(html,/command-rail\.js/);
   assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
@@ -59,6 +60,17 @@ test('workspace navigation remembers pins and recent work locally',async()=>{
   const css=await(await fetch(url+'/app-v2.css')).text();
   assert.match(css,/\.workspace-memory/);
   assert.match(css,/\.pin-module/);
+});
+test('command rail provides truthful local navigation suggestions',async()=>{
+  const js=await(await fetch(url+'/command-rail.js')).text();
+  assert.match(js,/command-rail/);
+  assert.match(js,/api\/modules/);
+  assert.match(js,/Workflow Studio/);
+  assert.match(js,/Module Library/);
+  assert.match(js,/data-command-result/);
+  const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(css,/\.command-rail/);
+  assert.match(css,/\.command-result/);
 });
 test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
 test('cloud path plans but never executes', async()=>{
