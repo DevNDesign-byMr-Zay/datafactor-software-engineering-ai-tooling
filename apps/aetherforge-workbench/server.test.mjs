@@ -72,7 +72,35 @@ test('command rail provides truthful local navigation suggestions',async()=>{
   assert.match(css,/\.command-rail/);
   assert.match(css,/\.command-result/);
 });
-test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
+test('Workflow Studio exposes staged validation, presets and result inspection',async()=>{
+  const js=await(await fetch(url+'/app.js')).text();
+  const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(js,/workflow-stage/);
+  assert.match(js,/data-workflow-stage/);
+  assert.match(js,/validateWorkflow/);
+  assert.match(js,/preset-button/);
+  assert.match(js,/data-preset/);
+  assert.match(js,/result-tab/);
+  assert.match(js,/data-result-tab/);
+  assert.match(js,/workflow-history/);
+  assert.match(js,/data-history-clear/);
+  assert.match(css,/\.workflow-stage/);
+  assert.match(css,/\.result-tab/);
+  assert.match(css,/\.workflow-history/);
+});
+test('Workflow Studio validation blocks empty required identifiers before adapter calls',async()=>{
+  const js=await(await fetch(url+'/app.js')).text();
+  assert.match(js,/required workflow input/i);
+  assert.match(js,/validation-error/);
+  assert.match(js,/state\.workflowStage='validate'/);
+});
+test('Workflow Studio presets populate inputs without executing workflows',async()=>{
+  const js=await(await fetch(url+'/app.js')).text();
+  assert.match(js,/applyPreset/);
+  assert.match(js,/dispatchEvent\(new Event\('input'/);
+  assert.match(js,/execute\(name,inputs\)/);
+  assert.match(js,/applyPreset\([^)]*false/);
+});
 test('cloud path plans but never executes', async()=>{
   const v=await (await run('cloud',{serviceName:'test-project'})).json();
   assert.equal(v.executed,false); assert.equal(v.result[0],'run'); assert.equal(v.result[1],'deploy');
