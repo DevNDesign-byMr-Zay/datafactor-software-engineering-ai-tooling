@@ -22,6 +22,7 @@ test('serves branded application with no unsafe inline scripts',async()=>{
   assert.equal(p.status,200); assert.match(html,/ÆtherForge/);
   assert.match(html,/app-v2\.css/);
   assert.match(html,/app-behavior\.js/);
+  assert.match(html,/workspace-memory\.js/);
   assert.match(html,/mobile-nav/);
   assert.match(p.headers.get('content-security-policy'),/script-src 'self'/);
 });
@@ -47,6 +48,17 @@ test('application source declares the purposeful command-center surfaces',async(
   assert.match(js,/data-studio-action/);
   assert.match(guard,/stopImmediatePropagation/);
   assert.match(guard,/globalSearch/);
+});
+test('workspace navigation remembers pins and recent work locally',async()=>{
+  const js=await(await fetch(url+'/workspace-memory.js')).text();
+  assert.match(js,/aetherforge-pinned-modules/);
+  assert.match(js,/aetherforge-recent-pages/);
+  assert.match(js,/workspace-memory/);
+  assert.match(js,/pin-module/);
+  assert.match(js,/localStorage/);
+  const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(css,/\.workspace-memory/);
+  assert.match(css,/\.pin-module/);
 });
 test('all six optimized reference files are served and inventoried',async()=>{const v=await(await fetch(url+'/assets/reference-manifest.json')).json();assert.equal(v.sources.length,6);for(const name of ['app-icon','brand-identity-board','desktop-ui-concept','mobile-ui-concept','orbit-emblem','primary-logo']){const response=await fetch(url+'/assets/references/'+name+'.webp');assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/webp');assert.ok((await response.arrayBuffer()).byteLength>1000);}});
 test('cloud path plans but never executes', async()=>{
