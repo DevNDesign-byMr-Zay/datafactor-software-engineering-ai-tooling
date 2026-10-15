@@ -29,6 +29,7 @@ jobs:
           node --check apps/aetherforge-workbench/server.test.mjs
           node --check apps/aetherforge-workbench/workspace-memory.js
           node --check apps/aetherforge-workbench/command-rail.js
+          node --check apps/aetherforge-workbench/workflow-studio.js
       - name: Companion integration tests against maintained exports
         run: node --test apps/aetherforge-workbench/server.test.mjs
       - name: Verify isolation boundary
@@ -42,4 +43,5 @@ jobs:
           test -f apps/aetherforge-workbench/app.js
           test -f apps/aetherforge-workbench/workspace-memory.js
           test -f apps/aetherforge-workbench/command-rail.js
+          test -f apps/aetherforge-workbench/workflow-studio.js
           git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json src/ python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
