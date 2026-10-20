@@ -82,6 +82,43 @@ export function classifyEvidence(payload, receipt, currentFingerprint = '', prev
 }
 
 
+
+/**
+ * Each file is a complete replacement, never an incremental merge with prior
+ * evidence fields. This avoids silently inheriting an earlier fingerprint.
+ */
+export function normalizeEvidenceDocument(documentValue) {
+  if (!documentValue || typeof documentValue !== 'object' || Array.isArray(documentValue)) {
+    throw new TypeError('Receipt must be a JSON object.');
+  }
+  const receipt = Object.hasOwn(documentValue,'receipt') ? documentValue.receipt : documentValue;
+  if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
+    throw new TypeError('Receipt must be a JSON object.');
+  }
+  return {
+    receiptText: JSON.stringify(receipt,null,2),
+    receiptFingerprint: typeof documentValue.receiptFingerprint === 'string'
+      ? documentValue.receiptFingerprint : '',
+    previousFingerprint: typeof documentValue.previousFingerprint === 'string'
+      ? documentValue.previousFingerprint : ''
+  };
+}
+
+export async function readEvidenceFile(file) {
+  const limit = 64 * 1024;
+  if (!file || !Number.isFinite(file.size) || file.size < 0 || file.size > limit) {
+    throw new TypeError('Evidence file must be 64 KiB or smaller.');
+  }
+  const text = await file.text();
+  if (typeof text !== 'string' || new TextEncoder().encode(text).byteLength > limit) {
+    throw new TypeError('Evidence file exceeds the 64 KiB limit.');
+  }
+  let value;
+  try { value = JSON.parse(text); }
+  catch { throw new TypeError('Evidence file must contain valid JSON.'); }
+  return normalizeEvidenceDocument(value);
+}
+
 export function nextEvidenceTab(current, direction) {
   const index = TAB_NAMES.indexOf(current);
   const start = index < 0 ? 0 : index;
@@ -382,12 +419,45 @@ if (typeof document !== 'undefined') {
 
   document.addEventListener('change',event=>{
     if(!evidencePage() || event.target?.id!=='receiptFile')return;
-    pendingVersion++;
+    // The legacy app.js loader otherwise runs later in the bubble phase and
+    // can restore stale fingerprints. Evidence Center owns this file input.
+    event.stopImmediatePropagation();
+    const file=event.target.files?.[0];
+    const version=++pendingVersion;
     lastVerdict=null;
     const button=document.querySelector('#main #verifyEvidence');
-    if(button) button.disabled=false;
+    if(button)button.disabled=false;
+    const raw=document.querySelector('#main #evidenceOutput');
+    for(const key of ['receiptText','receiptFingerprint','previousFingerprint']){
+      const field=document.querySelector('#main #'+key);
+      if(field)field.value='';
+    }
     renderEvidence(classifyEvidence(null,null));
     setStage('load');
+    if(!file){
+      if(raw)raw.textContent='Select a JSON receipt to inspect.';
+      return;
+    }
+    if(raw)raw.textContent='Reading the selected receipt locally…';
+    void (async()=>{
+      try{
+        const normalized=await readEvidenceFile(file);
+        // A user edit, another file, or page navigation invalidates this load.
+        if(version!==pendingVersion || !evidencePage())return;
+        for(const key of ['receiptText','receiptFingerprint','previousFingerprint']){
+          const field=document.querySelector('#main #'+key);
+          if(field)field.value=normalized[key];
+        }
+        const receipt=JSON.parse(normalized.receiptText);
+        renderEvidence(classifyEvidence(null,receipt,normalized.receiptFingerprint,normalized.previousFingerprint));
+        setStage('normalize');
+        if(raw)raw.textContent='Evidence loaded locally. Review its receipt and fingerprints, then select Verify.';
+      }catch(error){
+        if(version!==pendingVersion || !evidencePage())return;
+        rejectLocally('Evidence file could not be loaded: '+String(error.message||error),null,'','');
+        setTab('decision');
+      }
+    })();
   },true);
 
   const root=document.querySelector('#main');
