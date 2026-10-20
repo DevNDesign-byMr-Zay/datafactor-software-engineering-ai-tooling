@@ -5,6 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createWorkbenchServer } from './server.mjs';
+import { classifyEvidence } from './evidence-center.js';
 let srv, url, assetRoot;
 test.before(async () => {
   assetRoot=await mkdtemp(join(tmpdir(),'aetherforge-assets-'));
@@ -152,4 +153,68 @@ test('local image uploads validate signatures and persist between requests',asyn
  const invalid=await fetch(url+'/api/assets/upload',{method:'POST',headers:{'content-type':'image/png','x-file-name':'fake.png'},body:Buffer.from('not a PNG')});
  assert.equal(invalid.status,415);
  assert.equal((await fetch(url+'/api/assets/../../server.mjs')).status,404);
+});
+
+test('Evidence Center 2.0 serves the four-stage visual instrument', async()=>{
+  const html=await(await fetch(url)).text();
+  const script=await fetch(url+'/evidence-center.js');
+  const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(html,/evidence-center\.js/);
+  assert.equal(script.status,200);
+  const source=await script.text();
+  assert.match(source,/evidence-stage-rail/);
+  assert.match(source,/data-evidence-tab/);
+  assert.match(source,/Why this result is trusted/);
+  assert.match(css,/\.evidence-instrument/);
+});
+
+test('Evidence classification remains unverified before an actual maintained-library response',()=>{
+  const model=classifyEvidence(null,{accepted:true},'a'.repeat(64));
+  assert.equal(model.verdict,'PENDING');
+  assert.equal(model.trusted,false);
+  assert.equal(model.authority,'NONE');
+});
+
+test('Evidence classification distinguishes changed evidence from deployment permission',()=>{
+  const finger='a'.repeat(64);
+  const prior='b'.repeat(64);
+  const model=classifyEvidence(
+    {status:'checked',authority:'none',result:{status:'changed',fingerprint:finger,reason:null}},
+    {accepted:true,service:{name:'example'}},finger,prior
+  );
+  assert.equal(model.verdict,'CHANGED');
+  assert.equal(model.trusted,true);
+  assert.equal(model.authority,'NONE');
+  assert.equal(model.checks.find(x=>x.id==='fingerprint').state,'verified');
+  assert.equal(model.checks.find(x=>x.id==='comparison').state,'verified');
+  assert.match(model.explanation,/not proof of source authenticity/i);
+});
+
+test('Evidence classification marks unchanged only when fingerprints agree',()=>{
+  const finger='c'.repeat(64);
+  const model=classifyEvidence(
+    {status:'checked',authority:'none',result:{status:'unchanged',fingerprint:finger,reason:null}},
+    {accepted:true},finger,finger
+  );
+  assert.equal(model.verdict,'UNCHANGED');
+  assert.equal(model.trusted,true);
+});
+
+test('Evidence classification fails closed for rejected or inconsistent verifier results',()=>{
+  const finger='d'.repeat(64);
+  const receipt={accepted:true};
+  const rejected=classifyEvidence(
+    {status:'checked',authority:'none',result:{status:'rejected',fingerprint:null,reason:'receipt fingerprint mismatch'}},
+    receipt,finger
+  );
+  assert.equal(rejected.verdict,'REJECTED');
+  assert.equal(rejected.trusted,false);
+  assert.match(rejected.reason,/mismatch/);
+  assert.notEqual(rejected.checks.find(x=>x.id==='fingerprint').state,'verified');
+  const inconsistent=classifyEvidence(
+    {status:'checked',authority:'deployment',result:{status:'unchanged',fingerprint:finger,reason:null}},
+    receipt,finger,'e'.repeat(64)
+  );
+  assert.equal(inconsistent.verdict,'REJECTED');
+  assert.equal(inconsistent.trusted,false);
 });
