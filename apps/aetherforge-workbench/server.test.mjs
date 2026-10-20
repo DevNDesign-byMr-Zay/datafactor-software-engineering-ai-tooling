@@ -5,6 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createWorkbenchServer } from './server.mjs';
+import { fingerprintRuntimeAcceptanceReceipt } from '../../src/index.js';
 import { classifyEvidence, nextEvidenceTab, exportEvidenceVerdict, normalizeEvidenceDocument, readEvidenceFile } from './evidence-center.js';
 let srv, url, assetRoot;
 test.before(async () => {
@@ -283,4 +284,27 @@ test('evidence file selection takes ownership of the change event and invalidate
   assert.match(source,/readEvidenceFile\(file\)/);
   assert.match(source,/version!==pendingVersion/);
   assert.match(source,/field\.value=normalized\[key\]/);
+});
+
+test('real maintained consumer classifies a canonical accepted receipt as unchanged or changed',async()=>{
+  const receipt={
+    contractVersion:1,
+    accepted:true,
+    service:{name:'aetherforge-example',region:'us-central1',latestReadyRevisionName:'aetherforge-example-00001',traffic:[],url:null},
+    bootstrap:{stage:'ready',readiness:[]},
+    releaseEvidence:{stage:'verified',exitCode:0}
+  };
+  const fingerprint=fingerprintRuntimeAcceptanceReceipt(receipt);
+  assert.match(fingerprint,/^[a-f0-9]{64}$/);
+  const unchanged=await(await run('receipt',{receipt,receiptFingerprint:fingerprint,previousFingerprint:fingerprint})).json();
+  assert.equal(unchanged.status,'checked');
+  assert.equal(unchanged.authority,'none');
+  assert.equal(unchanged.result.status,'unchanged');
+  assert.equal(unchanged.result.fingerprint,fingerprint);
+  const changed=await(await run('receipt',{receipt,receiptFingerprint:fingerprint,previousFingerprint:'0'.repeat(64)})).json();
+  assert.equal(changed.result.status,'changed');
+  assert.equal(changed.result.fingerprint,fingerprint);
+  const rejected=await(await run('receipt',{receipt,receiptFingerprint:'f'.repeat(64)})).json();
+  assert.equal(rejected.result.status,'rejected');
+  assert.equal(rejected.result.fingerprint,null);
 });
