@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createWorkbenchServer } from './server.mjs';
-import { classifyEvidence } from './evidence-center.js';
+import { classifyEvidence, nextEvidenceTab, exportEvidenceVerdict } from './evidence-center.js';
 let srv, url, assetRoot;
 test.before(async () => {
   assetRoot=await mkdtemp(join(tmpdir(),'aetherforge-assets-'));
@@ -217,4 +217,32 @@ test('Evidence classification fails closed for rejected or inconsistent verifier
   );
   assert.equal(inconsistent.verdict,'REJECTED');
   assert.equal(inconsistent.trusted,false);
+});
+
+test('Evidence inspector supports circular keyboard tab navigation',()=>{
+  assert.equal(nextEvidenceTab('decision',1),'receipt');
+  assert.equal(nextEvidenceTab('raw',1),'decision');
+  assert.equal(nextEvidenceTab('decision',-1),'raw');
+});
+
+test('Evidence verdict export preserves the lineage but not private receipt contents',()=>{
+  const fingerprint='f'.repeat(64);
+  const payload={status:'checked',authority:'none',result:{status:'changed',fingerprint,reason:null}};
+  const model=classifyEvidence(payload,{accepted:true,secret:'not-for-export'},fingerprint);
+  const exported=exportEvidenceVerdict(payload,model);
+  assert.equal(exported.currentFingerprint,fingerprint);
+  assert.equal(exported.previousFingerprint,null);
+  assert.equal(exported.decision.verdict,'CHANGED');
+  assert.equal(exported.decision.authority,'none');
+  assert.equal(JSON.stringify(exported).includes('not-for-export'),false);
+  assert.equal(Object.hasOwn(exported,'receipt'),false);
+});
+
+test('Evidence inspector explicitly displays fingerprint lineage and cancels stale input',async()=>{
+  const src=await(await fetch(url+'/evidence-center.js')).text();
+  const css=await(await fetch(url+'/app-v2.css')).text();
+  assert.match(src,/evidence-lineage/);
+  assert.match(src,/pendingVersion\+\+/);
+  assert.match(src,/button\.disabled=false/);
+  assert.match(css,/\.evidence-lineage/);
 });
