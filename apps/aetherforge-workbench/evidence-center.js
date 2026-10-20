@@ -81,6 +81,36 @@ export function classifyEvidence(payload, receipt, currentFingerprint = '', prev
   };
 }
 
+
+export function nextEvidenceTab(current, direction) {
+  const index = TAB_NAMES.indexOf(current);
+  const start = index < 0 ? 0 : index;
+  return TAB_NAMES[(start + TAB_NAMES.length + (direction < 0 ? -1 : 1)) % TAB_NAMES.length];
+}
+
+/** Minimal local export: includes fingerprints and verdict, but never the raw receipt. */
+export function exportEvidenceVerdict(payload, model) {
+  const response = payload?.status === 'checked' ? {
+    status: 'checked',
+    authority: payload.authority,
+    result: {
+      status: payload.result?.status,
+      fingerprint: payload.result?.fingerprint ?? null,
+      reason: payload.result?.reason ?? null
+    }
+  } : {status:'local-error',error:String(payload?.error || 'Not checked')};
+  return {
+    date: new Date().toISOString(),
+    action: 'receipt',
+    source: model.source,
+    currentFingerprint: model.current || null,
+    previousFingerprint: model.previous || null,
+    response,
+    decision: {verdict:model.verdict,reason:model.reason,authority:'none'},
+    caution: 'A matching submitted fingerprint does not authenticate the source or authorize deployment.'
+  };
+}
+
 if (typeof document !== 'undefined') {
   let lastVerdict = null;
   let pendingVersion = 0;
@@ -140,6 +170,7 @@ if (typeof document !== 'undefined') {
         : 'Accepted receipt checked · fingerprint change detected'
       : model.reason || 'No evidence has been checked.';
     dashboard.querySelector('#evidenceExplanation').textContent = model.explanation;
+    dashboard.querySelector('.evidence-explainer h4').textContent = model.trusted ? 'Why this result is trusted' : model.verdict === 'PENDING' ? 'How evidence is checked' : 'Why this result is not trusted';
     dashboard.querySelector('#evidenceAuthority').textContent = 'AUTHORITY: ' + model.authority;
     const checklist = dashboard.querySelector('#evidenceChecks');
     checklist.replaceChildren();
@@ -172,6 +203,15 @@ if (typeof document !== 'undefined') {
     appendRow(fingerprints,'Maintained consumer fingerprint',model.fingerprint || 'Not verified');
     appendRow(fingerprints,'Previous SHA-256',model.previous || 'Not supplied');
     appendRow(fingerprints,'Change decision',model.verdict);
+    const shortHash = value => value ? value.slice(0,12)+'…'+value.slice(-8) : 'Not provided';
+    dashboard.querySelector('#evidenceLineageReceipt').textContent = model.receipt?.service?.name || 'User-supplied receipt';
+    dashboard.querySelector('#evidenceLineageCurrent').textContent = shortHash(model.current);
+    dashboard.querySelector('#evidenceLineagePrevious').textContent = shortHash(model.previous);
+    dashboard.querySelector('#evidenceLineageDecision').textContent = model.verdict;
+    dashboard.querySelectorAll('.evidence-lineage-node').forEach(node => {
+      node.classList.toggle('checked',model.trusted);
+      node.classList.toggle('rejected',model.verdict==='REJECTED');
+    });
     setStage(model.verdict === 'PENDING' ? 'load' : model.trusted ? 'decision' : 'verify');
     const download = document.querySelector('#main .evidence-shell [data-download="report"]');
     if (download) download.disabled = !lastVerdict;
@@ -180,6 +220,8 @@ if (typeof document !== 'undefined') {
   function buildInstrument() {
     const shell=evidencePage();
     if (!shell || document.querySelector('#main #evidenceInstrument')) return;
+    lastVerdict=null;
+    pendingVersion++;
     const instrument=document.createElement('section');
     instrument.className='evidence-instrument panel';
     instrument.id='evidenceInstrument';
@@ -214,6 +256,14 @@ if (typeof document !== 'undefined') {
       '<div id="evidenceReceiptFields" class="evidence-data"></div></section>'+
       '<section class="evidence-panel" data-evidence-panel="fingerprint" role="tabpanel" hidden>'+
       '<p>SHA-256 fingerprints provide content identity comparisons, not signer identification.</p>'+
+      '<div class="evidence-lineage" aria-label="Evidence lineage from receipt to decision">'+
+      '<div class="evidence-lineage-node"><small>RECEIPT</small><strong id="evidenceLineageReceipt">User supplied</strong></div>'+
+      '<span class="evidence-lineage-arrow" aria-hidden="true">→</span>'+
+      '<div class="evidence-lineage-node"><small>CURRENT SHA-256</small><strong id="evidenceLineageCurrent">Not provided</strong></div>'+
+      '<span class="evidence-lineage-arrow" aria-hidden="true">↔</span>'+
+      '<div class="evidence-lineage-node"><small>PREVIOUS SHA-256</small><strong id="evidenceLineagePrevious">Not provided</strong></div>'+
+      '<span class="evidence-lineage-arrow" aria-hidden="true">→</span>'+
+      '<div class="evidence-lineage-node"><small>DECISION</small><strong id="evidenceLineageDecision">PENDING</strong></div></div>'+
       '<div id="evidenceFingerprintFields" class="evidence-data"></div></section>'+
       '<section class="evidence-panel" data-evidence-panel="raw" role="tabpanel" hidden></section>';
     raw.parentNode.insertBefore(dashboard,raw);
@@ -225,7 +275,7 @@ if (typeof document !== 'undefined') {
   function rejectLocally(message, receipt, current, previous) {
     const payload={status:'local-error',error:message};
     const model=classifyEvidence(payload,receipt,current,previous);
-    lastVerdict={date:new Date().toISOString(),action:'receipt',source:'local-precheck',response:payload,decision:{verdict:model.verdict,reason:model.reason,authority:'none'}};
+    lastVerdict=exportEvidenceVerdict(payload,model);
     const raw=document.querySelector('#main #evidenceOutput');
     if(raw)raw.textContent=JSON.stringify(lastVerdict,null,2);
     renderEvidence(model);
@@ -261,8 +311,7 @@ if (typeof document !== 'undefined') {
       if(currentVersion!==pendingVersion || !evidencePage())return;
       if (!response.ok) throw new Error(payload.error || 'Maintained verifier refused this request.');
       const model=classifyEvidence(payload,receipt,current,previous);
-      lastVerdict={date:new Date().toISOString(),action:'receipt',source:'maintained-library',
-        response:payload,decision:{verdict:model.verdict,reason:model.reason,authority:'none'}};
+      lastVerdict=exportEvidenceVerdict(payload,model);
       if(raw) raw.textContent=JSON.stringify(lastVerdict,null,2);
       renderEvidence(model);
       setTab('decision');
@@ -305,10 +354,26 @@ if (typeof document !== 'undefined') {
     }
   },true);
 
+  document.addEventListener('keydown',event=>{
+    if(!evidencePage() || !event.target?.matches?.('[data-evidence-tab]'))return;
+    let next;
+    if(event.key==='ArrowRight')next=nextEvidenceTab(event.target.dataset.evidenceTab,1);
+    else if(event.key==='ArrowLeft')next=nextEvidenceTab(event.target.dataset.evidenceTab,-1);
+    else if(event.key==='Home')next='decision';
+    else if(event.key==='End')next='raw';
+    if(!next)return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    setTab(next);
+    document.querySelector('#main [data-evidence-tab="'+next+'"]')?.focus();
+  },true);
+
   document.addEventListener('input',event=>{
     if(!evidencePage() || !INPUT_IDS.has(event.target?.id))return;
     pendingVersion++;
     lastVerdict=null;
+    const button=document.querySelector('#main #verifyEvidence');
+    if(button) button.disabled=false;
     renderEvidence(classifyEvidence(null,null));
     const raw=document.querySelector('#main #evidenceOutput');
     if(raw)raw.textContent='Evidence changed. Verify the revised input to produce a new decision.';
@@ -319,6 +384,8 @@ if (typeof document !== 'undefined') {
     if(!evidencePage() || event.target?.id!=='receiptFile')return;
     pendingVersion++;
     lastVerdict=null;
+    const button=document.querySelector('#main #verifyEvidence');
+    if(button) button.disabled=false;
     renderEvidence(classifyEvidence(null,null));
     setStage('load');
   },true);
