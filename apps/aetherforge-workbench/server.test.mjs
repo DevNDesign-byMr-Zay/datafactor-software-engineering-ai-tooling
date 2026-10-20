@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createWorkbenchServer } from './server.mjs';
-import { classifyEvidence, nextEvidenceTab, exportEvidenceVerdict } from './evidence-center.js';
+import { classifyEvidence, nextEvidenceTab, exportEvidenceVerdict, normalizeEvidenceDocument, readEvidenceFile } from './evidence-center.js';
 let srv, url, assetRoot;
 test.before(async () => {
   assetRoot=await mkdtemp(join(tmpdir(),'aetherforge-assets-'));
@@ -245,4 +245,42 @@ test('Evidence inspector explicitly displays fingerprint lineage and cancels sta
   assert.match(src,/pendingVersion\+\+/);
   assert.match(src,/button\.disabled=false/);
   assert.match(css,/\.evidence-lineage/);
+});
+
+test('new evidence files clear fingerprints omitted from the new document',()=>{
+  const first=normalizeEvidenceDocument({
+    receipt:{accepted:true,contractVersion:1},
+    receiptFingerprint:'a'.repeat(64),
+    previousFingerprint:'b'.repeat(64)
+  });
+  assert.equal(first.receiptFingerprint,'a'.repeat(64));
+  const second=normalizeEvidenceDocument({receipt:{accepted:true,contractVersion:1}});
+  assert.equal(second.receiptFingerprint,'');
+  assert.equal(second.previousFingerprint,'');
+  assert.equal(JSON.parse(second.receiptText).accepted,true);
+});
+
+test('evidence file decoder rejects malformed, non-object and oversized files before form mutation',async()=>{
+  await assert.rejects(()=>readEvidenceFile({size:12,text:async()=>'not JSON'}),/valid JSON/i);
+  await assert.rejects(()=>readEvidenceFile({size:8,text:async()=>'[]'}),/receipt.*object/i);
+  await assert.rejects(()=>readEvidenceFile({size:65*1024,text:async()=>'{ }'}),/64 KiB/i);
+  await assert.rejects(()=>readEvidenceFile({size:1,text:async()=>JSON.stringify({accepted:true,pad:'x'.repeat(66000)})}),/64 KiB/i);
+});
+
+test('evidence file decoder accepts both envelopes and plain receipts without retaining prior input',async()=>{
+  const envelope=await readEvidenceFile({size:100,text:async()=>JSON.stringify({receipt:{accepted:true,service:{name:'next'}},receiptFingerprint:'f'.repeat(64)})});
+  assert.equal(envelope.receiptFingerprint,'f'.repeat(64));
+  assert.equal(envelope.previousFingerprint,'');
+  assert.equal(JSON.parse(envelope.receiptText).service.name,'next');
+  const plain=await readEvidenceFile({size:30,text:async()=>JSON.stringify({accepted:true})});
+  assert.equal(plain.receiptFingerprint,'');
+  assert.equal(JSON.parse(plain.receiptText).accepted,true);
+});
+
+test('evidence file selection takes ownership of the change event and invalidates earlier loads',async()=>{
+  const source=await(await fetch(url+'/evidence-center.js')).text();
+  assert.match(source,/event\.stopImmediatePropagation\(\)/);
+  assert.match(source,/readEvidenceFile\(file\)/);
+  assert.match(source,/version!==pendingVersion/);
+  assert.match(source,/field\.value=normalized\[key\]/);
 });
