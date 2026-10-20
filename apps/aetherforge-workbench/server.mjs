@@ -27,6 +27,7 @@ const staticRoutes = new Map([
   ['/command-rail.js', ['command-rail.js', 'text/javascript; charset=utf-8']],
   ['/workflow-studio.js', ['workflow-studio.js', 'text/javascript; charset=utf-8']],
   ['/workflow-studio-export.js', ['workflow-studio-export.js', 'text/javascript; charset=utf-8']],
+  ['/evidence-center.js', ['evidence-center.js', 'text/javascript; charset=utf-8']],
   ['/assets/reference-manifest.json', ['assets/reference-manifest.json', 'application/json; charset=utf-8']],
   ['/assets/aetherforge-logo.svg', ['assets/aetherforge-logo.svg', 'image/svg+xml']],
   ['/assets/aetherforge-emblem.svg', ['assets/aetherforge-emblem.svg', 'image/svg+xml']],
