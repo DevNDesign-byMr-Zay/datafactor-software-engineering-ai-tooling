@@ -308,3 +308,19 @@ test('real maintained consumer classifies a canonical accepted receipt as unchan
   assert.equal(rejected.result.status,'rejected');
   assert.equal(rejected.result.fingerprint,null);
 });
+
+test('a maintained rejection preserves source provenance without reporting trust',()=>{
+  const finger='e'.repeat(64);
+  const rejected=classifyEvidence(
+    {status:'checked',authority:'none',result:{status:'rejected',fingerprint:null,reason:'receipt fingerprint mismatch'}},
+    {accepted:true},finger
+  );
+  assert.equal(rejected.verdict,'REJECTED');
+  assert.equal(rejected.trusted,false);
+  assert.equal(rejected.source,'maintained-library');
+  const inconsistent=classifyEvidence(
+    {status:'checked',authority:'external',result:{status:'unchanged',fingerprint:finger,reason:null}},
+    {accepted:true},finger,finger
+  );
+  assert.equal(inconsistent.source,'not-verified');
+});
