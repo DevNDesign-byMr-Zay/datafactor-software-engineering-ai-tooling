@@ -91,3 +91,13 @@ body.light{--bg:#edf4ff;--sidebar:#f7faff;--surface:#fff;--surface2:#f4f8ff;--ca
 @media(max-width:1020px){.evidence-stage-rail{grid-template-columns:repeat(2,minmax(0,1fr))}.evidence-checks{grid-template-columns:1fr}}
 @media(max-width:620px){.evidence-instrument-head{padding:20px 16px 15px;align-items:flex-start;flex-direction:column}.evidence-stage-rail{padding:12px;gap:6px}.evidence-stage{gap:7px;padding:9px}.evidence-stage b{height:28px;width:28px}.evidence-stage strong{font-size:9px;letter-spacing:.65px}.evidence-result-head{flex-direction:column;align-items:flex-start}.evidence-tabs{gap:0;flex-wrap:nowrap;overflow-x:auto}.evidence-tabs button{white-space:nowrap;padding:10px 10px}.evidence-panel{padding:15px}.evidence-decision{flex-direction:column;align-items:flex-start;gap:10px}.evidence-verdict{width:100%}.evidence-data-row{grid-template-columns:1fr;gap:5px}}
 @media(prefers-reduced-motion:reduce){.evidence-stage{transition:none}}
+
+/* Fingerprint lineage: receipt → current ↔ previous → decision. */
+.evidence-lineage{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr);gap:6px;align-items:center;margin:2px 0 18px}
+.evidence-lineage-node{min-width:0;min-height:86px;border:1px solid #2c5172;background:linear-gradient(150deg,#102b48,#0b1b33);border-radius:9px;padding:12px;display:flex;flex-direction:column;justify-content:center;gap:9px}
+.evidence-lineage-node small{font:700 9px Consolas,monospace;color:#6d97be;letter-spacing:.9px}
+.evidence-lineage-node strong{font:700 10px/1.5 Consolas,monospace;overflow-wrap:anywhere;color:#e0edff}
+.evidence-lineage-node.checked{border-color:#32877e}.evidence-lineage-node.rejected{border-color:#8f4f5b}
+.evidence-lineage-arrow{text-align:center;font-size:17px;color:var(--cyan)}
+.light .evidence-lineage-node{background:#eef7ff;border-color:#bcd2e6}.light .evidence-lineage-node strong{color:#203f59}
+@media(max-width:1180px){.evidence-lineage{grid-template-columns:1fr;gap:6px}.evidence-lineage-node{min-height:62px}.evidence-lineage-arrow{transform:rotate(90deg)}}
