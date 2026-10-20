@@ -77,7 +77,7 @@ export function classifyEvidence(payload, receipt, currentFingerprint = '', prev
     fingerprint: trusted ? result.fingerprint : null,
     current, previous,
     receipt: receipt && typeof receipt === 'object' && !Array.isArray(receipt) ? receipt : null,
-    source: trusted ? 'maintained-library' : pending ? 'none' : payload?.status === 'local-error' ? 'local-precheck' : 'not-verified'
+    source: isMaintained ? 'maintained-library' : pending ? 'none' : payload?.status === 'local-error' ? 'local-precheck' : 'not-verified'
   };
 }
 
