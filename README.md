@@ -154,6 +154,8 @@ This runs npm audit at the moderate threshold and pip-audit against the committe
 
 The Jest coverage chain loads NYC configuration through `@istanbuljs/load-nyc-config`, which only calls `js-yaml.load()`. The root package pins that transitive parser to `js-yaml` 4.3.2 so its obsolete `argparse` → `sprintf-js` dependency is removed. The override is limited to this build-time loader; the maintained package exports and runtime dependencies are unchanged. The standard Jest coverage suite exercises the installed chain.
 
+The Python lock also pins the patched `certifi` and Pillow releases. Pillow's image handling remains covered by the maintained Python tests.
+
 ## One-command quality check
 
 ```bash
