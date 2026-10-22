@@ -152,6 +152,8 @@ make audit
 
 This runs npm audit at the moderate threshold and pip-audit against the committed Python lock. Dependabot tracks npm, pip, and GitHub Actions. CodeQL analyzes JavaScript/TypeScript and Python.
 
+The Jest coverage chain loads NYC configuration through `@istanbuljs/load-nyc-config`, which only calls `js-yaml.load()`. The root package pins that transitive parser to `js-yaml` 4.3.2 so its obsolete `argparse` → `sprintf-js` dependency is removed. The override is limited to this build-time loader; the maintained package exports and runtime dependencies are unchanged. The standard Jest coverage suite exercises the installed chain.
+
 ## One-command quality check
 
 ```bash
