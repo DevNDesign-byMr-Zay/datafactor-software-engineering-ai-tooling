@@ -31,4 +31,4 @@ jobs:
           bash -n .devcontainer/start-commercial.sh
           python3 -m py_compile tools/import-aetherforge-commercial.py
           node --check apps/aetherforge-workbench/server.mjs
-          node --test .devcontainer/codespaces.test.mjs apps/aetherforge-workbench/sandbox-runtime-policy.test.mjs apps/aetherforge-workbench/minimus-sandbox-policy.test.mjs
+          node --test .devcontainer/codespaces.test.mjs .devcontainer/check-environment.test.mjs apps/aetherforge-workbench/sandbox-runtime-policy.test.mjs apps/aetherforge-workbench/minimus-sandbox-policy.test.mjs
