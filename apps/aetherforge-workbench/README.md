@@ -33,7 +33,7 @@ The static HTML also opens directly in a browser, with interactive catalog, navi
 
 ## Windows one-click launcher
 
-Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` directory. It checks for Node.js, starts the local server in a separate command window, and opens your default browser. The server stops when its console closes. No administrator privileges or Docker required.
+Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` directory. It checks for Node.js 22+, starts the local server in a separate command window, waits for the localhost health endpoint, then opens your default browser. If startup fails, the launcher shows recovery guidance and returns an error. Close the server console to stop the service. No administrator privileges or Docker required.
 
 ## Implemented
 

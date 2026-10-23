@@ -1,6 +1,8 @@
 name: ÆtherForge Companion CI
 on:
   push:
+    branches:
+      - main
     paths:
       - 'apps/aetherforge-workbench/**'
       - '.github/workflows/aetherforge-workbench.yml'
