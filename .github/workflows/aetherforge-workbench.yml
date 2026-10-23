@@ -49,3 +49,32 @@ jobs:
           test -f apps/aetherforge-workbench/workflow-studio-export.js
           test -f apps/aetherforge-workbench/evidence-center.js
           git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json src/ python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
+
+  windows-launcher-and-visual-qa:
+    name: Windows launcher and browser QA
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test runtime
+        shell: pwsh
+        run: |
+          $qaRoot = Join-Path $env:RUNNER_TEMP 'aetherforge-browser-qa'
+          New-Item -ItemType Directory -Force -Path $qaRoot | Out-Null
+          npm install --prefix $qaRoot --no-save playwright
+          node (Join-Path $qaRoot 'node_modules/playwright/cli.js') install chromium
+          "PLAYWRIGHT_MODULE_PATH=$(Join-Path $qaRoot 'node_modules/playwright/index.mjs')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "AETHERFORGE_SCREENSHOT_DIR=$(Join-Path $env:RUNNER_TEMP 'aetherforge-visual-qa')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Run Windows launcher and responsive browser acceptance
+        shell: pwsh
+        run: ./apps/aetherforge-workbench/windows-launcher-smoke.ps1
+      - name: Preserve visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherforge-visual-qa
+          path: ${{ runner.temp }}/aetherforge-visual-qa/
+          if-no-files-found: ignore
