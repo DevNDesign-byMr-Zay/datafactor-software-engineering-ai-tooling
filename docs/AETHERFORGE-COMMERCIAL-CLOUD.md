@@ -1,17 +1,17 @@
 # ÆTHERFORGE Commercial Cloud — current operational runbook
 
-**Verified branch:** `feat/aetherforge-workbench-ui` (draft PR #211).
+**Verified source:** merged PR #211, available in `main`; original merge commit `5249adde325f5d2330ab84399c16332413d62c8e`.
 **Application:** `apps/aetherforge-commercial/`, committed as readable source.
 **Current cloud build:** `1.5.0-cloud`. No ZIP import, new Codespace, or app installation is needed for an existing checkout on this branch.
 
 ## Start in the existing private Codespace
 
-Use the terminal from the repository root:
+Use the terminal from the repository root **after switching to `main` and safely preserving any local changes**:
 
 ```bash
 cd /workspaces/datafactor-software-engineering-ai-tooling
 git status --short
-git pull --ff-only origin feat/aetherforge-workbench-ui
+git pull --ff-only origin main
 bash .devcontainer/start-all.sh
 ```
 
@@ -56,14 +56,14 @@ Commercial server workspace data is stored under `/workspaces/.aetherforge-data/
 - GitHub protected checks: Engineering CI, CodeQL, Companion CI, Codespaces Configuration, Commercial Cloud CI and Real Browser Acceptance passed on the validated checkpoint.
 - Real Chromium automation: 8 acceptance checks cover desktop/mobile navigation, interactive HTML preview, explicit Node/Python run approvals, project save/reload, and ZIP source round-trip.
 - Cloud preflight and holographic plans remain **advisory**, not live deployments or actual quantum computing.
-- The source tree is now in PR #211 and the one-time `AETHERFORGE-Commercial-Codespaces-v1.5.0.zip` importer is historical migration tooling only.
-- PR remains **draft** until final operator review, source/document reconciliation, and explicit merge authorization. These checks do not establish readiness for public multi-user hosting.
+- The source tree was merged from PR #211 and the one-time `AETHERFORGE-Commercial-Codespaces-v1.5.0.zip` importer is historical migration tooling only.
+- PR #211 was merged after operator interface review, backed-up project export and passing CI. These checks do not establish readiness for public multi-user hosting.
 
 For recovery, inspect `~/.local/state/aetherforge/commercial.log` or `~/.local/state/aetherforge/server.log`; do not delete the Codespace or change host security policies.
 
 ## Historical migration note
 
-Earlier revisions required downloading a separate ZIP and running `tools/import-aetherforge-commercial.py`. That procedure is no longer needed for this branch, because the full commercial source is already committed. Historical import scripts remain for audit/replay, not current startup.
+Earlier revisions required downloading a separate ZIP and running `tools/import-aetherforge-commercial.py`. That procedure is no longer needed for this branch, because the full commercial source is already committed and merged. Historical import scripts remain for audit/replay, not current startup.
 
 ## Private on-demand server-state backups
 

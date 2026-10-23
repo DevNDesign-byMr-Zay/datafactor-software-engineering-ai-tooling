@@ -1,0 +1,6 @@
+APPROVED RELEASE TRIGGER
+release: aetherforge-commercial-v1.5.0-cloud
+target: main
+approval: user requested to continue publication after merging PR #211
+safety: release workflow validates source, ZIP and extracted HTTP runtime before publishing
+note: this file triggers the namespaced workflow only on its first push

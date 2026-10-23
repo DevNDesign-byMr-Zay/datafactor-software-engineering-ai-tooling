@@ -2,6 +2,10 @@ name: ÆTHERFORGE Commercial Tagged Release
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/aetherforge-commercial-v1.5.0-cloud-release-approved'
 
 permissions:
   contents: write
