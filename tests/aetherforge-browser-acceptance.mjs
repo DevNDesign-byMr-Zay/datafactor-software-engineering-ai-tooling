@@ -115,7 +115,8 @@ try{
   try{
    desktop.once('dialog',dialog=>dialog.accept());
    await desktop.locator('[data-afide="new"]').click();
-   await desktop.locator('#afideCode').getByText('AETHERFORGE_UNSAVED_IS_SAFE',{exact:false}).waitFor();
+   await desktop.waitForFunction(()=>document.querySelector('#afideCode')?.value.includes('AETHERFORGE_UNSAVED_IS_SAFE'));
+   assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_UNSAVED_IS_SAFE/);
    assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_UNSAVED_IS_SAFE/);
   }finally{await desktop.unroute('**/api/workspace/projects/*');}
  });
