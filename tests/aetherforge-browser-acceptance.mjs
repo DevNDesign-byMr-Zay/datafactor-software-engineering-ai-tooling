@@ -95,6 +95,7 @@ try{
   await desktop.locator('#afideCode').fill('<main>AETHERFORGE_SWITCH_PRESERVED</main>');
   desktop.once('dialog',dialog=>dialog.accept());
   await desktop.locator('[data-afide="new"]').click();
+  await desktop.waitForFunction(()=>!document.querySelector('#afideCode')?.value.includes('AETHERFORGE_SWITCH_PRESERVED'),null,{timeout:12000});
   assert.doesNotMatch(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_SWITCH_PRESERVED/);
   const saved=await desktop.request.get(base+'api/workspace/projects/'+id);
   assert.equal(saved.status(),200);
@@ -115,7 +116,7 @@ try{
   try{
    desktop.once('dialog',dialog=>dialog.accept());
    await desktop.locator('[data-afide="new"]').click();
-   await desktop.waitForFunction(()=>document.querySelector('#afideCode')?.value.includes('AETHERFORGE_UNSAVED_IS_SAFE'));
+   await desktop.waitForFunction(()=>document.querySelector('#afidePersistence')?.textContent.includes('DEVICE ONLY'),null,{timeout:12000});
    assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_UNSAVED_IS_SAFE/);
    assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_UNSAVED_IS_SAFE/);
   }finally{await desktop.unroute('**/api/workspace/projects/*');}
