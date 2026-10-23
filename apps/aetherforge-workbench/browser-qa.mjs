@@ -67,7 +67,7 @@ try {
     { name: 'mobile', width: 390, height: 844 }
   ]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.locator('.sidebar button[data-page="overview"]').click();
+    await page.locator('.mobile-nav button[data-page="overview"]').click();
     assert.equal(await page.locator('.mobile-nav').isVisible(), true, `${viewport.name} navigation should be available.`);
     const widths = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
     assert.ok(widths.document <= widths.viewport + 1, `${viewport.name} overview has horizontal overflow: ${JSON.stringify(widths)}`);
