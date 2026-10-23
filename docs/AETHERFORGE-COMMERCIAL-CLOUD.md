@@ -31,3 +31,7 @@ Browser port 4546 now recognizes the private Codespaces origin for project persi
 After pulling the branch, restart **only** the commercial service with `bash .devcontainer/start-commercial.sh --restart`. This targets the exact commercial Node process and leaves companion port 4545 untouched. Reload the private port 4546 tab. Running the script without `--restart` correctly reuses an existing running process without loading newly edited server code.
 
 Complete hands-on browser acceptance of viewport rendering and Node/Python project output before marking the PR ready for review. No changes to the Codespace Docker engine or runtime images are needed.
+
+## Final acceptance: project lifecycle and IDE runtime feedback
+
+The active source selects the appropriate Docker runtime by default (`.py` → Python, `.js/.mjs/.cjs` → Node), and `Run Selected File` is disabled when HTML, CSS, or a non-executable asset is selected. The browser viewport header now labels the last HTML document actually previewed; running the browser viewport while a non-HTML file is selected will not silently execute the original project entry. Project list access first flushes pending edits to the server, so newly edited projects appear in Saved Projects. A new end-to-end regression suite checks full ZIP source round-trip, isolated HTML selection, project PUT/list/GET persistence, and rejection of path traversal and cross-origin writes. Existing companion 4545 and Docker configuration remain unchanged.

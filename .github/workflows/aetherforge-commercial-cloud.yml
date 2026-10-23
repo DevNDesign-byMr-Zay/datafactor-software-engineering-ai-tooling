@@ -30,7 +30,7 @@ jobs:
           node --check apps/aetherforge-commercial/server.mjs
           node --check apps/aetherforge-commercial/isolated-runner.mjs
           node --check apps/aetherforge-commercial/engineering-ide.js
-          node --test tests/aetherforge-commercial-cloud.test.mjs tests/aetherforge-cloud-ui-regression.test.mjs .devcontainer/commercial-restart.test.mjs
+          node --test tests/aetherforge-commercial-cloud.test.mjs tests/aetherforge-cloud-ui-regression.test.mjs tests/aetherforge-ide-stabilization.test.mjs tests/aetherforge-workspace-persistence.test.mjs .devcontainer/commercial-restart.test.mjs
       - name: Prove real server health and same-origin boundary
         run: |
           set -euo pipefail

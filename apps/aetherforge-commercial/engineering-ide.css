@@ -12,3 +12,13 @@ body.light .topbar { background:#f1f8ff; }
 .afide-viewport iframe{background:#fff;}
 @media(max-width:1250px){.afide-layout{grid-template-columns:minmax(175px,205px) minmax(0,1fr);}.afide-viewport{grid-column:1/-1}}
 @media(max-width:740px){.afide-layout{grid-template-columns:minmax(0,1fr)}.afide-viewport{grid-column:auto}}
+
+/* Acceptance polish: distinguish actual HTML preview source and prevent mobile overflow. */
+.afide-preview-path{display:inline-block;margin-left:10px;font-size:10px;font-weight:600;letter-spacing:0;color:#a5e9f7;overflow-wrap:anywhere;max-width:70%;vertical-align:middle}
+.afide,.afide-layout,.afide-editor,.afide-viewport{min-width:0}
+.afide-top{min-width:0}
+.afide-toolbar{max-width:100%;min-width:0}
+.afide-toolbar button{white-space:normal;overflow-wrap:anywhere}
+.afide-editor-header{min-width:0;align-items:center;flex-wrap:wrap}
+.afide-code{max-width:100%;overflow:auto}
+@media(max-width:740px){.afide-top input{min-width:0;width:100%}.afide-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.afide-toolbar button{min-width:0}.afide-preview-path{margin-left:0;display:block;max-width:100%}.afide-editor-header{gap:5px}}
