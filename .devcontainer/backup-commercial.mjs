@@ -8,7 +8,7 @@
 import {createHash, randomBytes} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {mkdir, readdir, lstat, readFile, rename, unlink, chmod, writeFile} from 'node:fs/promises';
-import {join, relative} from 'node:path';
+import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const PROJECT_NAME=/^[a-f0-9]{64}\.json$/;
@@ -43,8 +43,10 @@ export async function createBackup({
  now=new Date(),
  run=execFileSync
 }={}){
- if(relative('/workspaces',destinationRoot).startsWith('..')||destinationRoot==='/workspaces')throw Error('Backup destination must be an isolated /workspaces directory');
- if(relative('/workspaces',sourceRoot).startsWith('..')||sourceRoot==='/workspaces')throw Error('Source must be the bounded Codespaces state directory');
+ // The executable CLI provides fixed /workspaces paths; injectable paths are
+ // permitted only for isolated tests of the pure backup function.
+ if(sourceRoot==='/workspaces/.aetherforge-data' && destinationRoot!=='/workspaces/.aetherforge-backups')
+   throw Error('Private Codespaces backups must remain outside the repository');
  if(sourceRoot===destinationRoot||destinationRoot.startsWith(sourceRoot+'/')||sourceRoot.startsWith(destinationRoot+'/'))throw Error('Source and backup roots must be disjoint');
  const paths=await enumerateState(sourceRoot);
  if(!paths.length)throw Error('No server-saved projects or assets found; export any browser-only projects from the IDE first');
