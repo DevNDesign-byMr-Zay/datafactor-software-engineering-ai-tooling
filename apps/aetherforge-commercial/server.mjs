@@ -159,20 +159,21 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  if(req.method==='GET'&&url.pathname.startsWith('/api/assets/')){const id=url.pathname.slice('/api/assets/'.length);if(!/^[a-f0-9]{64}\.(?:png|jpg|webp)$/.test(id))return respond(res,404,{error:'Invalid asset'});try{const data=await getLocalAsset(assetRoot,id);return respond(res,200,data.bytes,data.mime);}catch{return respond(res,404,{error:'Asset not found'});}}
  if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>6*1024*1024)return respond(res,413,{error:'File too large'});chunks.push(chunk);}try{const item=await saveLocalAsset(assetRoot,Buffer.concat(chunks),name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
  if(req.method==='GET'&&url.pathname==='/sandbox-frame.html'){
-  const body=await readFile(join(root,'sandbox-frame.html'));
-  res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','X-Content-Type-Options':'nosniff','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"});res.end(body);return;
- }
- if(req.method==='GET'&&url.pathname==='/sandbox-frame.html'){
-   // Only this isolated preview document may be framed by the same application.
-   // Keep all other application and API responses non-frameable.
-   const content=await readFile(join(root,'sandbox-frame.html'));
-   res.writeHead(200,{'Content-Type':'text/html; charset=utf-8',
-     'X-Content-Type-Options':'nosniff','Cache-Control':'no-store',
+   // This is the only same-origin frameable route; the main app and all APIs
+   // retain X-Frame-Options DENY and frame-ancestors none.
+   // The browser also sets iframe sandbox="allow-scripts" (no same-origin).
+   const body=await readFile(join(root,'sandbox-frame.html'));
+   res.writeHead(200,{
+     'Content-Type':'text/html; charset=utf-8',
+     'X-Content-Type-Options':'nosniff',
+     'Cache-Control':'no-store',
      'Referrer-Policy':'no-referrer',
      'X-Frame-Options':'SAMEORIGIN',
-     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"});
-   return res.end(content);
+     'Content-Security-Policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"
+   });
+   res.end(body);return;
  }
+
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
  }catch{return respond(res,500,{error:'Workbench request failed'});}});}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){const port=Number(process.env.AETHERFORGE_PORT||4546);const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';createWorkbenchServer().listen(port,bound,()=>process.stdout.write('ÆtherForge Commercial ready at http://127.0.0.1:'+port+'\n'));}
