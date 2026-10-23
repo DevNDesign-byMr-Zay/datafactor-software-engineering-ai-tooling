@@ -1,0 +1,31 @@
+name: ÆtherForge Codespaces Configuration
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - 'apps/aetherforge-workbench/server.mjs'
+      - '.github/workflows/aetherforge-codespaces.yml'
+  push:
+    branches: [feat/aetherforge-workbench-ui]
+    paths:
+      - '.devcontainer/**'
+      - 'apps/aetherforge-workbench/server.mjs'
+      - '.github/workflows/aetherforge-codespaces.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  codespaces-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate configuration and protected startup policy
+        run: |
+          bash -n .devcontainer/start-aetherforge.sh
+          node --check .devcontainer/check-environment.mjs
+          node --check apps/aetherforge-workbench/server.mjs
+          node --test .devcontainer/codespaces.test.mjs
