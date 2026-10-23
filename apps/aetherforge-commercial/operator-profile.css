@@ -1,0 +1,12 @@
+/* ÆTHERFORGE / branded operator identity */
+.af-profile-grid{display:grid;grid-template-columns:minmax(250px,.77fr) minmax(310px,1.2fr);gap:16px;align-items:start}
+.af-profile-identity{min-height:380px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at 50% 0%,#213b61,#0b192f 65%)}
+.af-profile-identity h2{font-size:23px;margin:0;color:#ebfaff}.af-profile-identity p{margin:0;color:#8fafc8}.af-profile-identity small{font-size:11px;color:#83a6bf}
+.af-profile-avatar{width:132px;height:132px;border-radius:32px;border:2px solid #52dcf3;box-shadow:0 0 38px #39b6df33, inset 0 0 28px #224a6b;overflow:hidden;display:grid;place-items:center;color:#ecf8ff;font-weight:800;font-size:40px;background:linear-gradient(135deg,#1b476e,#3a276b)}
+.af-profile-avatar img{width:100%;height:100%;object-fit:cover}.af-profile-upload,.af-profile-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.af-profile-form{display:grid;gap:15px}.af-profile-form label{display:grid;gap:7px;font-size:12px;color:#b0cbe3}.af-profile-form input,.af-profile-form select,.af-profile-form textarea{width:100%;border:1px solid #365578;border-radius:9px;background:#0a1b33;color:#e6f7ff;padding:11px 13px;font:inherit;font-size:13px}.af-profile-form h3{color:#e5f8ff}.af-profile-form p{color:#a7c2d8;line-height:1.7}.af-policy-note{border-left:3px solid #55d9f2;padding:12px;background:#0d2b48;color:#95b8d2;font-size:12px}
+.top-actions #operatorAvatarButton{border:1px solid #36bfdd;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;overflow:hidden;cursor:pointer;font-weight:750;background:linear-gradient(135deg,#164565,#30205d);color:#defaff;padding:0}.top-actions #operatorAvatarButton img{width:100%;height:100%;object-fit:cover}
+body[data-af-accent="violet"]{--cyan:#b99aff}body[data-af-density="compact"] .card,body[data-af-density="compact"] .panel{padding:14px}body[data-af-density="compact"] .af-lib-item{padding:7px 10px}
+body[data-af-motion="reduce"] *,body[data-af-motion="reduce"] *::before,body[data-af-motion="reduce"] *::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+.afide-code,.af-code{font-size:var(--af-editor-font-size,13px)!important}
+@media(max-width:800px){.af-profile-grid{grid-template-columns:1fr}.af-profile-identity{min-height:280px}.af-profile-avatar{width:98px;height:98px}}
