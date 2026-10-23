@@ -1,0 +1,31 @@
+{
+  "name": "ÆTHERFORGE — Cloud Engineering",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": true
+    }
+  },
+  "forwardPorts": [
+    4545,
+    4546
+  ],
+  "portsAttributes": {
+    "4545": {
+      "label": "ÆTHERFORGE — private workbench",
+      "onAutoForward": "notify"
+    },
+    "4546": {
+      "label": "ÆTHERFORGE Commercial IDE — private",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-containers"
+      ]
+    }
+  }
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081223">
+<meta name="description" content="ÆtherForge Engineering Workbench — explore, validate, and connect maintained engineering modules with provenance-backed evidence.">
+<title>ÆtherForge · Engineering Workbench</title>
+<link rel="icon" href="./assets/aetherforge-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./app.css">
+<link rel="stylesheet" href="./app-v2.css">
+<script type="module" src="./app.js" defer></script>
+<script type="module" src="./app-behavior.js" defer></script>
+<script type="module" src="./workspace-memory.js" defer></script>
+<script type="module" src="./command-rail.js" defer></script>
+<script type="module" src="./workflow-studio.js" defer></script>
+<script type="module" src="./workflow-studio-export.js" defer></script>
+<script type="module" src="./evidence-center.js" defer></script>
+</head>
+<body>
+<div class="shell" id="shell">
+<aside class="sidebar" aria-label="Primary navigation">
+ <div class="side-brand"><img src="./assets/aetherforge-emblem.svg" alt="" width="54" height="54"><div><strong>ÆTHER<span>FORGE</span></strong><small>ENGINEERING WORKBENCH</small></div></div>
+ <div class="side-caption">WORKSPACE</div>
+ <nav class="nav" aria-label="Workbench sections">
+ <button data-page="overview" class="active" aria-current="page"><span aria-hidden="true">⌂</span> Overview</button>
+ <button data-page="modules"><span aria-hidden="true">⬡</span> Module Library</button>
+ <button data-page="studio"><span aria-hidden="true">⌘</span> Workflow Studio</button>
+ <button data-page="evidence"><span aria-hidden="true">⛨</span> Evidence Center</button>
+ <button data-page="sustainability"><span aria-hidden="true">◈</span> Sustainability Lab</button>
+ <button data-page="assets"><span aria-hidden="true">▣</span> Asset Studio</button>
+ <button data-page="assistant"><span aria-hidden="true">✧</span> Engineering Guide</button>
+ </nav>
+ <div class="side-bottom"><div class="side-caption">SYSTEM</div><button class="settings-link" data-page="settings">⚙ Settings & About</button><div class="tiny-panel"><span class="status-dot" id="sidebarDot"></span><div><strong id="sidebarStatus">Connecting to local adapter</strong><small>Verification is evidence-backed</small></div></div></div>
+</aside>
+<div class="workspace">
+ <header class="topbar"><div class="mobile-brand"><img src="./assets/aetherforge-icon.svg" alt="" width="34" height="34">ÆTHERFORGE</div><div class="crumbs">WORKSPACE <span> / </span><b id="crumbName">OVERVIEW</b></div><div class="command-search-wrap"><label class="command-search"><span>⌕</span><input type="search" id="globalSearch" aria-label="Search modules and tools" placeholder="Search modules, workflows, documentation…"><kbd>⌘ K</kbd></label></div><div class="top-actions"><span id="connectionBadge" class="connection">CHECKING ADAPTER</span><button id="themeButton" aria-label="Toggle light or dark theme" title="Toggle appearance">☼</button><span class="profile">AF</span></div></header>
+ <main id="main" tabindex="-1" aria-live="polite"></main>
+</div>
+</div>
+<nav class="mobile-nav" aria-label="Mobile workbench navigation">
+ <button data-page="overview"><span>⌂</span><small>Home</small></button>
+ <button data-page="modules"><span>⬡</span><small>Modules</small></button>
+ <button data-page="studio"><span>⌘</span><small>Studio</small></button>
+ <button data-page="evidence"><span>⛨</span><small>Evidence</small></button>
+ <button data-page="assets"><span>▣</span><small>Assets</small></button>
+</nav>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

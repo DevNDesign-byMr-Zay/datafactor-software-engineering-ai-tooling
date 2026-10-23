@@ -1,0 +1,57 @@
+name: ÆtherForge Real Browser Acceptance
+on:
+  pull_request:
+    paths:
+      - 'apps/aetherforge-commercial/**'
+      - 'tests/aetherforge-browser-acceptance.mjs'
+      - '.github/workflows/aetherforge-browser.yml'
+  push:
+    branches: [feat/aetherforge-workbench-ui]
+    paths:
+      - 'apps/aetherforge-commercial/**'
+      - 'tests/aetherforge-browser-acceptance.mjs'
+      - '.github/workflows/aetherforge-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation client (no runtime project changes)
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - name: Find preinstalled Chrome
+        run: |
+          set -euo pipefail
+          CHROME_PATH=$(command -v google-chrome || command -v google-chrome-stable || true)
+          test -n "$CHROME_PATH"
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+      - name: Start commercial workbench on local-only port
+        run: |
+          set -euo pipefail
+          AETHERFORGE_PORT=4546 node apps/aetherforge-commercial/server.mjs > /tmp/aetherforge-browser-server.log 2>&1 &
+          for i in $(seq 1 25); do
+            if curl -fsS http://127.0.0.1:4546/api/health > /dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/aetherforge-browser-server.log
+          exit 1
+      - name: Prepare approved Docker language runtimes for browser end-to-end tests
+        run: |
+          docker pull gcr.io/distroless/nodejs22-debian13:nonroot
+          docker pull gcr.io/distroless/python3-debian13:nonroot
+      - name: Test Chromium dashboard, Docker controls, project persistence and mobile layout
+        run: node tests/aetherforge-browser-acceptance.mjs
+      - name: Publish browser acceptance screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherforge-commercial-browser-qa
+          path: artifacts/aetherforge-browser/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -1,0 +1,109 @@
+name: ÆtherForge Companion CI
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/aetherforge-workbench/**'
+      - '.github/workflows/aetherforge-workbench.yml'
+  pull_request:
+    paths:
+      - 'apps/aetherforge-workbench/**'
+      - '.github/workflows/aetherforge-workbench.yml'
+permissions:
+  contents: read
+jobs:
+  workbench:
+    name: Companion UI Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax checks
+        run: |
+          node --check apps/aetherforge-workbench/app.js
+          node --check apps/aetherforge-workbench/server.mjs
+          node --check apps/aetherforge-workbench/server.test.mjs
+          node --check apps/aetherforge-workbench/package-workbench.mjs
+          node --check apps/aetherforge-workbench/package-workbench.test.mjs
+          node --check apps/aetherforge-workbench/workspace-memory.js
+          node --check apps/aetherforge-workbench/command-rail.js
+          node --check apps/aetherforge-workbench/workflow-studio.js
+          node --check apps/aetherforge-workbench/workflow-studio-export.js
+          node --check apps/aetherforge-workbench/evidence-center.js
+      - name: Companion integration tests against maintained exports
+        run: node --test apps/aetherforge-workbench/server.test.mjs
+      - name: Portable bundle packaging test
+        run: node --test apps/aetherforge-workbench/package-workbench.test.mjs
+      - name: Verify isolation boundary
+        shell: bash
+        run: |
+          test -f apps/aetherforge-workbench/assets/aetherforge-logo.svg
+          test -f apps/aetherforge-workbench/assets/aetherforge-emblem.svg
+          test -f apps/aetherforge-workbench/assets/aetherforge-icon.svg
+          test -f apps/aetherforge-workbench/index.html
+          test -f apps/aetherforge-workbench/package-workbench.mjs
+          test -f apps/aetherforge-workbench/package-workbench.test.mjs
+          test -f apps/aetherforge-workbench/app.css
+          test -f apps/aetherforge-workbench/app.js
+          test -f apps/aetherforge-workbench/workspace-memory.js
+          test -f apps/aetherforge-workbench/command-rail.js
+          test -f apps/aetherforge-workbench/workflow-studio.js
+          test -f apps/aetherforge-workbench/workflow-studio-export.js
+          test -f apps/aetherforge-workbench/evidence-center.js
+          git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json src/ python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
+
+  windows-launcher-and-visual-qa:
+    name: Windows launcher and browser QA
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test runtime
+        shell: pwsh
+        run: |
+          $qaRoot = Join-Path $env:RUNNER_TEMP 'aetherforge-browser-qa'
+          New-Item -ItemType Directory -Force -Path $qaRoot | Out-Null
+          npm install --prefix $qaRoot --no-save playwright
+          node (Join-Path $qaRoot 'node_modules/playwright/cli.js') install chromium
+          "PLAYWRIGHT_MODULE_PATH=$(Join-Path $qaRoot 'node_modules/playwright/index.mjs')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "AETHERFORGE_SCREENSHOT_DIR=$(Join-Path $env:RUNNER_TEMP 'aetherforge-visual-qa')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Build portable workbench package
+        shell: pwsh
+        run: |
+          $bundle = Join-Path $env:RUNNER_TEMP 'aetherforge-workbench-bundle'
+          node apps/aetherforge-workbench/package-workbench.mjs --output $bundle
+          if ($LASTEXITCODE -ne 0) { throw 'Portable workbench packaging failed.' }
+          "AETHERFORGE_BUNDLE_DIR=$bundle" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Run Windows launcher and responsive browser acceptance
+        shell: pwsh
+        run: ./apps/aetherforge-workbench/windows-launcher-smoke.ps1 -AppDirectory (Join-Path $env:AETHERFORGE_BUNDLE_DIR 'apps/aetherforge-workbench') -QaScriptPath (Join-Path $PWD 'apps/aetherforge-workbench/browser-qa.mjs')
+      - name: Attach the tested browser preview to the package
+        shell: pwsh
+        run: |
+          $preview = Join-Path $env:AETHERFORGE_SCREENSHOT_DIR 'desktop-overview.png'
+          if (-not (Test-Path $preview)) { throw 'Desktop browser preview was not generated.' }
+          node apps/aetherforge-workbench/package-workbench.mjs --output $env:AETHERFORGE_BUNDLE_DIR --preview $preview
+          if ($LASTEXITCODE -ne 0) { throw 'Final portable workbench package failed.' }
+      - name: Download the HTML workbench ZIP
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherforge-workbench-html-bundle
+          path: ${{ runner.temp }}/aetherforge-workbench-bundle/
+          if-no-files-found: error
+      - name: Preserve visual QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aetherforge-visual-qa
+          path: ${{ runner.temp }}/aetherforge-visual-qa/
+          if-no-files-found: ignore

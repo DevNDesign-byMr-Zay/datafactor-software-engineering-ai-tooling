@@ -1,0 +1,16 @@
+.af-sandbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;min-height:490px}
+.af-editor,.af-preview{background:#0b1427;border:1px solid #263f58;border-radius:16px;overflow:hidden;min-width:0}
+.af-panel-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:space-between;background:#12223b;padding:12px 15px;border-bottom:1px solid #2c465c}
+.af-panel-head strong{font-size:13px;letter-spacing:.07em}.af-panel-head span{font-size:12px;color:#8fa8c3}
+.af-editor-tabs{display:flex;gap:5px;flex-wrap:wrap;padding:10px;border-bottom:1px solid #263f58}
+.af-editor-tabs button,.af-mini-btn{background:#192b42;color:#a9c3dd;border:1px solid #36536e;border-radius:8px;padding:7px 12px;cursor:pointer}
+.af-editor-tabs button.active{background:#1c4a64;color:#b9faff;border-color:#3b9aba}
+.af-code{display:block;width:100%;min-height:330px;resize:vertical;background:#071221;color:#d4ecff;font:13px/1.65 ui-monospace,Consolas,monospace;padding:16px;border:0;outline-offset:-3px;tab-size:2;white-space:pre;overflow:auto}
+.af-preview iframe{width:100%;height:370px;border:0;display:block;background:#fff}
+.af-console{font:12px/1.6 ui-monospace,Consolas,monospace;padding:14px;min-height:74px;max-height:160px;overflow:auto;white-space:pre-wrap;color:#b6d4ed;border-top:1px solid #2d435b}
+.af-console .err{color:#ffafaf}.af-workbench-note{color:#9db2ca;font-size:12px;margin:10px 0 14px}
+.af-sandbox-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.af-sandbox-tools select,.af-sandbox-tools input{background:#101d31;color:#d7eaff;border:1px solid #36536e;border-radius:8px;padding:9px}
+.af-sandbox-tools input{flex:1;min-width:110px}
+.af-workbench .af-template-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}.af-template-chips button{padding:7px 11px;background:#102741;border:1px solid #315874;color:#b4e2ff;border-radius:100px;cursor:pointer}
+.af-sandbox-limit{font-size:12px;color:#8fa8c3}.af-sandbox .field{color:#d4eaff}
+@media(max-width:1050px){.af-sandbox{grid-template-columns:1fr}.af-preview iframe{height:340px}}
