@@ -12,7 +12,7 @@ test('Codespaces uses Node 22 and explicit Docker-in-Docker',()=>{
 test('workbench private forwarding and Codespaces-guarded bind',()=>{
  assert.ok(cfg.forwardPorts.includes(4545));
  assert.equal(cfg.portsAttributes['4545'].onAutoForward,'notify');
- assert.match(cfg.postStartCommand,/start-aetherforge\.sh/);
+ assert.equal(cfg.postStartCommand, undefined, 'Codespace startup must not depend on the app');
  assert.match(server,/process\.env\.CODESPACES==='true'/);
  assert.match(server,/AETHERFORGE_CODESPACES_BIND/);
 });
