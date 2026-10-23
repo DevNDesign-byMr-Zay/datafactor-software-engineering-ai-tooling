@@ -178,6 +178,8 @@ The `verify` service has no ports or cloud credentials because this repository i
 
 ## Environment, logging, and errors
 
+See the [Environment configuration contract](docs/ENVIRONMENT_CONTRACT.md) for optional ÆTHERFORGE Codespaces/browser controls, credential boundaries, and the automated `.env.example` completeness check.
+
 `.env.example` documents non-secret maintained settings. Credentials and production secrets do not belong in the repository. Maintained Python utilities use `python_support.logging_config` for structured JSON logs and typed/explicit handling of expected parsing failures. Promoted HTTP route artifacts use the maintained route-safety boundary as an explicit request-schema and structured-logging contract: request shapes are bounded before provider/storage calls, log levels are allowlisted, context values are size-limited, and raw upstream error messages are never emitted.
 
 ## Test-density and refactoring policy
