@@ -25,6 +25,18 @@ try {
   assert.equal(await page.locator('#main h1').innerText(), 'ENGINEERING CONTROL');
   await page.screenshot({ path: `${screenshotDir}/desktop-overview.png`, fullPage: true });
 
+  const commandInput = page.locator('#globalSearch');
+  await commandInput.pressSequentially('workflow studio');
+  await page.waitForFunction(() => document.querySelector('.command-rail')?.classList.contains('show'));
+  const [searchBounds, railBounds] = await Promise.all([
+    page.locator('.command-search-wrap').boundingBox(),
+    page.locator('.command-rail').boundingBox()
+  ]);
+  assert.ok(searchBounds && railBounds, 'Command suggestions should have visible layout bounds.');
+  assert.ok(Math.abs(railBounds.x - searchBounds.x) <= 2, 'Command suggestions should align with the search field.');
+  assert.ok(railBounds.y >= searchBounds.y + searchBounds.height, 'Command suggestions should open below the search field.');
+  await commandInput.press('Escape');
+
   const pages = [
     ['modules', 'Module Library'],
     ['studio', 'Workflow Studio'],
@@ -61,6 +73,7 @@ try {
   await page.locator('#themeButton').click();
   assert.equal(await page.locator('body').evaluate(el => el.classList.contains('light')), true, 'Theme toggle should activate light mode.');
   await page.locator('#themeButton').click();
+  await page.locator('#toast.show').waitFor({ state: 'hidden', timeout: 8000 });
 
   for (const viewport of [
     { name: 'tablet', width: 834, height: 1112 },
@@ -71,16 +84,18 @@ try {
     assert.equal(await page.locator('.mobile-nav').isVisible(), true, `${viewport.name} navigation should be available.`);
     const widths = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
     assert.ok(widths.document <= widths.viewport + 1, `${viewport.name} overview has horizontal overflow: ${JSON.stringify(widths)}`);
-    await page.screenshot({ path: `${screenshotDir}/${viewport.name}-overview.png`, fullPage: true });
+    await page.screenshot({ path: `${screenshotDir}/${viewport.name}-overview.png` });
     await page.locator('.mobile-nav button[data-page="studio"]').click();
     assert.equal(await page.locator('#main h1').innerText(), 'Workflow Studio');
     const studioWidths = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth }));
     assert.ok(studioWidths.document <= studioWidths.viewport + 1, `${viewport.name} studio has horizontal overflow: ${JSON.stringify(studioWidths)}`);
-    await page.screenshot({ path: `${screenshotDir}/${viewport.name}-studio.png`, fullPage: true });
+    await page.screenshot({ path: `${screenshotDir}/${viewport.name}-studio.png` });
   }
 
   await page.setViewportSize({ width: 1440, height: 960 });
   await page.locator('.sidebar button[data-page="assets"]').click();
+  const swatchColors = await page.locator('.brand-system .swatch').evaluateAll(swatches => swatches.map(swatch => getComputedStyle(swatch).backgroundColor));
+  assert.deepEqual(swatchColors, ['rgb(8, 18, 35)', 'rgb(13, 30, 58)', 'rgb(39, 214, 255)', 'rgb(58, 136, 255)', 'rgb(138, 92, 255)', 'rgb(91, 110, 145)'], 'Approved palette swatches should retain their colors under the strict Content Security Policy.');
   await page.locator('#assetGrid img').last().waitFor({ state: 'visible' });
   const brokenImages = await page.locator('#assetGrid img').evaluateAll(images => images.filter(image => !image.complete || image.naturalWidth === 0).map(image => image.src));
   assert.deepEqual(brokenImages, [], 'All shipped brand assets should render in Asset Studio.');

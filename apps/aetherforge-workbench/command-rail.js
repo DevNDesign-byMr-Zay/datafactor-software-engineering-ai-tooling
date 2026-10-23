@@ -13,6 +13,7 @@
   let modules = [];
   let rail;
   const input = () => document.querySelector('#globalSearch');
+  const searchWrap = () => document.querySelector('.command-search-wrap');
   const esc = value => String(value ?? '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
   const ensureRail = () => {
     if (rail) return rail;
@@ -20,15 +21,8 @@
     rail.className = 'command-rail';
     rail.setAttribute('role','listbox');
     rail.setAttribute('aria-label','ÆtherForge command suggestions');
-    document.body.appendChild(rail);
+    searchWrap()?.appendChild(rail);
     return rail;
-  };
-  const position = () => {
-    const el = input(); if (!el) return;
-    const box = el.closest('.command-search')?.getBoundingClientRect(); if (!box || !rail) return;
-    rail.style.left = Math.round(box.left) + 'px';
-    rail.style.top = Math.round(box.bottom + 8) + 'px';
-    rail.style.width = Math.round(Math.max(box.width, 360)) + 'px';
   };
   const openModule = id => {
     document.querySelector('[data-page="modules"]')?.click();
@@ -48,7 +42,6 @@
     const target = ensureRail();
     target.innerHTML = results.length ? '<div class="command-rail-head"><span>COMMAND RAIL</span><small>' + results.length + ' matches</small></div>' + results.join('') : '<div class="command-empty">No local workbench match. Press Enter to search the full Module Library.</div>';
     target.classList.add('show');
-    position();
   };
   const loadModules = async () => {
     try { const response = await fetch('/api/modules'); if (response.ok) { const payload = await response.json(); if (Array.isArray(payload.modules)) modules = payload.modules; } } catch {}
@@ -72,6 +65,4 @@
     }
     if (!event.target.closest('.command-search') && !event.target.closest('.command-rail')) hide();
   });
-  window.addEventListener('resize', position);
-  window.addEventListener('scroll', position, {passive:true});
 })();
