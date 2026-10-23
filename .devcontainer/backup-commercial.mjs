@@ -6,8 +6,9 @@
  * No Docker, remote network calls, service restarts, or git mutations.
  */
 import {createHash, randomBytes} from 'node:crypto';
+import {createReadStream} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {mkdir, readdir, lstat, readFile, rename, unlink, chmod, writeFile} from 'node:fs/promises';
+import {mkdir, readdir, lstat, rename, unlink, chmod, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -59,7 +60,9 @@ export async function createBackup({
   run('tar',['-czf',partial,'-C',sourceRoot,'--',...paths],{shell:false,encoding:'utf8',timeout:120000,maxBuffer:128000});
   const result=run('tar',['-tzf',partial],{shell:false,encoding:'utf8',timeout:30000,maxBuffer:262144}).trim().split('\n').filter(Boolean).map(x=>x.replace(/^\.\//,''));
   if(paths.length!==result.length||paths.some((path,i)=>path!==result[i]))throw Error('Archive inventory verification failed');
-  const checksum=createHash('sha256').update(await readFile(partial)).digest('hex');
+  const hash=createHash('sha256');
+  for await(const chunk of createReadStream(partial))hash.update(chunk);
+  const checksum=hash.digest('hex');
   await chmod(partial,0o600);
   await rename(partial,outfile);
   await writeFile(outfile+'.sha256',checksum+'  '+filename+'\n',{flag:'wx',mode:0o600});
