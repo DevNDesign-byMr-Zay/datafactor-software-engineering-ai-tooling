@@ -48,7 +48,12 @@ try{
   assert.equal(await desktop.locator('#afideRunLanguage').inputValue(),'node');
   desktop.once('dialog',dialog=>dialog.accept());
   await desktop.locator('[data-afide="execute"]').click();
-  await desktop.locator('#afideExecOutput').getByText('AETHERFORGE_UI_NODE_PASS',{exact:false}).waitFor({timeout:30000});
+  try{
+   await desktop.locator('#afideExecOutput').getByText('AETHERFORGE_UI_NODE_PASS',{exact:false}).waitFor({timeout:30000});
+  }catch(error){
+   console.error('Node execution output on failure:',await desktop.locator('#afideExecOutput').innerText());
+   throw error;
+  }
   assert.match(await desktop.locator('#afideExecOutput').innerText(),/COMPLETED.*Exit 0/);
  });
  await run('browser Python execution invokes isolated Docker after approval',async()=>{
@@ -105,6 +110,7 @@ try{
   await old.waitFor({state:'visible'});
   desktop.once('dialog',dialog=>dialog.accept());
   await old.click();
+  await desktop.waitForFunction(()=>document.querySelector('#afideCode')?.value.includes('AETHERFORGE_SWITCH_PRESERVED'),null,{timeout:12000});
   assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_SWITCH_PRESERVED/);
  });
  await run('failed server save blocks project switch and retains unsaved editor text',async()=>{
