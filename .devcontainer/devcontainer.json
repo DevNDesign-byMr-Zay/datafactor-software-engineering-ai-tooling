@@ -7,11 +7,16 @@
     }
   },
   "forwardPorts": [
-    4545
+    4545,
+    4546
   ],
   "portsAttributes": {
     "4545": {
       "label": "ÆTHERFORGE — private workbench",
+      "onAutoForward": "notify"
+    },
+    "4546": {
+      "label": "ÆTHERFORGE Commercial IDE — private",
       "onAutoForward": "notify"
     }
   },
