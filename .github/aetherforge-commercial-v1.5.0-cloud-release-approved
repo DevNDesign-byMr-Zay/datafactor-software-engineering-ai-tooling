@@ -1,8 +1,7 @@
 APPROVED RELEASE TRIGGER
 release: aetherforge-commercial-v1.5.0-cloud
 target: main
-approval: user requested publication, manually ran release, and requested fixing failed workflow
-preflight: https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/actions/runs/40030374988
-preflight_result: success
-guardrails: isolated namespace, original core package version unchanged, fail-closed tests before GitHub Release
-retry_reason: corrected JavaScript syntax in generated markdown START-HERE guide
+reason: verify successful pre-existing release without trying to recreate published tag
+already_published: https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/releases/tag/aetherforge-commercial-v1.5.0-cloud
+guard: verify five non-empty published release files; skip all publication stages if complete
+retag: forbidden

@@ -27,24 +27,45 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Guard isolated release namespace and preexisting tag
+      - name: Verify published release or authorize initial publication
+        id: release_guard
         env:
           RELEASE_TAG: aetherforge-commercial-v1.5.0-cloud
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           test "$GITHUB_REF" = 'refs/heads/main'
           test "$(node -p "require('./package.json').version")" = '1.2.3'
           git fetch --tags
-          if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
-            echo "Tag already exists; refusing to replace a release" >&2
+          existing="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" 2>/dev/null || true)"
+          if [ -n "$existing" ]; then
+            echo "$existing" | jq -e --arg tag "$RELEASE_TAG" '.tag_name == $tag and .draft == false' >/dev/null
+            for name in \
+              AETHERFORGE-Commercial-v1.5.0-cloud.zip \
+              AETHERFORGE-Commercial-v1.5.0-cloud.sha256 \
+              RELEASE-NOTES.md RELEASE-COMMIT.txt RELEASE-METADATA.sha256; do
+              echo "$existing" | jq -e --arg name "$name" '[.assets[] | select(.name == $name and .size > 0)] | length == 1' >/dev/null || {
+                echo "Published release is incomplete: $name" >&2
+                exit 1
+              }
+            done
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Existing published release verified (5 nonempty assets); no retag, rebuild, or overwrite." >> "$GITHUB_STEP_SUMMARY"
+          elif git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+            echo "Tag exists but published release is missing or inaccessible. Refusing to overwrite." >&2
             exit 1
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Tag is absent. Run protected packaging, smoke tests and publication." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Test packaging and commercial source contracts
+        if: steps.release_guard.outputs.publish == 'true'
         run: |
           set -euo pipefail
           node --check tools/package-aetherforge-commercial.mjs
           node --test tools/package-aetherforge-commercial.test.mjs tests/aetherforge-commercial-cloud.test.mjs tests/aetherforge-cloud-ui-regression.test.mjs tests/aetherforge-ide-stabilization.test.mjs tests/aetherforge-workspace-persistence.test.mjs tests/aetherforge-preview-policy.test.mjs
       - name: Build distributable ZIP and verify its extracted runtime
+        if: steps.release_guard.outputs.publish == 'true'
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/aetherforge-commercial-dist"
@@ -71,12 +92,14 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/release-upload"
           cp AETHERFORGE-Commercial-v1.5.0-cloud.zip AETHERFORGE-Commercial-v1.5.0-cloud.sha256 RELEASE-NOTES.md RELEASE-COMMIT.txt RELEASE-METADATA.sha256 "$GITHUB_WORKSPACE/release-upload/"
       - name: Retain verified artifact
+        if: steps.release_guard.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: aetherforge-commercial-v1.5.0-cloud
           path: release-upload/
           if-no-files-found: error
       - name: Publish namespaced GitHub Release
+        if: steps.release_guard.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
