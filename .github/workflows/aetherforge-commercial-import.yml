@@ -33,6 +33,8 @@ jobs:
         run: python3 tools/import-aetherforge-commercial.py AETHERFORGE-Commercial-Codespaces-v1.5.0.zip
       - name: Run commercial cloud integration tests
         run: node --test tests/aetherforge-commercial-cloud.test.mjs
+      - name: Install pinned repository development dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run existing repository library regression tests
         run: npm test
       - name: Prove commercial backend health
