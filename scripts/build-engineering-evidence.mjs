@@ -17,8 +17,14 @@ export function buildEngineeringEvidence({
 }) {
   requireContract(pkg.main === './src/index.js', 'canonical public package entrypoint is missing');
   requireContract(pkg.exports?.['.'] === pkg.main, 'root export and main differ');
-  requireContract(classification.primaryClass === 'developer-tooling-library', 'maintained package classification changed');
-  requireContract(Array.isArray(classification.maintainedSurfaces), 'maintained roots must be declared');
+  requireContract(
+    classification.primaryClass === 'developer-tooling-library',
+    'maintained package classification changed',
+  );
+  requireContract(
+    Array.isArray(classification.maintainedSurfaces),
+    'maintained roots must be declared',
+  );
   const jsRuntimeDependencies = Object.keys(pkg.dependencies ?? {}).sort();
   const lockedPython = new Map();
   for (const entry of pythonLock.split(/\r?\n/u)) {
@@ -34,8 +40,14 @@ export function buildEngineeringEvidence({
     .flatMap((value) => value.split(/\r?\n/u))
     .map((value) => value.trim())
     .filter((value) => value && !value.startsWith('#') && !value.startsWith('-r '))
-    .map((value) => value.match(/^([A-Za-z0-9_.-]+)/u)?.[1]?.toLowerCase().replace(/_/gu, '-'));
-  for (const name of declared) requireContract(lockedPython.has(name), 'missing Python lock pin: ' + name);
+    .map((value) =>
+      value
+        .match(/^([A-Za-z0-9_.-]+)/u)?.[1]
+        ?.toLowerCase()
+        .replace(/_/gu, '-'),
+    );
+  for (const name of declared)
+    requireContract(lockedPython.has(name), 'missing Python lock pin: ' + name);
   const gates = {
     javascript: [
       ['lint', 'npm run lint'],
@@ -67,16 +79,14 @@ export function buildEngineeringEvidence({
   }
   requireContract(workflow.includes('pull_request:'), 'CI must run on pull requests');
   const exposedGates = Object.fromEntries(
-    Object.entries(gates).map(([name, rows]) => [
-      name,
-      Object.fromEntries(rows),
-    ]),
+    Object.entries(gates).map(([name, rows]) => [name, Object.fromEntries(rows)]),
   );
   return {
     schemaVersion: 1,
     commit: sha,
     evidenceType: 'declared-repository-verification-contract',
-    executionProof: 'GitHub Actions workflow/job success is authoritative; this JSON does not assert tests passed',
+    executionProof:
+      'GitHub Actions workflow/job success is authoritative; this JSON does not assert tests passed',
     package: {
       name: pkg.name,
       version: pkg.version,
