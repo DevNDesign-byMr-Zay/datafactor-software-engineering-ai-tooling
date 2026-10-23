@@ -32,9 +32,10 @@ try {
     page.locator('.command-search-wrap').boundingBox(),
     page.locator('.command-rail').boundingBox()
   ]);
+  await page.screenshot({ path: `${screenshotDir}/command-rail.png` });
   assert.ok(searchBounds && railBounds, 'Command suggestions should have visible layout bounds.');
-  assert.ok(Math.abs(railBounds.x - searchBounds.x) <= 2, 'Command suggestions should align with the search field.');
-  assert.ok(railBounds.y >= searchBounds.y + searchBounds.height, 'Command suggestions should open below the search field.');
+  assert.ok(Math.abs(railBounds.x - searchBounds.x) <= 2, `Command suggestions should align with the search field: ${JSON.stringify({ searchBounds, railBounds })}`);
+  assert.ok(railBounds.y >= searchBounds.y + searchBounds.height, `Command suggestions should open below the search field: ${JSON.stringify({ searchBounds, railBounds })}`);
   await commandInput.press('Escape');
 
   const pages = [
