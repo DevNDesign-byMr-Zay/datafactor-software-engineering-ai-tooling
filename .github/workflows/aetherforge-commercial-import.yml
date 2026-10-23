@@ -1,0 +1,60 @@
+name: ÆtherForge Commercial Source Integration
+on:
+  push:
+    branches: [feat/aetherforge-workbench-ui]
+    paths:
+      - '.github/workflows/aetherforge-commercial-import.yml'
+      - 'AETHERFORGE-Commercial-Codespaces-v1.5.0.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-verified-commercial-source:
+    if: github.repository == 'DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling' && github.ref == 'refs/heads/feat/aetherforge-workbench-ui'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout exact development branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/aetherforge-workbench-ui
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require pinned binary release and empty destination
+        run: |
+          test -f AETHERFORGE-Commercial-Codespaces-v1.5.0.zip
+          test ! -e apps/aetherforge-commercial
+          test ! -e tests/aetherforge-commercial-cloud.test.mjs
+      - name: Verify source manifest and import without overwrites
+        run: python3 tools/import-aetherforge-commercial.py AETHERFORGE-Commercial-Codespaces-v1.5.0.zip
+      - name: Run commercial cloud integration tests
+        run: node --test tests/aetherforge-commercial-cloud.test.mjs
+      - name: Run existing repository library regression tests
+        run: npm test
+      - name: Prove commercial backend health
+        run: |
+          set -euo pipefail
+          AETHERFORGE_PORT=4546 node apps/aetherforge-commercial/server.mjs > /tmp/aetherforge-commercial-ci.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:4546/api/health > /tmp/aetherforge-cloud-health.json 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node --input-type=module -e "import{readFileSync}from'node:fs';let v=JSON.parse(readFileSync('/tmp/aetherforge-cloud-health.json','utf8'));if(v.version!=='1.5.0-cloud'||!v.projectPersistence||!v.multiFileExecution)process.exit(1);console.log('ÆTHERFORGE commercial health: PASS')"
+      - name: Commit verified readable source (remove release ZIP)
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- apps/aetherforge-commercial tests/aetherforge-commercial-cloud.test.mjs
+          git rm -- AETHERFORGE-Commercial-Codespaces-v1.5.0.zip
+          git diff --cached --quiet && { echo "Nothing to commit"; exit 0; }
+          git commit -m "feat(aetherforge): integrate verified commercial IDE source in draft PR"
+          git push origin HEAD:feat/aetherforge-workbench-ui
