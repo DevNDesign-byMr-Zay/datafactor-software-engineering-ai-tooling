@@ -41,7 +41,11 @@ jobs:
           done
           cat /tmp/aetherforge-browser-server.log
           exit 1
-      - name: Test Chromium dashboard, isolated preview and mobile layout
+      - name: Prepare approved Docker language runtimes for browser end-to-end tests
+        run: |
+          docker pull gcr.io/distroless/nodejs22-debian13:nonroot
+          docker pull gcr.io/distroless/python3-debian13:nonroot
+      - name: Test Chromium dashboard, Docker controls, project persistence and mobile layout
         run: node tests/aetherforge-browser-acceptance.mjs
       - name: Publish browser acceptance screenshots
         if: always()

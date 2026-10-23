@@ -40,6 +40,55 @@ try{
   await desktop.locator('[data-afide="run"]').click();
   assert.match(await desktop.locator('#afideConsole').innerText(),/No HTML preview was started/);
  });
+ await run('browser Node execution invokes isolated Docker only after user approval',async()=>{
+  desktop.once('dialog',dialog=>dialog.accept('qa-node.js'));
+  await desktop.locator('[data-afide="add"]').click();
+  await desktop.locator('#afideCode').fill("console.log('AETHERFORGE_UI_NODE_PASS')");
+  await desktop.locator('[data-afide="execute"]').waitFor({state:'visible'});
+  assert.equal(await desktop.locator('#afideRunLanguage').inputValue(),'node');
+  desktop.once('dialog',dialog=>dialog.accept());
+  await desktop.locator('[data-afide="execute"]').click();
+  await desktop.locator('#afideExecOutput').getByText('AETHERFORGE_UI_NODE_PASS',{exact:false}).waitFor({timeout:30000});
+  assert.match(await desktop.locator('#afideExecOutput').innerText(),/COMPLETED.*Exit 0/);
+ });
+ await run('browser Python execution invokes isolated Docker after approval',async()=>{
+  desktop.once('dialog',dialog=>dialog.accept('qa-python.py'));
+  await desktop.locator('[data-afide="add"]').click();
+  await desktop.locator('#afideCode').fill("print('AETHERFORGE_UI_PYTHON_PASS')");
+  assert.equal(await desktop.locator('#afideRunLanguage').inputValue(),'python');
+  desktop.once('dialog',dialog=>dialog.accept());
+  await desktop.locator('[data-afide="execute"]').click();
+  await desktop.locator('#afideExecOutput').getByText('AETHERFORGE_UI_PYTHON_PASS',{exact:false}).waitFor({timeout:30000});
+  assert.match(await desktop.locator('#afideExecOutput').innerText(),/COMPLETED.*Exit 0/);
+ });
+ await run('browser source editing persists through Saved Projects and reload',async()=>{
+  await desktop.locator('[data-afide-open="index.html"]').click();
+  await desktop.locator('#afideCode').fill('<main><h1>AETHERFORGE_BROWSER_PERSISTENCE_PASS</h1></main>');
+  await desktop.locator('[data-afide="browse"]').click();
+  const item=desktop.locator('#afideSavedPanel [data-afide-load]').first();
+  await item.waitFor({state:'visible',timeout:15000});
+  const projectId=await item.getAttribute('data-afide-load');
+  assert.match(projectId,/^project_[a-z0-9]+$/);
+  const loaded=await desktop.request.get(base+'api/workspace/projects/'+projectId);
+  assert.equal(loaded.status(),200);
+  assert.match(JSON.stringify((await loaded.json()).project),/AETHERFORGE_BROWSER_PERSISTENCE_PASS/);
+  await desktop.reload({waitUntil:'domcontentloaded'});
+  await desktop.locator('.sidebar [data-page="ide"]').click();
+  assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_BROWSER_PERSISTENCE_PASS/);
+ });
+ await run('browser source ZIP export and re-import preserves HTML and runnable files',async()=>{
+  const downloadPromise=desktop.waitForEvent('download',{timeout:15000});
+  await desktop.locator('[data-afide="zip"]').click();
+  const download=await downloadPromise;
+  assert.match(download.suggestedFilename(),/\.zip$/);
+  const {readFile}=await import('node:fs/promises');
+  const bytes=await readFile(await download.path());
+  await desktop.locator('#afideProjectFile').setInputFiles({name:'qa-source.zip',mimeType:'application/zip',buffer:bytes});
+  await desktop.locator('#afideCode').waitFor({state:'visible'});
+  assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_BROWSER_PERSISTENCE_PASS/);
+  assert.equal(await desktop.locator('[data-afide-open="qa-node.js"]').count(),1);
+  assert.equal(await desktop.locator('[data-afide-open="qa-python.py"]').count(),1);
+ });
  await desktop.screenshot({path:dir+'/desktop-ide.png',fullPage:true});
  const mobile=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
  await run('mobile IDE navigation, editor sizing, and non-overflow',async()=>{
