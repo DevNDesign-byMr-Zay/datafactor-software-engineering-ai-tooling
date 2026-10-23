@@ -1,6 +1,18 @@
+param(
+  [string]$AppDirectory,
+  [string]$QaScriptPath
+)
+
 $ErrorActionPreference = 'Stop'
 
-$appDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ([string]::IsNullOrWhiteSpace($AppDirectory)) {
+  $AppDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+$appDir = (Resolve-Path $AppDirectory).Path
+if ([string]::IsNullOrWhiteSpace($QaScriptPath)) {
+  $QaScriptPath = Join-Path $appDir 'browser-qa.mjs'
+}
+$QaScriptPath = (Resolve-Path $QaScriptPath).Path
 $launcher = Join-Path $appDir 'launch-aetherforge.cmd'
 $serverPath = (Resolve-Path (Join-Path $appDir 'server.mjs')).Path
 $realNode = (Get-Command node.exe -ErrorAction Stop).Source
@@ -100,7 +112,7 @@ try {
   $env:AETHERFORGE_TEST_NODE_MODE = $originalMode
   $env:AETHERFORGE_TEST_NODE_LOG = $originalLog
   $env:AETHERFORGE_REAL_NODE = $originalRealNode
-  & $realNode (Join-Path $appDir 'browser-qa.mjs')
+  & $realNode $QaScriptPath
   if ($LASTEXITCODE -ne 0) { throw "Responsive browser QA exited with code $LASTEXITCODE." }
 }
 finally {

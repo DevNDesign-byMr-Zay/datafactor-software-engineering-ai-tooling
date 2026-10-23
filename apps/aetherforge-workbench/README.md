@@ -35,6 +35,18 @@ The static HTML also opens directly in a browser, with interactive catalog, navi
 
 Double-click `launch-aetherforge.cmd` from the `apps/aetherforge-workbench` directory. It checks for Node.js 22+, starts the local server in a separate command window, waits for the localhost health endpoint, then opens your default browser. If startup fails, the launcher shows recovery guidance and returns an error. Close the server console to stop the service. No administrator privileges or Docker required.
 
+## Portable HTML ZIP
+
+Create a portable package outside the repository with:
+
+    node apps/aetherforge-workbench/package-workbench.mjs --output /path/to/aetherforge-workbench
+
+The package has a root `index.html` visual entry point, a copy of the complete workbench under `apps/aetherforge-workbench/`, the required maintained `src/` files, and `START-HERE.md`. The Windows launcher path remains `apps/aetherforge-workbench/launch-aetherforge.cmd`. Node.js 22+ is required; no npm install is needed. Windows CI runs the launcher and browser acceptance checks against this staged package before publishing the `aetherforge-workbench-html-bundle` workflow artifact.
+
+The builder accepts `--preview <png>` to include a verified browser screenshot in the root HTML entry point:
+
+    node apps/aetherforge-workbench/package-workbench.mjs --output /path/to/aetherforge-workbench --preview /path/to/desktop-overview.png
+
 ## Implemented
 
 - Home command center with quick actions, capability categories, recent local activity and visible no-regression boundary.
