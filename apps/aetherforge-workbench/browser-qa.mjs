@@ -22,7 +22,7 @@ try {
   assert.equal(response?.status(), 200, 'Workbench document should load over the local adapter.');
   assert.equal(await page.title(), 'ÆtherForge · Engineering Workbench');
   await page.waitForFunction(() => document.querySelector('#connectionBadge')?.textContent.includes('CONNECTED'));
-  assert.equal(await page.locator('#main h1').innerText(), 'Overview');
+  assert.equal(await page.locator('#main h1').innerText(), 'ENGINEERING CONTROL');
   await page.screenshot({ path: `${screenshotDir}/desktop-overview.png`, fullPage: true });
 
   const pages = [
