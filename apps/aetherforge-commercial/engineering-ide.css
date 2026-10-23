@@ -3,3 +3,12 @@
 
 /* v0.7: persistent projects and explicit isolated execution */
 .afide-saved-panel{padding:16px;border:1px solid #32627d;border-radius:12px;background:#10213b;margin:10px 0}.afide-saved-panel>strong{font:11px ui-monospace,monospace;letter-spacing:.12em;color:#72e5ee}.afide-saved-item{border:1px solid #2c597b;background:#0a192c;color:#d7effa;border-radius:9px;padding:12px;width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;margin-top:9px;cursor:pointer}.afide-saved-item:hover{border-color:#7a5cdd}.afide-saved-item small{color:#8fb1cb}.afide-runner{padding:12px;background:#0c1b32;border-top:1px solid #314c6b}.afide-runner-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:#76dce8;letter-spacing:.07em;font:10px ui-monospace,monospace}.afide-runner-head small{color:#a09ac7}.afide-runner-controls{display:flex;gap:8px;margin-top:12px}.afide-runner-controls select{background:#071725;color:#e0f6ff;border:1px solid #315b7b;border-radius:8px;min-height:33px;flex:1}.afide-runner pre{color:#b0cfce;background:#061422;border:1px solid #1f4461;padding:12px;min-height:72px;max-height:150px;overflow:auto;white-space:pre-wrap;font:11px/1.5 Consolas,monospace;margin-top:10px}@media(max-width:740px){.afide-saved-item{flex-direction:column;align-items:flex-start}}
+
+/* Cloud IDE polish: opaque sticky navigation prevents ghost text beneath header. */
+.topbar { background:#071427; backdrop-filter:none; }
+body.light .topbar { background:#f1f8ff; }
+.afide .page-head{margin-bottom:22px;align-items:center;}
+.afide .page-head h1{line-height:1.14;}
+.afide-viewport iframe{background:#fff;}
+@media(max-width:1250px){.afide-layout{grid-template-columns:minmax(175px,205px) minmax(0,1fr);}.afide-viewport{grid-column:1/-1}}
+@media(max-width:740px){.afide-layout{grid-template-columns:minmax(0,1fr)}.afide-viewport{grid-column:auto}}

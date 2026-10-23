@@ -47,6 +47,7 @@ const staticRoutes = new Map([
   ['/project-desk.js', ['project-desk.js', 'text/javascript; charset=utf-8']],
   ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
   ['/offline-runtime.js', ['offline-runtime.js', 'text/javascript; charset=utf-8']],
+  ['/cloud-backend.js', ['cloud-backend.js', 'text/javascript; charset=utf-8']],
   ['/reference-manifest.browser.js', ['reference-manifest.browser.js', 'text/javascript; charset=utf-8']],
   ['/evidence-center.browser.js', ['evidence-center.browser.js', 'text/javascript; charset=utf-8']],
   ['/app-behavior.js', ['app-behavior.js', 'text/javascript; charset=utf-8']],

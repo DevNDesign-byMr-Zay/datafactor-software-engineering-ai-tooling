@@ -54,7 +54,7 @@ function runtimeHelp(){const fromFile=location.protocol==='file:';return `<div c
 function settings(){return (window.AetherForgeOperator?.settings()||oldSettings())+runtimeHelp();}
 const pages={overview,projects,library,ide,sandbox,modules,studio,evidence,sustainability,assets,assistant,profile,settings};
 function render(){document.querySelector('#crumbName').textContent=titleMap[state.page].toUpperCase();document.querySelector('#main').innerHTML=pages[state.page]();document.querySelectorAll('[data-page]').forEach(b=>{const selected=b.dataset.page===state.page;b.classList.toggle('active',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});}
-function go(page){if(!pages[page])return;state.page=page;render();window.scrollTo({top:0,behavior:'smooth'});}
+function go(page){if(!pages[page])return;state.page=page;window.scrollTo(0,0);render();}
 function showToast(message){const el=document.querySelector('#toast');el.textContent=message;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3600);}
 function value(id){return document.getElementById(id)?.value||'';}
 async function action(name){const fields={cloud:['serviceName','region'],brush:['brushSize','distance','feather','shape'],holo:['snapshotId','provenanceRef','intent'],energy:['durationMs','estimatedEnergyWh','renewableRatio']};const inputs={};for(const key of fields[name]||[])inputs[key]=value(key);await execute(name,inputs);}
