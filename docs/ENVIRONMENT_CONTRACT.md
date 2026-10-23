@@ -17,7 +17,8 @@ The root [`.env.example`](../.env.example) is a **non-secret reference**, not an
 
 ## Browser QA (optional)
 
-- `AETHERFORGE_URL`, `AETHERFORGE_SCREENSHOT_DIR`, `CHROME_PATH` and `PLAYWRIGHT_MODULE_PATH` are local/browser acceptance inputs, not required for the application to start. Browsers and Playwright must be installed separately for those checks.
+- `AETHERFORGE_URL`, `AETHERFORGE_SCREENSHOT_DIR`, `CHROME_PATH`, `PLAYWRIGHT_MODULE_PATH`, `AETHERFORGE_BROWSER_BIN`, `AETHERFORGE_ACCEPTANCE_REPORT` and `AETHERFORGE_USER_DATA_DIR` are local/browser acceptance or desktop packaging inputs, not required for the application to start. Browsers and Playwright must be installed separately for those checks.
+- `LOCALAPPDATA` and `PROGRAMFILES` are Windows-provided environment paths referenced by optional desktop integration. They are documented for discoverability only; do not override their operating-system values.
 
 ## Coverage
 
