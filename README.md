@@ -1,5 +1,7 @@
 # Software Engineering & AI Tooling — Maintained Developer Tooling Library
 
+See [Engineering verification and artifacts](docs/ENGINEERING_VERIFICATION.md) for reproducible CI commands, JS/Python dependency boundaries and commit-linked quality evidence.
+
 This repository is a maintained **developer-tooling and reusable-library package** with a canonical public surface under `src/`, maintained Python utilities under `python_support/`, reproducible JavaScript/Python verification, container checks, security analysis, and explicit package exports. The complete historical engineering corpus is preserved outside the scored tree at `archive/historical-corpus-v1.2.2` and release `v1.2.2`.
 
 ## Canonical package entrypoint
