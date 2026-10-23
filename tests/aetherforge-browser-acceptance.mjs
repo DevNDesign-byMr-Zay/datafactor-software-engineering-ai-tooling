@@ -89,6 +89,36 @@ try{
   assert.equal(await desktop.locator('[data-afide-open="qa-node.js"]').count(),1);
   assert.equal(await desktop.locator('[data-afide-open="qa-python.py"]').count(),1);
  });
+ await run('switching to a new project flushes pending text and preserves old workspace',async()=>{
+  const id=await desktop.evaluate(()=>localStorage.getItem('aetherforge-ide-project-id-v1'));
+  await desktop.locator('[data-afide-open="index.html"]').click();
+  await desktop.locator('#afideCode').fill('<main>AETHERFORGE_SWITCH_PRESERVED</main>');
+  desktop.once('dialog',dialog=>dialog.accept());
+  await desktop.locator('[data-afide="new"]').click();
+  assert.doesNotMatch(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_SWITCH_PRESERVED/);
+  const saved=await desktop.request.get(base+'api/workspace/projects/'+id);
+  assert.equal(saved.status(),200);
+  assert.match(JSON.stringify((await saved.json()).project),/AETHERFORGE_SWITCH_PRESERVED/);
+  await desktop.locator('[data-afide="browse"]').click();
+  const old=desktop.locator('#afideSavedPanel [data-afide-load="'+id+'"]');
+  await old.waitFor({state:'visible'});
+  desktop.once('dialog',dialog=>dialog.accept());
+  await old.click();
+  assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_SWITCH_PRESERVED/);
+ });
+ await run('failed server save blocks project switch and retains unsaved editor text',async()=>{
+  await desktop.locator('#afideCode').fill('<main>AETHERFORGE_UNSAVED_IS_SAFE</main>');
+  await desktop.route('**/api/workspace/projects/*',async route=>{
+   if(route.request().method()==='PUT')await route.fulfill({status:503,contentType:'application/json',body:'{"error":"simulated unavailable server"}'});
+   else await route.continue();
+  });
+  try{
+   desktop.once('dialog',dialog=>dialog.accept());
+   await desktop.locator('[data-afide="new"]').click();
+   await desktop.locator('#afideCode').getByText('AETHERFORGE_UNSAVED_IS_SAFE',{exact:false}).waitFor();
+   assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_UNSAVED_IS_SAFE/);
+  }finally{await desktop.unroute('**/api/workspace/projects/*');}
+ });
  await desktop.screenshot({path:dir+'/desktop-ide.png',fullPage:true});
  const mobile=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true});
  await run('mobile IDE navigation, editor sizing, and non-overflow',async()=>{
