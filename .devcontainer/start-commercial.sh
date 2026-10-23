@@ -3,7 +3,14 @@
 set -euo pipefail
 cd "$(dirname "$(dirname "$(readlink -f "$0")")")"
 if [ ! -f apps/aetherforge-commercial/server.mjs ]; then echo '[ÆTHERFORGE] Import the verified cloud ZIP first.' >&2; exit 2; fi
-if [ "$CODESPACES" != 'true' ]; then echo '[ÆTHERFORGE] This launcher requires GitHub Codespaces.' >&2; exit 2; fi
+if [ "${CODESPACES:-}" != 'true' ]; then echo '[ÆTHERFORGE] This launcher requires GitHub Codespaces.' >&2; exit 2; fi
+if [ "${1:-}" = '--restart' ]; then
+  node .devcontainer/stop-commercial.mjs
+  for attempt in $(seq 1 20); do
+    if ! node -e 'fetch("http://127.0.0.1:4546/api/health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' >/dev/null 2>&1; then break; fi
+    sleep 1
+  done
+fi
 mkdir -p "$HOME/.local/state/aetherforge" /workspaces/.aetherforge-data/assets /workspaces/.aetherforge-data/workspaces
 if node -e 'fetch("http://127.0.0.1:4546/api/health").then(async r=>{const j=await r.json();process.exit(r.ok&&j.version==="1.5.0-cloud"?0:1)}).catch(()=>process.exit(1))' >/dev/null 2>&1; then echo '[ÆTHERFORGE] Commercial IDE already online: private port 4546'; exit 0; fi
 if node -e 'fetch("http://127.0.0.1:4546/").then(()=>process.exit(0)).catch(()=>process.exit(1))' >/dev/null 2>&1; then echo '[ÆTHERFORGE] Port 4546 occupied by a different service.' >&2; exit 3; fi

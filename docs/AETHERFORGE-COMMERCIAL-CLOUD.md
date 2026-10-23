@@ -23,3 +23,11 @@ The importer pins the ZIP SHA-256 and verifies the manifest digests for every so
 Cloud runtime proof from the user: Codespaces Docker Engine and Node/Python Distroless probes both PASS. This does not yet prove the full commercial IDE's cloud Run Project button. That acceptance must be confirmed with the new port 4546 UI and the actual integrated project execution endpoints.
 
 Do not merge this draft PR before the commercial source import, full CI, responsive browser QA, and real Codespaces IDE execution acceptance.
+
+## Cloud IDE repair (2026-10-23)
+
+Browser port 4546 now recognizes the private Codespaces origin for project persistence and the isolated runner; the client/server continue to reject arbitrary public Origins. The preview frame runs only its trusted bridge inline, within an opaque-origin `allow-scripts` iframe. Site chrome is opaque and navigation resets the scroll position so headings do not ghost behind the header.
+
+After pulling the branch, restart **only** the commercial service with `bash .devcontainer/start-commercial.sh --restart`. This targets the exact commercial Node process and leaves companion port 4545 untouched. Reload the private port 4546 tab. Running the script without `--restart` correctly reuses an existing running process without loading newly edited server code.
+
+Complete hands-on browser acceptance of viewport rendering and Node/Python project output before marking the PR ready for review. No changes to the Codespace Docker engine or runtime images are needed.

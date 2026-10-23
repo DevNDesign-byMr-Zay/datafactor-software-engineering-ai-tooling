@@ -25,10 +25,12 @@ jobs:
           node-version: '22'
       - name: Validate cloud service syntax and browser assets
         run: |
+          node --check .devcontainer/stop-commercial.mjs
+          bash -n .devcontainer/start-commercial.sh
           node --check apps/aetherforge-commercial/server.mjs
           node --check apps/aetherforge-commercial/isolated-runner.mjs
           node --check apps/aetherforge-commercial/engineering-ide.js
-          node --test tests/aetherforge-commercial-cloud.test.mjs
+          node --test tests/aetherforge-commercial-cloud.test.mjs tests/aetherforge-cloud-ui-regression.test.mjs .devcontainer/commercial-restart.test.mjs
       - name: Prove real server health and same-origin boundary
         run: |
           set -euo pipefail
