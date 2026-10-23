@@ -30,7 +30,11 @@ async function sourcesIn(dir) {
   for (const item of await readdir(join(root, dir), { withFileTypes: true })) {
     const path = join(dir, item.name);
     if (item.isDirectory()) files.push(...(await sourcesIn(path)));
-    else if (item.isFile() && /\.(?:m?js)$/u.test(item.name) && !/\.test\.(?:m?js)$/u.test(item.name)) {
+    else if (
+      item.isFile() &&
+      /\.(?:m?js)$/u.test(item.name) &&
+      !/\.test\.(?:m?js)$/u.test(item.name)
+    ) {
       files.push(path);
     }
   }
@@ -38,8 +42,9 @@ async function sourcesIn(dir) {
 }
 
 function referencedNames(content) {
-  return [...content.matchAll(/process\.env(?:\.([A-Z][A-Z0-9_]*)|\[['"]([A-Z][A-Z0-9_]*)['"]\])/gu)]
-    .map((match) => match[1] || match[2]);
+  return [
+    ...content.matchAll(/process\.env(?:\.([A-Z][A-Z0-9_]*)|\[['"]([A-Z][A-Z0-9_]*)['"]\])/gu),
+  ].map((match) => match[1] || match[2]);
 }
 
 describe('environment example completeness', () => {
