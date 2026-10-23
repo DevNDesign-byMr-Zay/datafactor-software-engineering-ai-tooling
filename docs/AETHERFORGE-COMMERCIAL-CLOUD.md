@@ -1,37 +1,66 @@
-# ÆTHERFORGE commercial v1.5.0 cloud integration (draft)
+# ÆTHERFORGE Commercial Cloud — current operational runbook
 
-This adds a verified import path for the standalone commercial workbench without modifying the existing companion or canonical src module library. PR #211 remains draft. Full source is currently packaged as a separate ZIP, not yet committed to the branch.
+**Verified branch:** `feat/aetherforge-workbench-ui` (draft PR #211).
+**Application:** `apps/aetherforge-commercial/`, committed as readable source.
+**Current cloud build:** `1.5.0-cloud`. No ZIP import, new Codespace, or app installation is needed for an existing checkout on this branch.
 
-## On an iPhone with an existing GitHub Codespace
+## Start in the existing private Codespace
 
-1. Download AETHERFORGE-Commercial-Codespaces-v1.5.0.zip from the corresponding ChatGPT artifact link into iPhone Files.
-2. Upload the ZIP into your Codespace repository root through the VS Code file explorer. Alternatively use GitHub repository **Add file → Upload files**, selecting the *feature branch*, then `git pull --ff-only` in Codespaces.
-3. Run the following in the repository root:
+Use the terminal from the repository root:
 
 ```bash
-python3 tools/import-aetherforge-commercial.py AETHERFORGE-Commercial-Codespaces-v1.5.0.zip
-node --test tests/aetherforge-commercial-cloud.test.mjs
-bash .devcontainer/start-commercial.sh
+cd /workspaces/datafactor-software-engineering-ai-tooling
+git status --short
+git pull --ff-only origin feat/aetherforge-workbench-ui
+bash .devcontainer/start-all.sh
 ```
 
-4. Open **private port 4546** from the Codespaces Ports tab. The existing companion remains on **private port 4545**. Do not change visibility to Public.
+If you changed code and need a fresh commercial server process, use:
 
-After verification, commit imported apps/aetherforge-commercial and tests/aetherforge-commercial-cloud.test.mjs to PR #211. Do not commit the ZIP as the final distributable source; if it was uploaded through GitHub, remove the ZIP from source control during migration.
+```bash
+bash .devcontainer/start-all.sh --restart
+```
 
-The importer pins the ZIP SHA-256 and verifies the manifest digests for every source. It rejects symlinks, path traversal, oversized data and existing target folders. It does not execute imported files. The commercial application has Codespaces hostname allowlisting, same-origin checks, explicit project execution confirmation and Docker-only execution with Google Distroless Node/Python containers. Container calls deny networking, use a read-only root and non-root UID with resource limits, no source-host mounts, no automatic image pull.
+The `--restart` flag only terminates the recognized commercial server on 4546; the companion on 4545 is preserved and reused. Never force `git pull` over uncommitted changes. You can also start either app separately:
 
-Cloud runtime proof from the user: Codespaces Docker Engine and Node/Python Distroless probes both PASS. This does not yet prove the full commercial IDE's cloud Run Project button. That acceptance must be confirmed with the new port 4546 UI and the actual integrated project execution endpoints.
+```bash
+bash .devcontainer/start-commercial.sh
+bash .devcontainer/start-aetherforge.sh
+```
 
-Do not merge this draft PR before the commercial source import, full CI, responsive browser QA, and real Codespaces IDE execution acceptance.
+Open **Private port 4546** in the Codespaces Ports tab for the commercial IDE; **Private port 4545** is the original maintained-library companion. Do not make either port public. The Codespaces port proxy provides authentication; the Node server does not provide independent public multi-user authorization.
 
-## Cloud IDE repair (2026-10-23)
+## Docker and execution readiness
 
-Browser port 4546 now recognizes the private Codespaces origin for project persistence and the isolated runner; the client/server continue to reject arbitrary public Origins. The preview frame runs only its trusted bridge inline, within an opaque-origin `allow-scripts` iframe. Site chrome is opaque and navigation resets the scroll position so headings do not ghost behind the header.
+```bash
+node .devcontainer/check-environment.mjs
+node .devcontainer/verify-execution.mjs
+```
 
-After pulling the branch, restart **only** the commercial service with `bash .devcontainer/start-commercial.sh --restart`. This targets the exact commercial Node process and leaves companion port 4545 untouched. Reload the private port 4546 tab. Running the script without `--restart` correctly reuses an existing running process without loading newly edited server code.
+The required commercial health check is 4546; the companion 4545 is independently reported and optional for commercial operation. Docker is required only for operator-approved Node/Python execution. Approved preloaded images:
 
-Complete hands-on browser acceptance of viewport rendering and Node/Python project output before marking the PR ready for review. No changes to the Codespace Docker engine or runtime images are needed.
+- `gcr.io/distroless/nodejs22-debian13:nonroot`
+- `gcr.io/distroless/python3-debian13:nonroot`
 
-## Final acceptance: project lifecycle and IDE runtime feedback
+Missing images can be explicitly pulled from within the Codespace; they are **never automatically downloaded when executing user projects**. Avoid obsolete `reg.mini.dev` pull commands. Docker execution runs with restricted no-network, no-host-mount, read-only non-root policies and bounded resources.
 
-The active source selects the appropriate Docker runtime by default (`.py` → Python, `.js/.mjs/.cjs` → Node), and `Run Selected File` is disabled when HTML, CSS, or a non-executable asset is selected. The browser viewport header now labels the last HTML document actually previewed; running the browser viewport while a non-HTML file is selected will not silently execute the original project entry. Project list access first flushes pending edits to the server, so newly edited projects appear in Saved Projects. A new end-to-end regression suite checks full ZIP source round-trip, isolated HTML selection, project PUT/list/GET persistence, and rejection of path traversal and cross-origin writes. Existing companion 4545 and Docker configuration remain unchanged.
+## Project preservation
+
+Commercial server workspace data is stored under `/workspaces/.aetherforge-data/workspaces`; uploaded assets live under `/workspaces/.aetherforge-data/assets`. Keep the Codespace and that directory when restarting containers. The browser also maintains its own localStorage; not every unsynced browser-only edit is necessarily in the server store. Use **Engineering IDE → Export Project ZIP** for each important project. Verify it includes all required HTML/CSS/JS/Python files and opens via **Import Project ZIP / JSON**.
+
+**Never commit private user workspaces, backups, API keys or credentials to the repository.** Saving in ÆTHERFORGE does not push code to GitHub.
+
+## Verification evidence and remaining release boundaries
+
+- User-operated Codespace: both private services healthy; Docker engine and both approved Distroless images PASS; isolated Node/Python execution PASS.
+- GitHub protected checks: Engineering CI, CodeQL, Companion CI, Codespaces Configuration, Commercial Cloud CI and Real Browser Acceptance passed on the validated checkpoint.
+- Real Chromium automation: 8 acceptance checks cover desktop/mobile navigation, interactive HTML preview, explicit Node/Python run approvals, project save/reload, and ZIP source round-trip.
+- Cloud preflight and holographic plans remain **advisory**, not live deployments or actual quantum computing.
+- The source tree is now in PR #211 and the one-time `AETHERFORGE-Commercial-Codespaces-v1.5.0.zip` importer is historical migration tooling only.
+- PR remains **draft** until final operator review, source/document reconciliation, and explicit merge authorization. These checks do not establish readiness for public multi-user hosting.
+
+For recovery, inspect `~/.local/state/aetherforge/commercial.log` or `~/.local/state/aetherforge/server.log`; do not delete the Codespace or change host security policies.
+
+## Historical migration note
+
+Earlier revisions required downloading a separate ZIP and running `tools/import-aetherforge-commercial.py`. That procedure is no longer needed for this branch, because the full commercial source is already committed. Historical import scripts remain for audit/replay, not current startup.

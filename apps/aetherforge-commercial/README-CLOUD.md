@@ -1,11 +1,17 @@
-# ÆTHERFORGE Commercial Workbench — GitHub Codespaces (v1.5.0-cloud)
+# ÆTHERFORGE Commercial Workbench — Codespaces v1.5.0-cloud
 
-This directory is an additive, cloud-adapted copy of the user-tested portable v1.4.2 workbench. The maintained library in `../../src/index.js` remains the authoritative backend. The original `apps/aetherforge-workbench/` companion is unmodified.
+**Current source is committed in draft PR #211.** For an existing Codespace, do not re-import the old ZIP or overwrite the installed app.
 
-Launch with `bash .devcontainer/start-commercial.sh` from the repository root and open **private port 4546** in the Codespaces Ports tab. Never set port 4546 to Public.
+```bash
+cd /workspaces/datafactor-software-engineering-ai-tooling
+git pull --ff-only origin feat/aetherforge-workbench-ui
+bash .devcontainer/start-all.sh
+```
 
-The IDE requires deliberate confirmation before Node/Python project execution. Docker uses preloaded Google Distroless Node 22 and Python 3.13 images; no network, no host mounts, read-only image, unprivileged UID, capped CPU/memory/PIDs/output, and execution timeouts. The HTML preview is a separate browser sandbox.
+On code updates, use `bash .devcontainer/start-all.sh --restart`. Open **private port 4546** for the commercial IDE and **private port 4545** for the maintained-library companion. No Docker installation, Windows administrator rights, or new Codespace is required when the existing cloud Docker daemon is ready.
 
-The GitHub Codespaces authenticated port proxy is the access gate, **not the Node process itself**. Do not directly expose this service outside a private Codespace. The allowed remote Host value must exactly match the current Codespace name and port; Origin and Fetch-Site checks remain enforced. Localhost is supported for local smoke tests.
+The Engineering IDE supports editable source projects, browser previews, server-backed saved projects, source ZIP export/import, and operator-confirmed Docker execution of Node/Python with preloaded Google Distroless images. Docker execution denies networking and host-folder mounts and restricts CPU, memory, PIDs, output and time. Cloud Run remains planning-only; AI/model integrations are not implied.
 
-The cloud build does not include private user repositories, SaaS tokens, or generated user projects. Back up workspaces by exporting their source ZIP. Container restarts might clear local filesystem state outside `/workspaces`.
+**Security:** The Codespaces authenticated private-port proxy is required for access protection. Do not publish either port. Export important projects from the IDE; the server writes to `/workspaces/.aetherforge-data`, and browser localStorage may hold unsynced edits. No project is pushed to GitHub automatically.
+
+Full operational/recovery guide: `docs/AETHERFORGE-COMMERCIAL-CLOUD.md`. The older `README.md` contains historical portable v0.x notes and obsolete Minimus image references; this cloud README supersedes those instructions.
