@@ -64,3 +64,13 @@ For recovery, inspect `~/.local/state/aetherforge/commercial.log` or `~/.local/s
 ## Historical migration note
 
 Earlier revisions required downloading a separate ZIP and running `tools/import-aetherforge-commercial.py`. That procedure is no longer needed for this branch, because the full commercial source is already committed. Historical import scripts remain for audit/replay, not current startup.
+
+## Private on-demand server-state backups
+
+To create a local checksum-verified backup of your **server-saved** project JSON and uploaded image assets:
+
+```bash
+node .devcontainer/backup-commercial.mjs
+```
+
+The backup is written **outside the Git repository**, under `/workspaces/.aetherforge-backups/`, as a `.tar.gz` with a matching `.sha256`. The command rejects symlinks, oversized payloads and unknown filenames; it never commits or uploads the archive. Download the file privately through the Codespaces Explorer if you need a durable copy beyond the Codespace. **This is not a browser-localStorage backup**: export each project from the IDE as a source ZIP if it has unsynced browser-only edits. Before restoring any backup, inspect its content and keep the current workspace; never extract blindly over live projects.
