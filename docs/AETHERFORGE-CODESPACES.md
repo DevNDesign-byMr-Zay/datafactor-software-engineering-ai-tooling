@@ -4,7 +4,7 @@ This configuration lives on draft PR #211 (`feat/aetherforge-workbench-ui`). It 
 
 ## Start on iPhone
 
-Open https://codespaces.new/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/tree/feat/aetherforge-workbench-ui and create a codespace. It is tied to your GitHub account and may consume included or billable Codespaces quota. Allow the dev container build to complete. The trusted companion starts on port 4545 automatically. From the Codespaces **Ports** tab, open 4545 in Browser. Keep visibility **Private**. Never make port 4545 public; the local app is not a multi-tenant authenticated public service.
+Open https://codespaces.new/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/tree/feat/aetherforge-workbench-ui and create a codespace. It is tied to your GitHub account and may consume included or billable Codespaces quota. Allow the dev container build to complete. Start the trusted companion manually from the Codespaces terminal with `bash .devcontainer/start-aetherforge.sh`, then open the private port 4545 in Browser from the **Ports** tab. Automatic start is deliberately disabled as a container-lifecycle prerequisite so a backend failure does not send the entire Codespace into recovery mode. Keep visibility **Private**. Never make port 4545 public; the local app is not a multi-tenant authenticated public service.
 
 In the cloud terminal run:
 

@@ -15,7 +15,6 @@
       "onAutoForward": "notify"
     }
   },
-  "postStartCommand": "bash .devcontainer/start-aetherforge.sh",
   "remoteUser": "node",
   "customizations": {
     "vscode": {
