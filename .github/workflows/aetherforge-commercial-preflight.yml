@@ -1,0 +1,41 @@
+name: ÆTHERFORGE Commercial Release Preflight
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/package-aetherforge-commercial.mjs'
+      - 'tools/package-aetherforge-commercial.test.mjs'
+      - '.github/workflows/aetherforge-commercial-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-zip-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate packager syntax and self-contained source bundle
+        run: |
+          set -euo pipefail
+          node --check tools/package-aetherforge-commercial.mjs
+          node --test tools/package-aetherforge-commercial.test.mjs
+      - name: Verify generated release ZIP and isolated local server
+        run: |
+          set -euo pipefail
+          node tools/package-aetherforge-commercial.mjs --output "$RUNNER_TEMP/aetherforge-release-bundle"
+          cd "$RUNNER_TEMP"
+          zip -q -X -r aetherforge-release-preflight.zip aetherforge-release-bundle
+          unzip -t aetherforge-release-preflight.zip | tail -n 2
+          cd aetherforge-release-bundle
+          AETHERFORGE_PORT=4546 node apps/aetherforge-commercial/server.mjs > "$RUNNER_TEMP/aetherforge-health.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4546/api/health > "$RUNNER_TEMP/health.json" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          node --input-type=module -e "import{readFileSync}from'node:fs';const h=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/health.json','utf8'));if(h.version!=='1.5.0-cloud'||!h.projectPersistence)process.exit(1)"

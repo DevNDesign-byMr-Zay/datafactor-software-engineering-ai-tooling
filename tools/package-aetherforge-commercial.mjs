@@ -51,28 +51,7 @@ export async function buildCommercialPackage(destination,{root=repo}={}){
   await cp(join(base,p),target,{recursive:true,errorOnExist:true,force:false,dereference:false});
  }
  await writeFile(join(out,'package.json'),JSON.stringify({name:'aetherforge-commercial-release',version:'1.5.0-cloud',private:true,type:'module',engines:{node:'>=22'}},null,2)+'\n');
- const guide=`# ÆTHERFORGE Commercial v1.5.0-cloud — Release Bundle
-
-This ZIP is the **source distribution** of the tested Commercial IDE (plus original companion and maintained module library), not a standalone `.exe`, iOS app or hosted SaaS. Browser `file://` cannot automatically start the Node/Docker services.
-
-## Start in an existing GitHub Codespace
-Use the original repository checkout at the tagged commit (not a second copy of this ZIP) and run:
-```bash
-bash .devcontainer/start-all.sh
-```
-Open the authenticated **private Codespaces port 4546** for Commercial and private 4545 for Companion. Keep both ports Private.
-
-## Run extracted ZIP locally where Node.js 22+ is already installed
-From the extracted folder:
-```bash
-node apps/aetherforge-commercial/server.mjs
-```
-Then open http://127.0.0.1:4546/ in your browser. This binds only to local loopback by default. You can start the original companion in a separate terminal with `node apps/aetherforge-workbench/server.mjs` (port 4545). The Docker Engine and approved Distroless images are optional prerequisites **only** for running JS/Python code in a container. Cloud Run and holographic actions are advisory; AI provider/QPU integration is not supplied.
-
-The release contains no user-saved projects, private credentials, account data, secrets or Codespaces backups. Server-saved projects live in a local project store; use Engineering IDE → Export Project ZIP for important projects. README-CLOUD.md and docs/AETHERFORGE-COMMERCIAL-CLOUD.md cover Codespaces configuration.
-
-**Windows note:** Administrator restrictions may prevent installing Node or Docker. This ZIP does not bypass those restrictions; an existing private Codespace can run the full verified cloud environment.
-`;
+ const guide="# ÆTHERFORGE Commercial v1.5.0-cloud — Release Bundle\n\nThis ZIP is the **source distribution** of the tested Commercial IDE (plus original companion and maintained module library), not a standalone `.exe`, iOS app or hosted SaaS. Browser `file://` cannot automatically start the Node/Docker services.\n\n## Start in an existing GitHub Codespace\nUse the original repository checkout at the tagged commit (not a second copy of this ZIP) and run:\n```bash\nbash .devcontainer/start-all.sh\n```\nOpen the authenticated **private Codespaces port 4546** for Commercial and private 4545 for Companion. Keep both ports Private.\n\n## Run extracted ZIP locally where Node.js 22+ is already installed\nFrom the extracted folder:\n```bash\nnode apps/aetherforge-commercial/server.mjs\n```\nThen open http://127.0.0.1:4546/ in your browser. This binds only to local loopback by default. You can start the original companion in a separate terminal with `node apps/aetherforge-workbench/server.mjs` (port 4545). The Docker Engine and approved Distroless images are optional prerequisites **only** for running JS/Python code in a container. Cloud Run and holographic actions are advisory; AI provider/QPU integration is not supplied.\n\nThe release contains no user-saved projects, private credentials, account data, secrets or Codespaces backups. Server-saved projects live in a local project store; use Engineering IDE → Export Project ZIP for important projects. README-CLOUD.md and docs/AETHERFORGE-COMMERCIAL-CLOUD.md cover Codespaces configuration.\n\n**Windows note:** Administrator restrictions may prevent installing Node or Docker. This ZIP does not bypass those restrictions; an existing private Codespace can run the full verified cloud environment.\n";
  await writeFile(join(out,'START-HERE.md'),guide,'utf8');
  const docs=await manifestFiles(out);
  if(docs.some(x=>/^(?:.*\/)?(?:\.env|private\.key|credentials|id_rsa)(?:\/|$)/i.test(x.path)))throw Error('Sensitive filename in release');

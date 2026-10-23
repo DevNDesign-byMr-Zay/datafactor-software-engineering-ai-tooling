@@ -18,7 +18,11 @@ test('builds standalone commercial source bundle with no user state',async()=>{
   assert.ok(!manifest.files.some(x=>/\/\.local-assets|\/\.local-workspaces|\/node_modules\/|\/\.aetherforge|\/\.env(?:\.|$)/.test(x.path)));
   const saved=JSON.parse(await readFile(join(output,'SOURCE-SHA256.json'),'utf8'));
   assert.equal(saved.fileCount,manifest.fileCount);
-  assert.match(await readFile(join(output,'START-HERE.md'),'utf8'),/private Codespaces port 4546/);
+  const guide=await readFile(join(output,'START-HERE.md'),'utf8');
+  assert.match(guide,/private Codespaces port 4546/);
+  assert.ok(guide.includes('```bash'),'Markdown shell code fences must render as text');
+  assert.ok(guide.includes('`file:\/\/`'),'Document the file-protocol runtime boundary');
+  assert.ok(guide.includes('`node apps\/aetherforge-workbench\/server.mjs`'),'Companion startup must remain documented');
  }finally{await rm(temp,{recursive:true,force:true})}
 });
 test('refuses output overlapping checked-out repository',async()=>{
