@@ -40,3 +40,7 @@ Minimus publicly announced the permanent shutdown of `reg.mini.dev` on 2026-10-2
 Node and Python Distroless images define the language binary as an OCI ENTRYPOINT. Use `docker run <flags> <image> -e 'console.log(1)'` for Node and `docker run <flags> <image> -c 'print(1)'` for Python. Do not duplicate `node` or `python` after the image name.
 
 The older *portable* v1.4.2 ZIP still contains the historical Minimus implementation and must be rebuilt separately; this repository commit updates the Codespaces policy, readiness checks, and documentation only. The complete portable commercial IDE has not been synchronized with this PR. Never expose port 4545 publicly or execute arbitrary submitted code without authentication and stronger isolation.
+
+## Verify real language execution with the production restrictions
+
+After pulling both Distroless images, run `node .devcontainer/verify-execution.mjs`. This invokes the shared `sandboxDockerArgs` policy, performs one safe Node and Python expression in separate no-network, read-only, non-root containers, prints PASS/FAIL, and returns a nonzero exit if either run fails. The script uses no host directory mounts and does not pull images. This does **not** imply the full commercial IDE is connected to this Codespace.

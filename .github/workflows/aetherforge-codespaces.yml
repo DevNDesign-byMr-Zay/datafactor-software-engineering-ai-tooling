@@ -27,5 +27,6 @@ jobs:
         run: |
           bash -n .devcontainer/start-aetherforge.sh
           node --check .devcontainer/check-environment.mjs
+          node --check .devcontainer/verify-execution.mjs
           node --check apps/aetherforge-workbench/server.mjs
           node --test .devcontainer/codespaces.test.mjs apps/aetherforge-workbench/sandbox-runtime-policy.test.mjs apps/aetherforge-workbench/minimus-sandbox-policy.test.mjs
