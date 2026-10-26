@@ -1,5 +1,8 @@
 import { readFile } from 'node:fs/promises';
-import { generateEvidenceCenterArtifacts, syncEvidenceCenter } from '../../scripts/sync-evidence-center.mjs';
+import {
+  generateEvidenceCenterArtifacts,
+  syncEvidenceCenter,
+} from '../../scripts/sync-evidence-center.mjs';
 import * as workbench from '../../apps/aetherforge-workbench/evidence-center.js';
 import * as commercial from '../../apps/aetherforge-commercial/evidence-center.js';
 
@@ -53,11 +56,18 @@ describe('single-source Evidence Center', () => {
       new URL('apps/aetherforge-workbench/evidence-center.js', root),
       'utf8',
     );
-    expect(() => generateEvidenceCenterArtifacts(canonical.replace('export function classifyEvidence', 'function classifyEvidence'))).toThrow(
-      /public function exports/u,
-    );
-    expect(() => generateEvidenceCenterArtifacts(canonical.replace("const body=JSON.stringify({action:'receipt'", "const body=JSON.stringify({action:'other'"))).toThrow(
-      /maintained receipt request/u,
-    );
+    expect(() =>
+      generateEvidenceCenterArtifacts(
+        canonical.replace('export function classifyEvidence', 'function classifyEvidence'),
+      ),
+    ).toThrow(/public function exports/u);
+    expect(() =>
+      generateEvidenceCenterArtifacts(
+        canonical.replace(
+          "const body=JSON.stringify({action:'receipt'",
+          "const body=JSON.stringify({action:'other'",
+        ),
+      ),
+    ).toThrow(/maintained receipt request/u);
   });
 });
