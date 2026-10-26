@@ -45,9 +45,7 @@ describe('CI gate outcomes receipt', () => {
     extra.evidence = { result: 'success' };
     expect(() => buildCiGateReceipt({ needs: extra, sha, runId: 1 })).toThrow(/approved gate/u);
     const hostile = { ...passingNeeds(), ['__proto__']: { result: 'success' } };
-    expect(() => buildCiGateReceipt({ needs: hostile, sha, runId: 1 })).toThrow(
-      /approved gate/u,
-    );
+    expect(() => buildCiGateReceipt({ needs: hostile, sha, runId: 1 })).toThrow(/approved gate/u);
   });
 
   test('refuses invalid SHA, run IDs and forged job result objects', () => {
@@ -55,15 +53,11 @@ describe('CI gate outcomes receipt', () => {
       /commit SHA/u,
     );
     for (const runId of [0, -1, '1.5', '999999999999999999999']) {
-      expect(() => buildCiGateReceipt({ needs: passingNeeds(), sha, runId })).toThrow(
-        /run ID/u,
-      );
+      expect(() => buildCiGateReceipt({ needs: passingNeeds(), sha, runId })).toThrow(/run ID/u);
     }
     const needs = passingNeeds();
     needs.python = Object.create({ result: 'success' });
-    expect(() => buildCiGateReceipt({ needs, sha, runId: 1 })).toThrow(
-      /missing job result/u,
-    );
+    expect(() => buildCiGateReceipt({ needs, sha, runId: 1 })).toThrow(/missing job result/u);
   });
 
   test('discards untrusted outputs and never publishes provider or job metadata', () => {
