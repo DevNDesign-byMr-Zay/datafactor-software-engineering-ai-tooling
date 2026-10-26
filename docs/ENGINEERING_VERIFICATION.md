@@ -24,3 +24,9 @@ node scripts/build-engineering-evidence.mjs --output engineering-evidence.json
 The generator reads actual repository configuration and aborts if CI commands, lockfile pins, or package classification are inconsistent. A successful `engineering/ci` run uploads the **engineering-evidence** artifact for the exact Git SHA **after all four quality jobs succeed**. Download the artifact from that run to inspect the declared commands and exact pin count.
 
 **Evidence interpretation:** The JSON describes declared checks and paths; it is **not a self-issued pass certificate**. Treat the GitHub job conclusions, test logs and retained coverage artifacts as execution evidence. Automated third-party assessments may categorize repositories differently and may not execute source code.
+
+## ÆtherForge HTTP error observability
+
+The Companion and Commercial server entrypoints use the maintained `src/observability/json-logger.js` and `src/observability/error-reporter.js` through a shared `http-error-tracker.js` adapter. Only **unexpected HTTP 500 failures** are logged; normal, expected 4xx validation refusals are not treated as unhandled exceptions. Logs contain the event type, generated request ID, allowlisted route template, HTTP method and status code. They intentionally omit request bodies, query strings, filesystem paths, exception messages/stacks and provider credentials. Responses retain their generic error contract.
+
+`tests/js/aetherforge-http-error-tracking.test.js` exercises a real failing route in both servers, checks that exactly one structured JSON error entry was emitted and proves untrusted query values are not copied to the log. External error reporting is not automatically activated, and logging does not authorize deployments or customer-data collection.
