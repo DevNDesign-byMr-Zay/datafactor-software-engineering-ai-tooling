@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { createHttpErrorTracker } from '../../src/observability/http-error-tracker.js';
+import { createHttpErrorTracker } from './http-error-tracker.js';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
