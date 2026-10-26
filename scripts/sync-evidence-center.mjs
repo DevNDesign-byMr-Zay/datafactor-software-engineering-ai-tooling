@@ -5,7 +5,10 @@ import { fileURLToPath } from 'node:url';
 const root = new URL('../', import.meta.url);
 const canonicalFile = new URL('../apps/aetherforge-workbench/evidence-center.js', import.meta.url);
 const moduleFile = new URL('../apps/aetherforge-commercial/evidence-center.js', import.meta.url);
-const browserFile = new URL('../apps/aetherforge-commercial/evidence-center.browser.js', import.meta.url);
+const browserFile = new URL(
+  '../apps/aetherforge-commercial/evidence-center.browser.js',
+  import.meta.url,
+);
 
 const browserHeader =
   '// Generated from apps/aetherforge-workbench/evidence-center.js by scripts/sync-evidence-center.mjs; do not edit directly.\n';
