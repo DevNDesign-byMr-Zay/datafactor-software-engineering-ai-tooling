@@ -40,12 +40,13 @@
     "format": "prettier --write src tests/js scripts",
     "format:check": "prettier --check src tests/js scripts",
     "demo:sustainability": "node scripts/sustainability-evidence-demo.mjs",
-    "check": "npm run verify:surface && npm run verify:release && npm run typecheck && npm run typecheck:strict && npm run lint && npm run format:check && npm run test:coverage && npm run demo:sustainability",
+    "check": "npm run verify:surface && npm run verify:release && npm run verify:evidence-center && npm run typecheck && npm run typecheck:strict && npm run lint && npm run format:check && npm run test:coverage && npm run demo:sustainability",
     "setup": "npm ci && python -m pip install -r requirements.lock.txt",
     "typecheck": "tsc -p jsconfig.json",
     "typecheck:strict": "tsc -p jsconfig.strict.json",
     "verify:surface": "node scripts/verify-surface-manifest.mjs",
-    "verify:release": "node scripts/verify-release-readiness.mjs"
+    "verify:release": "node scripts/verify-release-readiness.mjs",
+    "verify:evidence-center": "node scripts/sync-evidence-center.mjs --check"
   },
   "devDependencies": {
     "eslint": "^10.11.0",
