@@ -31,6 +31,8 @@ jobs:
         run: npm run verify:surface
       - name: Verify release-readiness contract
         run: npm run verify:release
+      - name: Verify generated Evidence Center remains synchronized
+        run: npm run verify:evidence-center
       - name: Smoke-test release manifest generation
         shell: bash
         run: |

@@ -1,4 +1,4 @@
-// Generated from evidence-center.js by tools/build-portable.mjs; do not edit directly.
+// Generated from apps/aetherforge-workbench/evidence-center.js by scripts/sync-evidence-center.mjs; do not edit directly.
 /* ÆtherForge Evidence Center 2.0 — additive, fail-closed presentation of maintained receipts. */
 const FINGERPRINT = /^[a-f0-9]{64}$/;
 const TAB_NAMES = ['decision', 'receipt', 'fingerprint', 'raw'];

@@ -28,3 +28,17 @@ The generator reads actual repository configuration and aborts if CI commands, l
 The same completed `engineering-evidence-<SHA>` artifact now includes `ci-gate-results.json`. This separate outcome receipt projects the actual `needs` conclusions supplied by GitHub Actions for the **JavaScript, Python, fresh-clone and container jobs**. It binds those four success results to the exact 40-character commit SHA and numeric workflow run ID, fails closed on missing, extra, skipped or failed prerequisites, and discards all untrusted job outputs. It is emitted only by the dependent evidence job after all four required jobs pass; CodeQL is independently checked in the `security/codeql` workflow, not falsely included as a `needs` result.
 
 To independently verify a receipt, open its `engineering/ci` run ID in GitHub Actions, compare the SHA to the commit under review, and inspect each required job's actual conclusion. This receipt is a **minimal projection of GitHub's execution state**, not a cryptographic attestation, proof that CodeQL passed, or an independent scoring certificate. No AI agents or automated execution authority are introduced.
+
+## ÆtherForge Evidence Center single-source contract
+
+The authored Evidence Center implementation is `apps/aetherforge-workbench/evidence-center.js`. The Commercial ESM entrypoint re-exports its five public functions; the self-contained Commercial classic-browser asset is a generated derivative. The generated classic asset preserves the Commercial-only fail-closed `file://` guard, so local receipt verification still requires its localhost adapter. This refactor changes no receipt acceptance or deployment authority semantics.
+
+When editing the canonical source, regenerate the browser file and module wrapper, then verify exact parity:
+
+```bash
+node scripts/sync-evidence-center.mjs --write
+npm run verify:evidence-center
+npm test
+```
+
+The default generator mode and the `engineering/ci` JavaScript job both run the read-only parity check. The Commercial source package includes both workbench and commercial application directories. Do not hand-edit `evidence-center.browser.js`; review the generated diff and existing browser/Node tests as part of the PR.
