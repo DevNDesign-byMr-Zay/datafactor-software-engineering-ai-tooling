@@ -10,6 +10,8 @@ describe('maintained engineering evidence contract', () => {
     expect(data.package.primaryClass).toBe('developer-tooling-library');
     expect(data.package.entrypoint).toBe('./src/index.js');
     expect(data.python.exactPinnedDistributionCount).toBeGreaterThan(35);
+    expect(data.python.conventionalLockfile).toBe('requirements.txt');
+    expect(data.python.declaredFiles).toContain('requirements.in');
     expect(data.python.declaredDirectRequirements).toEqual(
       expect.arrayContaining(['fastapi', 'pillow', 'pytest', 'pip-audit']),
     );
@@ -36,5 +38,17 @@ describe('maintained engineering evidence contract', () => {
     expect(() => buildEngineeringEvidence({ ...sample, pythonLock: 'pytest==9.1.1\n' })).toThrow(
       /missing Python lock pin: fastapi/u,
     );
+    expect(() =>
+      buildEngineeringEvidence({
+        ...sample,
+        pythonConventionalLock: 'fastapi==2.0.0\n',
+      }),
+    ).toThrow(/conventional requirements.txt and requirements.lock.txt must match/u);
+    expect(() =>
+      buildEngineeringEvidence({
+        ...sample,
+        pythonConventionalLock: 'fastapi==1.0.0\nfastapi==1.0.0\n',
+      }),
+    ).toThrow(/duplicate conventional Python dependency/u);
   });
 });
