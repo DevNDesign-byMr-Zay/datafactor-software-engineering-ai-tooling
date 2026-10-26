@@ -88,8 +88,19 @@ try{
   assert.match(download.suggestedFilename(),/\.zip$/);
   const {readFile}=await import('node:fs/promises');
   const bytes=await readFile(await download.path());
+  const previousId=await desktop.evaluate(()=>localStorage.getItem('aetherforge-ide-project-id-v1'));
   await desktop.locator('#afideProjectFile').setInputFiles({name:'qa-source.zip',mimeType:'application/zip',buffer:bytes});
-  await desktop.locator('#afideCode').waitFor({state:'visible'});
+  // The change handler imports asynchronously. The existing editor is already visible,
+  // so waiting only for #afideCode could race with the project-ID replacement.
+  await desktop.waitForFunction(previous=>{
+    const current=localStorage.getItem('aetherforge-ide-project-id-v1');
+    return Boolean(current&&current!==previous);
+  },previousId,{timeout:15000});
+  await desktop.waitForFunction(()=>document.querySelector('#afidePersistence')?.textContent==='BROWSER + SERVER SAVED',null,{timeout:15000});
+  const importedId=await desktop.evaluate(()=>localStorage.getItem('aetherforge-ide-project-id-v1'));
+  const imported=await desktop.request.get(base+'api/workspace/projects/'+importedId);
+  assert.equal(imported.status(),200);
+  assert.match(JSON.stringify((await imported.json()).project),/AETHERFORGE_BROWSER_PERSISTENCE_PASS/);
   assert.match(await desktop.locator('#afideCode').inputValue(),/AETHERFORGE_BROWSER_PERSISTENCE_PASS/);
   assert.equal(await desktop.locator('[data-afide-open="qa-node.js"]').count(),1);
   assert.equal(await desktop.locator('[data-afide-open="qa-python.py"]').count(),1);
