@@ -23,10 +23,7 @@ function isRecord(value) {
 }
 
 export function buildCiGateReceipt({ needs, sha, runId }) {
-  assert(
-    typeof sha === 'string' && /^[a-f0-9]{40}$/u.test(sha),
-    'invalid exact commit SHA',
-  );
+  assert(typeof sha === 'string' && /^[a-f0-9]{40}$/u.test(sha), 'invalid exact commit SHA');
   assert(/^[1-9][0-9]*$/u.test(String(runId)), 'invalid workflow run ID');
   const numericRunId = Number(runId);
   assert(Number.isSafeInteger(numericRunId), 'workflow run ID exceeds safe integer range');
@@ -42,10 +39,7 @@ export function buildCiGateReceipt({ needs, sha, runId }) {
   const conclusions = {};
   for (const name of REQUIRED_GATES) {
     const job = needs[name];
-    assert(
-      isRecord(job) && Object.hasOwn(job, 'result'),
-      `missing job result for ${name}`,
-    );
+    assert(isRecord(job) && Object.hasOwn(job, 'result'), `missing job result for ${name}`);
     assert(job.result === 'success', `required prerequisite did not pass: ${name}`);
     conclusions[name] = 'success';
   }
@@ -69,10 +63,7 @@ function cliOptions(args) {
     const flag = args[index];
     assert(['--input', '--output', '--sha', '--run-id'].includes(flag), 'unknown option');
     assert(!Object.hasOwn(values, flag), 'duplicate option');
-    assert(
-      typeof args[index + 1] === 'string' && args[index + 1],
-      'missing option value',
-    );
+    assert(typeof args[index + 1] === 'string' && args[index + 1], 'missing option value');
     values[flag] = args[index + 1];
   }
   assert(Object.keys(values).length === 4, 'missing required option');
