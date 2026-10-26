@@ -3,7 +3,7 @@ import { getLogger } from '../../src/observability/json-logger.js';
 import {
   boundedRouteLabel,
   createHttpErrorTracker,
-} from '../../src/observability/http-error-tracker.js';
+} from '../../apps/aetherforge-workbench/http-error-tracker.js';
 import { createWorkbenchServer as createCommercialServer } from '../../apps/aetherforge-commercial/server.mjs';
 import { createWorkbenchServer as createCompanionServer } from '../../apps/aetherforge-workbench/server.mjs';
 
