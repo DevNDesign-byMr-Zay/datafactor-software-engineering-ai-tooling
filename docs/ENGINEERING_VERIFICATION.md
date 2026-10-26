@@ -24,3 +24,17 @@ node scripts/build-engineering-evidence.mjs --output engineering-evidence.json
 The generator reads actual repository configuration and aborts if CI commands, lockfile pins, or package classification are inconsistent. A successful `engineering/ci` run uploads the **engineering-evidence** artifact for the exact Git SHA **after all four quality jobs succeed**. Download the artifact from that run to inspect the declared commands and exact pin count.
 
 **Evidence interpretation:** The JSON describes declared checks and paths; it is **not a self-issued pass certificate**. Treat the GitHub job conclusions, test logs and retained coverage artifacts as execution evidence. Automated third-party assessments may categorize repositories differently and may not execute source code.
+
+## ÆtherForge Evidence Center single-source contract
+
+The authored Evidence Center implementation is `apps/aetherforge-workbench/evidence-center.js`. The Commercial ESM entrypoint re-exports its five public functions; the self-contained Commercial classic-browser asset is a generated derivative. The generated classic asset preserves the Commercial-only fail-closed `file://` guard, so local receipt verification still requires its localhost adapter. This refactor changes no receipt acceptance or deployment authority semantics.
+
+When editing the canonical source, regenerate the browser file and module wrapper, then verify exact parity:
+
+```bash
+node scripts/sync-evidence-center.mjs --write
+npm run verify:evidence-center
+npm test
+```
+
+The default generator mode and the `engineering/ci` JavaScript job both run the read-only parity check. The Commercial source package includes both workbench and commercial application directories. Do not hand-edit `evidence-center.browser.js`; review the generated diff and existing browser/Node tests as part of the PR.
