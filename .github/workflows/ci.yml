@@ -164,10 +164,24 @@ jobs:
           node-version: "22"
       - name: Generate machine-readable verification contract
         run: node scripts/build-engineering-evidence.mjs --output engineering-evidence.json
+      - name: Capture actual successful prerequisite job conclusions
+        shell: bash
+        env:
+          CI_VERIFIED_NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$CI_VERIFIED_NEEDS" > "$RUNNER_TEMP/ci-verified-needs.json"
+          node scripts/build-ci-gate-receipt.mjs \
+            --input "$RUNNER_TEMP/ci-verified-needs.json" \
+            --output ci-gate-results.json \
+            --sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID"
       - name: Upload commit-linked engineering verification evidence
         uses: actions/upload-artifact@v7
         with:
           name: engineering-evidence-${{ github.sha }}
-          path: engineering-evidence.json
+          path: |
+            engineering-evidence.json
+            ci-gate-results.json
           if-no-files-found: error
           retention-days: 30
