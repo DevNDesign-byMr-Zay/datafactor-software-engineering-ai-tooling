@@ -25,9 +25,7 @@ async function serverResponse(factory, options) {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   try {
     const port = server.address().port;
-    return await fetch(
-      `http://127.0.0.1:${port}/api/assets?secret=NEVER_LOG_THIS_VALUE`,
-    );
+    return await fetch(`http://127.0.0.1:${port}/api/assets?secret=NEVER_LOG_THIS_VALUE`);
   } finally {
     await new Promise((resolve, reject) => {
       server.close((error) => (error ? reject(error) : resolve()));
@@ -79,27 +77,30 @@ describe('bounded unhandled HTTP error tracking', () => {
   test.each([
     ['companion', createCompanionServer],
     ['commercial', createCommercialServer],
-  ])('%s emits one structured 500 event for an actual unhandled route exception', async (_, factory) => {
-    const { records, logger } = captureLogger();
-    const tracker = createHttpErrorTracker('aetherforge-server', {
-      logger,
-      createRequestId: () => 'test-500',
-    });
-    const filePath = fileURLToPath(new URL('../../package.json', import.meta.url));
-    const response = await serverResponse(factory, {
-      assetRoot: filePath,
-      errorTracker: tracker,
-    });
-    expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'Workbench request failed' });
-    expect(records).toHaveLength(1);
-    expect(records[0]).toMatchObject({
-      event: 'http.request.unhandled',
-      route: '/api/assets',
-      statusCode: 500,
-      requestId: 'test-500',
-      method: 'GET',
-    });
-    expect(JSON.stringify(records)).not.toMatch(/NEVER_LOG_THIS_VALUE|package\.json/u);
-  });
+  ])(
+    '%s emits one structured 500 event for an actual unhandled route exception',
+    async (_, factory) => {
+      const { records, logger } = captureLogger();
+      const tracker = createHttpErrorTracker('aetherforge-server', {
+        logger,
+        createRequestId: () => 'test-500',
+      });
+      const filePath = fileURLToPath(new URL('../../package.json', import.meta.url));
+      const response = await serverResponse(factory, {
+        assetRoot: filePath,
+        errorTracker: tracker,
+      });
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ error: 'Workbench request failed' });
+      expect(records).toHaveLength(1);
+      expect(records[0]).toMatchObject({
+        event: 'http.request.unhandled',
+        route: '/api/assets',
+        statusCode: 500,
+        requestId: 'test-500',
+        method: 'GET',
+      });
+      expect(JSON.stringify(records)).not.toMatch(/NEVER_LOG_THIS_VALUE|package\.json/u);
+    },
+  );
 });
