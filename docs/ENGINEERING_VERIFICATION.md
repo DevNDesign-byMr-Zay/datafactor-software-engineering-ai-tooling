@@ -42,3 +42,9 @@ npm test
 ```
 
 The default generator mode and the `engineering/ci` JavaScript job both run the read-only parity check. The Commercial source package includes both workbench and commercial application directories. Do not hand-edit `evidence-center.browser.js`; review the generated diff and existing browser/Node tests as part of the PR.
+
+## ÆtherForge HTTP error observability
+
+The Companion and Commercial server entrypoints use the maintained `src/observability/json-logger.js` and `src/observability/error-reporter.js` through the packaged `apps/aetherforge-workbench/http-error-tracker.js` adapter. Only **unexpected HTTP 500 failures** are logged; normal, expected 4xx validation refusals are not treated as unhandled exceptions. Logs contain the event type, generated request ID, allowlisted route template, HTTP method and status code. They intentionally omit request bodies, query strings, filesystem paths, exception messages/stacks and provider credentials. Responses retain their generic error contract.
+
+`tests/js/aetherforge-http-error-tracking.test.js` exercises a real failing route in both servers, checks that exactly one structured JSON error entry was emitted and proves untrusted query values are not copied to the log. External error reporting is not automatically activated, and logging does not authorize deployments or customer-data collection.

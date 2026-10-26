@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { createHttpErrorTracker } from '../aetherforge-workbench/http-error-tracker.js';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -90,7 +91,7 @@ function runAction(body) {
   }
 }
 function summary(){const categories=[...new Set(modules.map(m=>m.category))].map(category=>({category,count:modules.filter(m=>m.category===category).length}));return{source:'maintained-library',moduleCount:modules.length,categories,quickActions:[{id:'studio',label:'Open Workflow Studio',description:'Run bounded library calculations',page:'studio'},{id:'modules',label:'Browse Module Library',description:'Inspect maintained capabilities',page:'modules'},{id:'evidence',label:'Verify Evidence',description:'Fail-closed receipt inspection',page:'evidence'},{id:'assets',label:'Open Asset Studio',description:'Review shipped ÆtherForge assets',page:'assets'}],boundary:{cloudMutations:false,aiProvider:false,localAdapterOnly:true,externalNetworkCalls:false}};}
-export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces')}={}){return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
+export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces'),errorTracker=createHttpErrorTracker('aetherforge-commercial')}={}){return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const host=String(req.headers.host||'');
  const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
  const csName=String(process.env.CODESPACE_NAME||'');
@@ -175,5 +176,5 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  }
 
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
- }catch{return respond(res,500,{error:'Workbench request failed'});}});}
+ }catch(error){errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){const port=Number(process.env.AETHERFORGE_PORT||4546);const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';createWorkbenchServer().listen(port,bound,()=>process.stdout.write('ÆtherForge Commercial ready at http://127.0.0.1:'+port+'\n'));}
