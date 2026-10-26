@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { getLogger } from '../../src/observability/json-logger.js';
 import {
