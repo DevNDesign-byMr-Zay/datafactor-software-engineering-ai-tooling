@@ -1,4 +1,4 @@
-.PHONY: setup test test-js test-python surface-check lock-check typecheck lint format-check audit check verify-fresh
+.PHONY: setup test test-js test-python surface-check lock-check typecheck lint format-check audit check verify-fresh verify-offline
 
 setup:
 	npm ci --ignore-scripts
@@ -38,3 +38,8 @@ audit:
 check: surface-check lock-check typecheck lint format-check test audit
 
 verify-fresh: setup check
+
+# Run after setup; registry-backed dependency audits remain in check/verify-fresh.
+verify-offline: surface-check lock-check typecheck lint format-check test
+	npm run verify:release
+	npm run verify:evidence-center
