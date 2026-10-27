@@ -13,7 +13,7 @@ docker compose -f docker-compose.yml up --build --abort-on-container-exit --exit
 
 The GitHub [engineering CI workflow](../.github/workflows/ci.yml) runs on pull requests and pushes and includes four independent jobs: **JavaScript quality, Python quality, fresh-clone-smoke and container-smoke**. The JS job executes lint, formatting, typecheck (including strict), Jest tests/coverage, and npm audit. The Python job verifies the lockfile, runs pytest/coverage and pip-audit. Separate [CodeQL](../.github/workflows/codeql.yml) runs JS/TypeScript and Python security analysis.
 
-The root `package.json` has **no external JS runtime dependencies by design**, relying on built-in Node APIs; build and test dependencies are under `devDependencies`. The Python runtime uses **FastAPI and Pillow** as declared in `pyproject.toml` and `requirements.txt`, with all transitive and development dependencies pinned in committed `requirements.lock.txt`. Zero direct Node runtime dependencies does **not** imply zero Python runtime dependencies.
+The root `package.json` has **no external JS runtime dependencies by design**, relying on built-in Node APIs; build and test dependencies are under `devDependencies`. The Python runtime uses **FastAPI and Pillow** as declared in `pyproject.toml` and `requirements.in`, with all transitive and development dependencies pinned in both `requirements.txt` (conventional pip/scanner entrypoint) and `requirements.lock.txt` (legacy provenance/CI contract). The two pinned snapshots are checked for exact parity. Zero direct Node runtime dependencies does **not** imply zero Python runtime dependencies.
 
 ## Machine-readable evidence
 

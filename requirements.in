@@ -1,0 +1,4 @@
+# Source direct Python runtime requirements (mirror pyproject.toml).
+# Fully pinned installation snapshots: requirements.txt and requirements.lock.txt.
+fastapi>=0.115,<1
+Pillow>=13.0.0,<14

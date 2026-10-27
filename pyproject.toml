@@ -1,4 +1,4 @@
-# Exact locked distribution pins: see requirements.lock.txt
+# Exact locked distribution pins: see requirements.txt and requirements.lock.txt
 # Parity validated via: python scripts/verify_python_lock.py
 [project]
 name = "software-engineering-ai-tooling-corpus"

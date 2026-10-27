@@ -83,7 +83,7 @@ Equivalent setup commands:
 
 ```bash
 npm ci --ignore-scripts
-python -m pip install -r requirements.lock.txt
+python -m pip install -r requirements.txt
 ```
 
 No Google credentials or Drive connection are needed to install, lint, audit, or test the maintained engineering surface.

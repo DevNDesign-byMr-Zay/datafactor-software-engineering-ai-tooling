@@ -7,7 +7,9 @@ on:
     paths:
       - "package.json"
       - "requirements.txt"
+      - "requirements.in"
       - "requirements-dev.txt"
+      - "pyproject.toml"
       - ".github/workflows/refresh-lockfiles.yml"
 
 permissions:
@@ -45,12 +47,13 @@ jobs:
         run: |
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           python -m pip freeze --exclude-editable > requirements.lock.txt
+          cp requirements.lock.txt requirements.txt
       - name: Detect lockfile changes
         id: changes
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package-lock.json requirements.lock.txt; then
+          if git diff --quiet -- package-lock.json requirements.lock.txt requirements.txt; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Lockfiles already current."
           else
@@ -68,7 +71,8 @@ jobs:
       - name: Verify Python lockfile
         if: steps.changes.outputs.changed == 'true'
         run: |
-          python -m pip install --disable-pip-version-check -r requirements.lock.txt
+          python scripts/verify_python_lock.py
+          python -m pip install --disable-pip-version-check -r requirements.txt
           python -m pip check
           pip-audit -r requirements.lock.txt
           python -m ruff check .
@@ -85,7 +89,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add package-lock.json requirements.lock.txt
+          git add package-lock.json requirements.lock.txt requirements.txt
           git commit -m "build: refresh verified dependency lockfiles"
           git push --set-upstream origin "$branch"
           if ! gh pr create \

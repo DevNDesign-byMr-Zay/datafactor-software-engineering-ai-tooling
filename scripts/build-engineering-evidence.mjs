@@ -11,6 +11,7 @@ export function buildEngineeringEvidence({
   classification,
   workflow,
   pythonLock,
+  pythonConventionalLock = null,
   pythonDeclared,
   pythonDevDeclared,
   sha = null,
@@ -36,6 +37,23 @@ export function buildEngineeringEvidence({
     lockedPython.set(name, match[2]);
   }
   requireContract(lockedPython.size > 0, 'Python lockfile must not be empty');
+  if (pythonConventionalLock !== null) {
+    const conventional = new Map();
+    for (const line of pythonConventionalLock.split(/\r?\n/u)) {
+      const entry = line.trim();
+      if (!entry || entry.startsWith('#')) continue;
+      const match = /^([A-Za-z0-9_.-]+)==([A-Za-z0-9_.+-]+)$/u.exec(entry);
+      requireContract(match, 'requirements.txt must contain only exact distribution pins');
+      const name = match[1].toLowerCase().replace(/_/gu, '-');
+      requireContract(!conventional.has(name), 'duplicate conventional Python dependency ' + name);
+      conventional.set(name, match[2]);
+    }
+    requireContract(
+      conventional.size === lockedPython.size &&
+        [...lockedPython].every(([name, version]) => conventional.get(name) === version),
+      'conventional requirements.txt and requirements.lock.txt must match exactly',
+    );
+  }
   const declared = [pythonDeclared, pythonDevDeclared]
     .flatMap((value) => value.split(/\r?\n/u))
     .map((value) => value.trim())
@@ -100,7 +118,8 @@ export function buildEngineeringEvidence({
       declaredDirectRequirements: [...new Set(declared)].sort(),
       exactPinnedDistributionCount: lockedPython.size,
       lockfile: 'requirements.lock.txt',
-      declaredFiles: ['requirements.txt', 'requirements-dev.txt', 'pyproject.toml'],
+      conventionalLockfile: 'requirements.txt',
+      declaredFiles: ['requirements.in', 'requirements-dev.txt', 'pyproject.toml'],
     },
     verification: {
       workflow: '.github/workflows/ci.yml',
@@ -118,6 +137,7 @@ export async function collectEngineeringEvidence({ sha = process.env.GITHUB_SHA 
     '.github/workflows/ci.yml',
     'requirements.lock.txt',
     'requirements.txt',
+    'requirements.in',
     'requirements-dev.txt',
   ];
   const content = await Promise.all(
@@ -128,8 +148,9 @@ export async function collectEngineeringEvidence({ sha = process.env.GITHUB_SHA 
     classification: JSON.parse(content[1]),
     workflow: content[2],
     pythonLock: content[3],
-    pythonDeclared: content[4],
-    pythonDevDeclared: content[5],
+    pythonConventionalLock: content[4],
+    pythonDeclared: content[5],
+    pythonDevDeclared: content[6],
     sha,
   });
 }

@@ -2,7 +2,7 @@
 
 setup:
 	npm ci --ignore-scripts
-	python -m pip install --disable-pip-version-check -r requirements.lock.txt
+	python -m pip install --disable-pip-version-check -r requirements.txt
 
 test: test-js test-python
 
