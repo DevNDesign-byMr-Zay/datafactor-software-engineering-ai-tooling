@@ -51,3 +51,11 @@ Historically sourced behavior enters the maintained package only as an explicit 
 4. normal pull-request CI and security review.
 
 No historical snapshot becomes maintained code merely because it exists in the archive.
+
+## Structured logging and error reporting
+
+Maintained Node modules use `getLogger` from `src/observability/json-logger.js` instead of direct `console` calls; ESLint enforces this across `src/**/*.js` and `src/**/*.mjs`. The logger writes one JSON record per line with a trusted timestamp, severity, logger name, and bounded message. Metadata cannot override those envelope fields. Primitive metadata strings are limited to 256 characters; nested objects are omitted. Consumers must provide only non-sensitive diagnostic fields: this bound is not a general secret-redaction mechanism.
+
+`src/api/route-safety.js` uses the shared logger by default for route failures. Its versioned failure schema excludes raw upstream messages/stacks and limits context before emitting a record. `tests/js/route-safety.test.js` launches the default route path in a clean Node subprocess and parses its actual stdout, proving exactly one structured failure record is produced without private error details or nested context. Injected loggers remain supported for host integration.
+
+`src/observability/error-reporter.js` provides an optional capture adapter. The default adapter makes no external calls. A consumer may supply a capture function; it receives the error and bounded primitive context and must apply its own consent, redaction, and transport policy. Reporter failures are isolated and logged without their raw message. The Companion and Commercial HTTP adapters supply only allowlisted route, request ID, method and status metadata for unexpected 500 responses; real HTTP regression tests cover both entrypoints.
