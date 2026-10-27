@@ -57,6 +57,33 @@ describe('structured JavaScript logger', () => {
     expect(lines.map((line) => JSON.parse(line).event)).toEqual(['first', 'second']);
   });
 
+  test('metadata cannot replace the trusted log envelope', () => {
+    const { lines, sink } = capture();
+    const logger = getLogger('route-safety', {
+      sink,
+      now: () => '2026-10-27T17:00:00.000Z',
+    });
+
+    logger.error(
+      {
+        timestamp: 'forged',
+        level: 'info',
+        logger: 'forged',
+        message: 'forged',
+        event: 'route.failed',
+      },
+      'Route operation failed',
+    );
+
+    expect(JSON.parse(lines[0])).toEqual({
+      timestamp: '2026-10-27T17:00:00.000Z',
+      level: 'error',
+      logger: 'route-safety',
+      message: 'Route operation failed',
+      event: 'route.failed',
+    });
+  });
+
   test('rejects invalid logger construction inputs', () => {
     expect(() => getLogger('')).toThrow(/logger name/);
     expect(() => getLogger('valid', { sink: {} })).toThrow(/sink/);
