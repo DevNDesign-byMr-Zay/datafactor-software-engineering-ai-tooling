@@ -55,8 +55,8 @@ The root JavaScript production manifest declares **0 external runtime packages**
 
 CI records the actual installed graph for its tested commit:
 
-- The JavaScript coverage artifact includes `node-runtime-dependencies.json`, produced by `npm ls --omit=dev --depth=0 --json`.
-- The Python coverage artifact includes `python-installed-dependencies.json` and `python-top-level-dependencies.json`, produced by `python -m pip list --format=json` and `python -m pip list --not-required --format=json`.
+- The separate `node-production-dependencies-<SHA>` artifact includes `node-runtime-dependencies.json`, produced by `npm ls --omit=dev --depth=0 --json`.
+- The separate `python-installed-dependencies-<SHA>` artifact includes `python-installed-dependencies.json` and `python-top-level-dependencies.json`, produced by `python -m pip list --format=json` and `python -m pip list --not-required --format=json`.
 
 The latter lists installed packages with no installed reverse dependency; it includes development tools and must not be interpreted as the declared runtime set. Compare the inventories to the manifests and pinned snapshots. `npm ci` installs the existing npm lock without regenerating it; the refresh workflow resolves updates and commits both exact Python snapshots together. CI verifies declaration/lock parity and `pip check` before tests.
 
