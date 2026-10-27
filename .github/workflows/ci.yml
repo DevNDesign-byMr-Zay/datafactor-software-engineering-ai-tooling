@@ -74,9 +74,14 @@ jobs:
           name: javascript-coverage-${{ github.sha }}
           if-no-files-found: error
           retention-days: 30
-          path: |
-            coverage/
-            node-runtime-dependencies.json
+          path: coverage/
+      - name: Retain installed Node production dependencies
+        uses: actions/upload-artifact@v7
+        with:
+          name: node-production-dependencies-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: node-runtime-dependencies.json
       - name: Run sustainability evidence demo
         run: npm run demo:sustainability
 
@@ -122,8 +127,14 @@ jobs:
           name: python-coverage-${{ github.sha }}
           if-no-files-found: error
           retention-days: 30
+          path: python-coverage.xml
+      - name: Retain installed Python dependencies
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-installed-dependencies-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
           path: |
-            python-coverage.xml
             python-installed-dependencies.json
             python-top-level-dependencies.json
 
