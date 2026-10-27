@@ -1,5 +1,9 @@
 export default [
   {
+    files: ["src/**/*.js", "src/**/*.mjs"],
+    rules: { "no-console": "error" },
+  },
+  {
     files: [
       "src/**/*.js",
       "tests/js/**/*.js",
