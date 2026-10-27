@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - name: Reproducible npm install
         run: npm ci --ignore-scripts
+      - name: Record installed Node production dependency inventory
+        run: npm ls --omit=dev --depth=0 --json > node-runtime-dependencies.json
       - name: dependency-audit
         run: npm audit --audit-level=moderate
       - name: Verify maintained/historical surface manifest
@@ -72,7 +74,9 @@ jobs:
           name: javascript-coverage-${{ github.sha }}
           if-no-files-found: error
           retention-days: 30
-          path: coverage/
+          path: |
+            coverage/
+            node-runtime-dependencies.json
       - name: Run sustainability evidence demo
         run: npm run demo:sustainability
 
@@ -93,6 +97,10 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Verify installed dependency graph
         run: python -m pip check
+      - name: Record installed Python dependency inventories
+        run: |
+          python -m pip list --format=json > python-installed-dependencies.json
+          python -m pip list --not-required --format=json > python-top-level-dependencies.json
       - name: Verify Python declaration/lock parity
         run: python scripts/verify_python_lock.py
       - name: Audit Python dependencies
@@ -114,7 +122,10 @@ jobs:
           name: python-coverage-${{ github.sha }}
           if-no-files-found: error
           retention-days: 30
-          path: python-coverage.xml
+          path: |
+            python-coverage.xml
+            python-installed-dependencies.json
+            python-top-level-dependencies.json
 
   fresh-clone-smoke:
     name: fresh-clone-smoke
@@ -150,6 +161,12 @@ jobs:
           export COMPOSE_FILE=docker-compose.yml
           trap 'docker compose down --volumes --remove-orphans' EXIT
           docker compose up --build --abort-on-container-exit --exit-code-from verify
+      - name: Prove maintained verification runs with no network
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --tag maintained-offline-check .
+          docker run --rm --network none maintained-offline-check make verify-offline
 
   engineering-evidence:
     name: Engineering verification evidence
