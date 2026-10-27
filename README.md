@@ -86,7 +86,7 @@ npm ci --ignore-scripts
 python -m pip install -r requirements.txt
 ```
 
-No Google credentials or Drive connection are needed to install, lint, audit, or test the maintained engineering surface.
+No Google credentials or Drive connection are needed to install, lint, audit, or test the maintained engineering surface. Initial installation and security audits still require access to npm/PyPI and their vulnerability metadata. Container builds also download the public Node base image and Debian packages; see [external dependencies](docs/ENGINEERING_VERIFICATION.md#external-dependencies-and-disconnected-verification).
 
 ## Package exports
 
@@ -146,6 +146,10 @@ make format-check
 
 JavaScript linting covers `src/` and tests. Python checks remain scoped to `python_support/` and maintained Python tests. Promoted copies retain archive-linked content identities and are not formatter-rewritten.
 
+## Dependency accounting
+
+The root JavaScript library declares **zero external production dependencies** and uses built-in Node APIs. Its four development tools (ESLint, Jest, Prettier and TypeScript) account for the npm test/build dependency graph. Python separately declares **two direct runtime requirements: FastAPI and Pillow**. Both Python lock snapshots also include development/audit tooling and transitive packages; an installed top-level package count is not a runtime dependency count. CI retains `npm ls --omit=dev --depth=0 --json`, the installed Python list, and `pip list --not-required --format=json` beside coverage evidence for each tested commit.
+
 ## Dependency and security audit
 
 ```bash
@@ -175,6 +179,17 @@ docker compose -f docker-compose.yml up --build --abort-on-container-exit --exit
 ```
 
 The `verify` service has no ports or cloud credentials because this repository is a maintained library/tooling package rather than a long-running web service. It exits non-zero if lint, formatting, dependency audits, JavaScript coverage, or Python coverage fail. CI validates the Compose configuration and runs this container from a fresh checkout.
+
+### Disconnected verification after installation
+
+After building the image above, prove the maintained code checks and tests work without any external network:
+
+```bash
+docker build --tag maintained-offline-check .
+docker run --rm --network none maintained-offline-check make verify-offline
+```
+
+The build downloads dependencies. The fresh runtime container has networking disabled and runs surface/lock checks, type checks, lint, formatting, JS/Python coverage, release readiness and generated-file parity. `make verify-offline` deliberately performs no installation or online advisory lookup. Full `make verify-fresh` and CI still require the existing npm/pip security audits to pass separately. The CI container job executes both phases and fails if either fails.
 
 ## Environment, logging, and errors
 
