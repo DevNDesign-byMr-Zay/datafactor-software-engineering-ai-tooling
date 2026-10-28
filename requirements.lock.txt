@@ -15,7 +15,7 @@ iniconfig==2.3.0
 license-expression==30.4.4
 markdown-it-py==4.2.0
 mdurl==0.1.2
-msgpack==1.2.2
+msgpack==1.2.3
 packageurl-python==0.17.6
 packaging==26.3
 pillow==13.0.0
