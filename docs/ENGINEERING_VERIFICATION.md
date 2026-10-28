@@ -48,3 +48,37 @@ The default generator mode and the `engineering/ci` JavaScript job both run the 
 The Companion and Commercial server entrypoints use the maintained `src/observability/json-logger.js` and `src/observability/error-reporter.js` through the packaged `apps/aetherforge-workbench/http-error-tracker.js` adapter. Only **unexpected HTTP 500 failures** are logged; normal, expected 4xx validation refusals are not treated as unhandled exceptions. Logs contain the event type, generated request ID, allowlisted route template, HTTP method and status code. They intentionally omit request bodies, query strings, filesystem paths, exception messages/stacks and provider credentials. Responses retain their generic error contract.
 
 `tests/js/aetherforge-http-error-tracking.test.js` exercises a real failing route in both servers, checks that exactly one structured JSON error entry was emitted and proves untrusted query values are not copied to the log. External error reporting is not automatically activated, and logging does not authorize deployments or customer-data collection.
+
+## Installed dependency accounting
+
+The root JavaScript production manifest declares **0 external runtime packages**; its four development dependencies provide lint, formatting, tests and typechecking. Python declares **2 direct runtime requirements**, FastAPI and Pillow, in `pyproject.toml` and `requirements.in`. Python lock snapshots additionally resolve development/audit tools and transitive dependencies. These are separate language boundaries.
+
+CI records the actual installed graph for its tested commit:
+
+- The separate `node-production-dependencies-<SHA>` artifact includes `node-runtime-dependencies.json`, produced by `npm ls --omit=dev --depth=0 --json`.
+- The separate `python-installed-dependencies-<SHA>` artifact includes `python-installed-dependencies.json` and `python-top-level-dependencies.json`, produced by `python -m pip list --format=json` and `python -m pip list --not-required --format=json`.
+
+The latter lists installed packages with no installed reverse dependency; it includes development tools and must not be interpreted as the declared runtime set. Compare the inventories to the manifests and pinned snapshots. `npm ci` installs the existing npm lock without regenerating it; the refresh workflow resolves updates and commits both exact Python snapshots together. CI verifies declaration/lock parity and `pip check` before tests.
+
+## External dependencies and disconnected verification
+
+A clean machine needs the following public downloads. No Google/Drive credentials or live AI provider calls are required for root library verification.
+
+| Phase | Network requirement |
+| --- | --- |
+| npm installation and audit | npm registry tarballs and advisory metadata |
+| Python installation and audit | PyPI, package files on files.pythonhosted.org and vulnerability metadata |
+| Verification image build | Public Node image from Docker Hub and Debian apt repositories, followed by npm/PyPI installation |
+| Commercial isolated-runtime smoke probes | Approved public gcr.io/distroless images, preloaded before execution |
+| GitHub-hosted CI and CodeQL setup | GitHub Actions tooling, runner images and CodeQL downloads |
+
+The Commercial Cloud CI workflow caches a compressed `docker save` archive of the approved Node/Python images. Its key binds the runner OS, UTC date, sandbox policy and workflow content. A cache hit loads the archive locally without a registry pull. A miss downloads and saves the images; daily keys allow image security refreshes. CI records the loaded RepoDigests. Cache availability is an optimization, not a promise of first-run offline installation. Isolated projects retain `--pull=never` and their existing network-disabled, unprivileged sandbox policy.
+
+Root container CI first runs the complete online `make check`, including dependency audits, then executes a fresh container with all external networking disabled:
+
+```bash
+docker build --tag maintained-offline-check .
+docker run --rm --network none maintained-offline-check make verify-offline
+```
+
+`verify-offline` reuses the installed pinned dependencies and runs surface/lock checks, ordinary and strict typechecking, ESLint/ruff, formatting, Jest/Python coverage, release readiness and generated Evidence Center parity. It intentionally does not download packages or query live vulnerability databases. The independent online audit gates remain mandatory. An exit code of zero from the network-disabled container is the execution evidence; merely adding this command to a workflow does not prove it passed.
