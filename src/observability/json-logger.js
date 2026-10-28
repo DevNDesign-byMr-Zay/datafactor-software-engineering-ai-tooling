@@ -41,11 +41,11 @@ export function getLogger(
   function emit(level, metadata, message) {
     if (!LEVEL_SET.has(level)) throw new TypeError('unsupported log level');
     const record = {
+      ...boundedMetadata(metadata),
       timestamp: now(),
       level,
       logger: loggerName,
       message: boundedMessage(message),
-      ...boundedMetadata(metadata),
     };
     sink.write(`${JSON.stringify(record)}\n`);
   }

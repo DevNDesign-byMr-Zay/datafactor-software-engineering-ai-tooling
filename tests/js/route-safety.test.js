@@ -1,4 +1,6 @@
 import { Buffer } from 'node:buffer';
+import { execFileSync } from 'node:child_process';
+import process from 'node:process';
 
 import { describe, expect, jest, test } from '@jest/globals';
 
@@ -133,6 +135,40 @@ describe('route safety boundaries', () => {
 });
 
 describe('structured route failure logging', () => {
+  test('default route failure path emits one bounded JSON record to stdout', () => {
+    const output = execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '-e',
+        [
+          "import { logRouteFailure } from './src/api/route-safety.js';",
+          "const error = new Error('PRIVATE_PROVIDER_DETAIL');",
+          "error.code = 'UPSTREAM_DOWN';",
+          "const ok = logRouteFailure({ event: 'route.failed', error,",
+          "context: { requestId: 'r-1', nested: { secret: 'PRIVATE_CONTEXT' } } });",
+          'if (!ok) process.exit(1);',
+        ].join('\n'),
+      ],
+      { cwd: new URL('../../', import.meta.url), encoding: 'utf8' },
+    );
+    const lines = output.trim().split('\n');
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0])).toEqual({
+      timestamp: expect.any(String),
+      level: 'error',
+      logger: 'route-safety',
+      message: 'Route operation failed',
+      schemaVersion: 1,
+      event: 'route.failed',
+      requestId: 'r-1',
+      errorName: 'Error',
+      errorCode: 'UPSTREAM_DOWN',
+    });
+    expect(output).not.toContain('PRIVATE_PROVIDER_DETAIL');
+    expect(output).not.toContain('PRIVATE_CONTEXT');
+  });
+
   test('logs only bounded context plus error name/code', () => {
     const logger = { error: jest.fn() };
     const error = new Error('raw secret should not be logged');
