@@ -1,3 +1,4 @@
+import { request } from 'node:http';
 import { createWorkbenchServer as commercial } from '../../apps/aetherforge-commercial/server.mjs';
 import { createWorkbenchServer as companion } from '../../apps/aetherforge-workbench/server.mjs';
 
@@ -27,6 +28,27 @@ describe.each([
     }
   });
 });
+
+function postWorkflow(url, body, headers) {
+  return new Promise((resolve, reject) => {
+    const req = request(url, { method: 'POST', headers }, (res) => {
+      let raw = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => (raw += chunk));
+      res.on('error', reject);
+      res.on('end', () => {
+        try {
+          resolve({ status: res.statusCode, body: JSON.parse(raw) });
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
 const validWorkflow = JSON.stringify({
   action: 'brush',
   inputs: { brushSize: 20, shape: 'circle', feather: 0, distance: 10 },
@@ -55,12 +77,8 @@ describe.each([
       const origin = 'http://127.0.0.1:' + server.address().port;
       const requestHeaders = { 'content-type': 'application/json', ...headers };
       if (requestHeaders.origin === 'self') requestHeaders.origin = origin;
-      const response = await fetch(origin + '/api/run', {
-        method: 'POST',
-        headers: requestHeaders,
-        body,
-      });
-      const result = await response.json();
+      const response = await postWorkflow(origin + '/api/run', body, requestHeaders);
+      const result = response.body;
       expect(response.status).toBe(expectedStatus);
       if (expectedStatus === 200) {
         expect(result.status).toBe('computed');
