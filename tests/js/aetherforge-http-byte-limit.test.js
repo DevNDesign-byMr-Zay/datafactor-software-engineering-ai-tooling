@@ -44,15 +44,20 @@ describe.each([
     ['rejects null', 'null', {}, 422],
     ['rejects unsupported actions', '{"action":"unsupported","inputs":{}}', {}, 422],
     ['requires JSON content type', validWorkflow, { 'content-type': 'text/plain' }, 415],
+    ['accepts its own browser origin', validWorkflow, { origin: 'self' }, 200],
+    ['rejects foreign hosts', validWorkflow, { host: 'example.invalid' }, 403],
     ['rejects foreign origins', validWorkflow, { origin: 'https://example.invalid' }, 403],
     ['rejects cross-site requests', validWorkflow, { 'sec-fetch-site': 'cross-site' }, 403],
   ])('%s', async (_label, body, headers, expectedStatus) => {
     const server = factory();
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     try {
-      const response = await fetch('http://127.0.0.1:' + server.address().port + '/api/run', {
+      const origin = 'http://127.0.0.1:' + server.address().port;
+      const requestHeaders = { 'content-type': 'application/json', ...headers };
+      if (requestHeaders.origin === 'self') requestHeaders.origin = origin;
+      const response = await fetch(origin + '/api/run', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', ...headers },
+        headers: requestHeaders,
         body,
       });
       const result = await response.json();
