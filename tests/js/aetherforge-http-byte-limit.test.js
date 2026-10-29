@@ -9,7 +9,10 @@ describe.each([
     const server = factory();
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
     try {
-      const payload = JSON.stringify({ action: 'unsupported', inputs: { value: '界'.repeat(24000) } });
+      const payload = JSON.stringify({
+        action: 'unsupported',
+        inputs: { value: '界'.repeat(24000) },
+      });
       expect(payload.length).toBeLessThan(64 * 1024);
       expect(new TextEncoder().encode(payload).length).toBeGreaterThan(64 * 1024);
       const response = await fetch('http://127.0.0.1:' + server.address().port + '/api/run', {
