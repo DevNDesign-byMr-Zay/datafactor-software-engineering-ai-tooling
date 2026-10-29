@@ -64,6 +64,19 @@ function runAction(body) {
 }
 function summary(){const categories=[...new Set(modules.map(m=>m.category))].map(category=>({category,count:modules.filter(m=>m.category===category).length}));return{source:'maintained-library',moduleCount:modules.length,categories,quickActions:[{id:'studio',label:'Open Workflow Studio',description:'Run bounded library calculations',page:'studio'},{id:'modules',label:'Browse Module Library',description:'Inspect maintained capabilities',page:'modules'},{id:'evidence',label:'Verify Evidence',description:'Fail-closed receipt inspection',page:'evidence'},{id:'assets',label:'Open Asset Studio',description:'Review shipped ÆtherForge assets',page:'assets'}],boundary:{cloudMutations:false,aiProvider:false,localAdapterOnly:true,externalNetworkCalls:false}};}
 export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),errorTracker=createHttpErrorTracker('aetherforge-workbench')}={}){return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
+ const host=String(req.headers.host||'');
+ const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
+ const csName=String(process.env.CODESPACE_NAME||'');
+ const csHost=process.env.CODESPACES==='true'&&/^[a-z0-9-]{1,90}$/.test(csName)?`${csName}-${Number(process.env.AETHERFORGE_PORT||4545)}.app.github.dev`:'';
+ const privateForward=Boolean(csHost)&&host===csHost;
+ if(!localHost&&!privateForward)return respond(res,403,{error:'Local or private Codespaces host required'});
+ const origin=String(req.headers.origin||'');
+ const allowedOrigins=[(privateForward?'https://':'http://')+host];
+ // GitHub's private forwarder may rewrite Host to localhost while retaining browser Origin.
+ if(localHost&&csHost)allowedOrigins.push('https://'+csHost);
+ if(origin&&!allowedOrigins.includes(origin))return respond(res,403,{error:'Cross-origin requests are not accepted'});
+ const fetchSite=String(req.headers['sec-fetch-site']||'');
+ if(fetchSite==='cross-site')return respond(res,403,{error:'Cross-site requests are not accepted'});
  if(req.method==='GET'&&url.pathname==='/api/health')return respond(res,200,{adapter:'ready',source:'maintained-library',offline:false,canExecuteDeployments:false,aiConfigured:false});
  if(req.method==='GET'&&url.pathname==='/api/modules')return respond(res,200,{source:'canonical maintained exports',modules});
  if(req.method==='GET'&&url.pathname==='/api/workbench/summary')return respond(res,200,summary());

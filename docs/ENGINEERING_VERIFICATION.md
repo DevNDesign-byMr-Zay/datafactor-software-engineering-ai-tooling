@@ -82,3 +82,17 @@ docker run --rm --network none maintained-offline-check make verify-offline
 ```
 
 `verify-offline` reuses the installed pinned dependencies and runs surface/lock checks, ordinary and strict typechecking, ESLint/ruff, formatting, Jest/Python coverage, release readiness and generated Evidence Center parity. It intentionally does not download packages or query live vulnerability databases. The independent online audit gates remain mandatory. An exit code of zero from the network-disabled container is the execution evidence; merely adding this command to a workflow does not prove it passed.
+
+## Input validation boundaries
+
+The Companion and Commercial HTTP servers validate requests before invoking maintained library operations. These guards are hand-written, fail-closed checks; a missing third-party validation framework is not evidence that a route accepts unchecked input.
+
+| Boundary | Guard and rejection contract |
+| --- | --- |
+| Host and browser origin | Both entrypoints require a loopback host or the explicitly configured private Codespaces host, compare browser Origin with allowed origins, and reject cross-site fetches with HTTP 403. |
+| POST /api/run content type | The media type must be application/json (parameters are allowed); other media types receive HTTP 415. |
+| POST /api/run body size | Count raw incoming bytes before accumulating chunks. Exactly 65,536 bytes is allowed; a larger body receives HTTP 413 before JSON or domain evaluation. Decode the bounded concatenated buffer once. |
+| POST /api/run JSON shape | Malformed JSON, null, arrays, missing/non-object inputs and unsupported actions receive the bounded HTTP 422 validation response. |
+| POST /api/run domain inputs | The allowlisted workflow dispatch calls the maintained brush, deployment-planning, scene-planning, efficiency or receipt-validation functions. Their domain guards remain authoritative; planning does not grant execution or deployment authority. |
+
+The regression suite in tests/js/aetherforge-http-byte-limit.test.js starts each real server on an ephemeral loopback port. It checks an oversized multibyte payload, exact-limit acceptance with a valid brush calculation, one-byte-over rejection, malformed/non-object JSON, unsupported actions, media type, Origin and Sec-Fetch-Site. It consumes each response and closes every server. Tests make no live provider or deployment calls. The default HTTP 500 reporting pipeline is separately exercised by tests/js/aetherforge-http-error-tracking.test.js; expected 4xx validation refusals are not reported as unexpected server errors.
