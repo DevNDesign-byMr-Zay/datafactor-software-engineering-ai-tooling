@@ -45,7 +45,7 @@ test('the real Jest coverage gate rejects an unexecuted function', () => {
     expect(result.status).toBe(1);
     const output = result.stdout + result.stderr;
     expect(output).toMatch(/Tests:\s+1 passed/u);
-    expect(output).toMatch(/coverage threshold for functions.*not met/iu);
+    expect(output).toMatch(/Coverage for functions \(0%\) does not meet .*threshold \(85%\)/iu);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
