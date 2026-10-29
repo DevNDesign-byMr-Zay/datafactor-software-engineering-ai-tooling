@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { getLogger } from '../../src/observability/json-logger.js';
 import {
@@ -101,6 +103,44 @@ describe('bounded unhandled HTTP error tracking', () => {
         method: 'GET',
       });
       expect(JSON.stringify(records)).not.toMatch(/NEVER_LOG_THIS_VALUE|package\.json/u);
+    },
+  );
+});
+
+describe('default server error pipeline', () => {
+  test.each(['aetherforge-commercial', 'aetherforge-workbench'])(
+    '%s logs actual HTTP failures without an injected logger',
+    (app) => {
+      const serverUrl = new URL('../../apps/' + app + '/server.mjs', import.meta.url).href;
+      const packagePath = fileURLToPath(new URL('../../package.json', import.meta.url));
+      const script = [
+        "import assert from 'node:assert/strict';",
+        'const { createWorkbenchServer } = await import(' + JSON.stringify(serverUrl) + ');',
+        'const server = createWorkbenchServer({ assetRoot: ' + JSON.stringify(packagePath) + ' });',
+        "await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));",
+        'try {',
+        "const response = await fetch('http://127.0.0.1:' + server.address().port + '/api/assets?secret=PRIVATE_QUERY');",
+        'assert.equal(response.status, 500);',
+        "assert.deepEqual(await response.json(), { error: 'Workbench request failed' });",
+        '} finally { await new Promise((resolve) => server.close(resolve)); }',
+      ].join('\n');
+      const stdout = execFileSync(process.execPath, ['--input-type=module', '-e', script], {
+        encoding: 'utf8',
+        timeout: 15000,
+      });
+      const records = stdout.trim().split('\n').map((line) => JSON.parse(line));
+      expect(records).toHaveLength(1);
+      expect(records[0]).toMatchObject({
+        level: 'error',
+        message: 'Unhandled HTTP request',
+        event: 'http.request.unhandled',
+        route: '/api/assets',
+        method: 'GET',
+        statusCode: 500,
+      });
+      expect(records[0].timestamp).toEqual(expect.any(String));
+      expect(records[0].requestId).toEqual(expect.any(String));
+      expect(JSON.stringify(records)).not.toMatch(/PRIVATE_QUERY|package\.json|stack|ENOENT/u);
     },
   );
 });
