@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: JavaScript syntax checks
@@ -63,8 +63,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: Install isolated browser test runtime
@@ -95,14 +95,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Final portable workbench package failed.' }
       - name: Download the HTML workbench ZIP
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aetherforge-workbench-html-bundle
           path: ${{ runner.temp }}/aetherforge-workbench-bundle/
           if-no-files-found: error
       - name: Preserve visual QA screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aetherforge-visual-qa
           path: ${{ runner.temp }}/aetherforge-visual-qa/
