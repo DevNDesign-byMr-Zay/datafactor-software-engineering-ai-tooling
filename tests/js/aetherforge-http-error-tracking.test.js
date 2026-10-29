@@ -128,7 +128,10 @@ describe('default server error pipeline', () => {
         encoding: 'utf8',
         timeout: 15000,
       });
-      const records = stdout.trim().split('\n').map((line) => JSON.parse(line));
+      const records = stdout
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line));
       expect(records).toHaveLength(1);
       expect(records[0]).toMatchObject({
         level: 'error',
