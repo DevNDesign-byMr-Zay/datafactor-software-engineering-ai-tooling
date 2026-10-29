@@ -34,7 +34,8 @@
   return false;
  }
 
- const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+ // Keep escaping explicit for both HTML text and quoted attribute contexts.
+ const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
  const notify=s=>{if(window.showToast)window.showToast(s);else{const t=document.getElementById('toast');if(t)t.textContent=s;}};
  const download=(source,name,mime='application/json')=>{const url=URL.createObjectURL(new Blob([source],{type:mime}));const a=document.createElement('a');a.download=name;a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),1800);};
  try{project=core.validate(JSON.parse(localStorage.getItem(KEY)));}catch{project=core.starter();}
