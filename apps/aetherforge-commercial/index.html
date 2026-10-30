@@ -9,6 +9,7 @@
 <link rel="icon" href="./assets/aetherforge-icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="./app.css">
 <link rel="stylesheet" href="./app-v2.css">
+<link rel="stylesheet" href="../aetherforge-corpus/navigation.css">
 <link rel="stylesheet" href="./project-desk.css">
 <link rel="stylesheet" href="./library.css">
 <link rel="stylesheet" href="./sandbox.css">
@@ -25,6 +26,8 @@
 <script src="./project-zip-core.js" defer></script>
 <script src="./sandbox-core.js" defer></script>
 <script src="./source-bundle.js" defer></script>
+<script src="../aetherforge-corpus/catalog.browser.js" defer></script>
+<script src="../aetherforge-corpus/catalog-core.js" defer></script>
 <script src="./library.js" defer></script>
 <script src="./sandbox.js" defer></script>
 <script src="./cloud-backend.js" defer></script>
@@ -45,6 +48,7 @@
  <div class="side-brand"><img src="./assets/aetherforge-emblem.svg" alt="" width="54" height="54"><div><strong>ÆTHER<span>FORGE</span></strong><small>COMMERCIAL ENGINEERING STUDIO</small></div></div>
  <div class="side-caption">WORKSPACE</div>
  <nav class="nav" aria-label="Workbench sections">
+ <a class="corpus-link" href="../aetherforge-corpus/index.html"><span aria-hidden="true">▤</span> Complete Drive Library</a>
  <button data-page="overview" class="active" aria-current="page"><span aria-hidden="true">⌂</span> Overview</button>
  <button data-page="projects"><span aria-hidden="true">▦</span> Project Desk</button>
  <button data-page="modules"><span aria-hidden="true">⬡</span> Module Library</button>
@@ -60,7 +64,7 @@
  <div class="side-bottom"><div class="side-caption">SYSTEM</div><button class="settings-link" data-page="profile">◉ Operator Profile</button><button class="settings-link" data-page="settings">⚙ Settings & About</button><div class="tiny-panel"><span class="status-dot" id="sidebarDot"></span><div><strong id="sidebarStatus">Connecting to local adapter</strong><small>Verification is evidence-backed</small></div></div></div>
 </aside>
 <div class="workspace">
- <header class="topbar"><div class="mobile-brand"><img src="./assets/aetherforge-icon.svg" alt="" width="34" height="34">ÆTHERFORGE</div><div class="crumbs">WORKSPACE <span> / </span><b id="crumbName">OVERVIEW</b></div><div class="command-search-wrap"><label class="command-search"><span>⌕</span><input type="search" id="globalSearch" aria-label="Search modules and tools" placeholder="Search modules, workflows, documentation…"><kbd>⌘ K</kbd></label></div><div class="top-actions"><span id="connectionBadge" class="connection">CHECKING ADAPTER</span><button id="themeButton" aria-label="Toggle light or dark theme" title="Toggle appearance">☼</button><button type="button" id="operatorAvatarButton" data-page="profile" aria-label="Edit operator profile" title="Operator profile">AF</button></div></header>
+ <header class="topbar"><div class="mobile-brand"><img src="./assets/aetherforge-icon.svg" alt="" width="34" height="34">ÆTHERFORGE</div><div class="crumbs">WORKSPACE <span> / </span><b id="crumbName">OVERVIEW</b></div><div class="command-search-wrap"><label class="command-search"><span>⌕</span><input type="search" id="globalSearch" aria-label="Search modules and tools" placeholder="Search modules, workflows, documentation…"><kbd>⌘ K</kbd></label></div><div class="top-actions"><a class="corpus-link" href="../aetherforge-corpus/index.html" aria-label="Open complete Drive reference library"><span aria-hidden="true">▤</span> Drive Library</a><span id="connectionBadge" class="connection">CHECKING ADAPTER</span><button id="themeButton" aria-label="Toggle light or dark theme" title="Toggle appearance">☼</button><button type="button" id="operatorAvatarButton" data-page="profile" aria-label="Edit operator profile" title="Operator profile">AF</button></div></header>
  <main id="main" tabindex="-1" aria-live="polite"></main>
 </div>
 </div>

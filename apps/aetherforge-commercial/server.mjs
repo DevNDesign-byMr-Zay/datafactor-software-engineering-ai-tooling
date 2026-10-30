@@ -15,6 +15,16 @@ import {
 } from '../../src/index.js';
 const root = dirname(fileURLToPath(import.meta.url));
 const staticRoutes = new Map([
+ ['/aetherforge-corpus/navigation.css',['../aetherforge-corpus/navigation.css','text/css; charset=utf-8']],
+ ['/aetherforge-corpus/index.html',['../aetherforge-corpus/index.html','text/html; charset=utf-8']],
+ ['/aetherforge-corpus/catalog.browser.js',['../aetherforge-corpus/catalog.browser.js','text/javascript; charset=utf-8']],
+ ['/aetherforge-corpus/catalog-core.js',['../aetherforge-corpus/catalog-core.js','text/javascript; charset=utf-8']],
+ ['/aetherforge-corpus/viewer.js',['../aetherforge-corpus/viewer.js','text/javascript; charset=utf-8']],
+ ['/aetherforge-corpus/viewer.css',['../aetherforge-corpus/viewer.css','text/css; charset=utf-8']],
+ ['/aetherforge-corpus/manifest.json',['../aetherforge-corpus/manifest.json','application/json; charset=utf-8']],
+ ['/aetherforge-corpus/software-engineering-ai-tooling.zip',['../aetherforge-corpus/software-engineering-ai-tooling.zip','application/zip']],
+ ['/aetherforge-workbench/assets/aetherforge-icon.svg',['../aetherforge-workbench/assets/aetherforge-icon.svg','image/svg+xml']],
+ ['/aetherforge-workbench/assets/aetherforge-emblem.svg',['../aetherforge-workbench/assets/aetherforge-emblem.svg','image/svg+xml']],
  ['/upstream-core.js',['upstream-core.js','text/javascript; charset=utf-8']],
  ['/upstream-catalog.js',['upstream-catalog.js','text/javascript; charset=utf-8']],
  ['/ide-core.js',['ide-core.js','text/javascript; charset=utf-8']],
