@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFile, mkdtemp, rm} from 'node:fs/promises';
+import {readFile, mkdtemp, mkdir, rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
@@ -83,11 +83,16 @@ try{
  await offlinePage.goto(pathToFileURL(join(bundle,'apps/aetherforge-corpus/index.html')).href);
  await offlinePage.locator('.file').first().waitFor();
  assert.equal(await offlinePage.locator('.file').count(),60);
+ const screenshots=process.env.AETHERFORGE_SCREENSHOT_DIR;
+ if(screenshots){
+  await mkdir(screenshots,{recursive:true});
+  await offlinePage.setViewportSize({width:1440,height:1000});
+  await offlinePage.screenshot({path:resolve(screenshots,'corpus-desktop.png'),fullPage:true});
+ }
  await offlinePage.locator('#search').fill(manifest.files.at(-1).id);
  assert.equal(await offlinePage.locator('#sha').textContent(),manifest.files.at(-1).sha256);
  await offlinePage.setViewportSize({width:390,height:844});
  assert.ok(await offlinePage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- const screenshots=process.env.AETHERFORGE_SCREENSHOT_DIR;
  if(screenshots)await offlinePage.screenshot({path:resolve(screenshots,'corpus-mobile.png'),fullPage:true});
  passed++;console.log('PASS extracted ZIP opens offline, reaches the final original and fits mobile');
  console.log(`${passed} browser scenarios passed; no live service calls required.`);

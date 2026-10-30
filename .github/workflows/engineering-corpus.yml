@@ -46,4 +46,13 @@ jobs:
           test -n "$CHROME_PATH"
           echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
       - name: Test both UIs, original-byte downloads, inert previews and extracted ZIP offline
+        env:
+          AETHERFORGE_SCREENSHOT_DIR: ${{ runner.temp }}/corpus-visual-qa
         run: node tests/aetherforge-corpus-browser.mjs
+      - name: Preserve desktop and mobile reference-library browser captures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: engineering-reference-library-visual-qa
+          path: ${{ runner.temp }}/corpus-visual-qa/
+          if-no-files-found: error
