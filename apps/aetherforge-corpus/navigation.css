@@ -1,0 +1,2 @@
+/* Shared navigation for the complete reference collection. */
+.corpus-link{display:flex;align-items:center;gap:12px;padding:12px 15px;color:#a9c4e2;text-decoration:none;font-size:12px;border:1px solid #294563;border-radius:8px;margin:6px 0}.corpus-link:hover,.corpus-link:focus-visible{color:#27d6ff;background:#132b46}.top-actions .corpus-link{padding:8px 10px;font-size:10px;white-space:nowrap}@media(max-width:760px){.top-actions .corpus-link{font-size:0;padding:8px}.top-actions .corpus-link span{font-size:16px}}

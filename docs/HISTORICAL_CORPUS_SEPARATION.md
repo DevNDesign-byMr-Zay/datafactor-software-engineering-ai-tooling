@@ -19,6 +19,12 @@ The future scored tree may remove the physical `Software Engineering & AI Toolin
 
 No existing release tag or Git history is rewritten.
 
+## Complete offline reference collection
+
+The current Drive originals are also available as inert reference data in [`apps/aetherforge-corpus/`](../apps/aetherforge-corpus/README.md). Both applications and both portable packages include its complete ZIP, per-file inventory and offline viewer. The Commercial Library indexes every original separately. This adds access to the collection without making historical samples part of the maintained runtime or changing the immutable released baseline above.
+
+The 2026-10-30 snapshot preserves 1,610 files and 40 folders, totaling 1,731,712 bytes. Five originals differ from v1.2.2; their old and current byte identities are recorded in the reference manifest. `python tools/verify-engineering-corpus.py` verifies the ZIP, inventory and browser catalog together.
+
 ## Recovery
 
 The complete historical corpus remains recoverable from `archive/historical-corpus-v1.2.2`. Each promoted maintained copy retains its original archive path and released Git blob identity in provenance metadata.

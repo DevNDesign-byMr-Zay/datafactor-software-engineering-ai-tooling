@@ -92,7 +92,7 @@ Open the root \`index.html\` for a visual preview and launch instructions. The a
 
 From the extracted folder, run \`node apps/aetherforge-workbench/server.mjs\`, then open <http://127.0.0.1:4545>.
 
-No npm install is needed. The ZIP contains the source files required by the app and a minimal root package manifest that enables Node.js ES modules.
+Open **Complete Drive Library** in the app, or \`apps/aetherforge-corpus/index.html\` offline, to browse all 1,610 Software Engineering & AI Tooling originals. The same folder contains the full reference ZIP and SHA-256 inventory. Samples are displayed as read-only text.\n\nNo npm install is needed. The ZIP contains the source files required by the app and a minimal root package manifest that enables Node.js ES modules.
 `;
 
 export async function buildWorkbenchPackage(outputPath, { previewPath = null } = {}) {
@@ -110,6 +110,7 @@ export async function buildWorkbenchPackage(outputPath, { previewPath = null } =
   }
   await cp(join(appDir, 'assets'), join(packageAppDir, 'assets'), { recursive: true });
   await cp(join(repoRoot, 'src'), join(outputDir, 'src'), { recursive: true });
+  await cp(join(repoRoot, 'apps/aetherforge-corpus'), join(outputDir, 'apps/aetherforge-corpus'), { recursive: true });
 
   if (previewPath) await cp(resolve(previewPath), join(outputDir, 'preview.png'));
 

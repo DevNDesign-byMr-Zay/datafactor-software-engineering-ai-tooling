@@ -1,0 +1,49 @@
+name: Engineering Reference Collection
+on:
+  pull_request:
+    paths:
+      - 'apps/aetherforge-corpus/**'
+      - 'apps/aetherforge-commercial/**'
+      - 'apps/aetherforge-workbench/**'
+      - 'tools/*engineering-corpus*'
+      - 'tools/package-aetherforge-commercial*'
+      - 'tests/aetherforge-corpus*'
+      - '.github/workflows/engineering-corpus.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/aetherforge-corpus/**'
+      - 'apps/aetherforge-commercial/**'
+      - 'apps/aetherforge-workbench/**'
+      - 'tools/*engineering-corpus*'
+      - 'tools/package-aetherforge-commercial*'
+      - 'tests/aetherforge-corpus*'
+      - '.github/workflows/engineering-corpus.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-reference-library:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Verify complete inventory, ZIP hashes, offline catalog, HTTP boundaries and both packages
+        run: |
+          python tools/verify-engineering-corpus.py
+          node --test tests/aetherforge-corpus.test.mjs tools/package-aetherforge-commercial.test.mjs apps/aetherforge-workbench/package-workbench.test.mjs
+      - name: Prepare isolated browser test client
+        run: |
+          npm install --prefix "$RUNNER_TEMP/corpus-qa" --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+          echo "PLAYWRIGHT_MODULE_PATH=$RUNNER_TEMP/corpus-qa/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          CHROME_PATH=$(command -v google-chrome || command -v google-chrome-stable)
+          test -n "$CHROME_PATH"
+          echo "CHROME_PATH=$CHROME_PATH" >> "$GITHUB_ENV"
+      - name: Test both UIs, original-byte downloads, inert previews and extracted ZIP offline
+        run: node tests/aetherforge-corpus-browser.mjs
