@@ -24,6 +24,32 @@ try{
   await desktop.locator('#afideCode').waitFor({state:'visible'});
   assert.match(await desktop.locator('#afideName').inputValue(),/Untitled engineering project/);
  });
+ await run('IDE refresh preserves hostile project names and source as literal text',async()=>{
+  const originalName=await desktop.locator('#afideName').inputValue();
+  const originalSource=await desktop.locator('#afideCode').inputValue();
+  const hostileName='"><img id="afide-name-probe" src=x onerror="window.__afideEscapeProbe=true"> &lt; ÆTHERFORGE';
+  const hostileSource=`</textarea><img id="afide-source-probe" src=x onerror="window.__afideEscapeProbe=true"><script>window.__afideEscapeProbe=true</script>&lt; & " ' ÆTHERFORGE`;
+  try{
+   await desktop.locator('#afideName').fill(hostileName);
+   await desktop.locator('#afideCode').fill(hostileSource);
+   await desktop.locator('[data-afide-open="script.js"]').click();
+   await desktop.locator('[data-afide-open="index.html"]').click();
+   assert.equal(await desktop.locator('#afideName').inputValue(),hostileName);
+   assert.equal(await desktop.locator('#afideCode').inputValue(),hostileSource);
+   assert.equal(await desktop.locator('#afide-name-probe, #afide-source-probe').count(),0);
+   assert.equal(await desktop.evaluate(()=>window.__afideEscapeProbe),undefined);
+   await desktop.locator('[data-afide="browse"]').click();
+   await desktop.locator('#afideSavedPanel [data-afide-load]').first().waitFor({state:'visible',timeout:15000});
+   assert.ok((await desktop.locator('#afideSavedPanel [data-afide-load] span').allTextContents()).includes(hostileName));
+   assert.equal(await desktop.locator('#afide-name-probe, #afide-source-probe').count(),0);
+   assert.equal(await desktop.evaluate(()=>window.__afideEscapeProbe),undefined);
+  }finally{
+   await desktop.locator('#afideName').fill(originalName);
+   await desktop.locator('#afideCode').fill(originalSource);
+   await desktop.locator('[data-afide-open="script.js"]').click();
+   await desktop.locator('[data-afide-open="index.html"]').click();
+  }
+ });
  await run('browser viewport renders and executes trusted isolated starter interaction',async()=>{
   await desktop.locator('[data-afide="run"]').click();
   const frame=desktop.frameLocator('#afidePreview');
