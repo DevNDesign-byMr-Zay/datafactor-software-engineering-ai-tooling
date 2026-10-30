@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MINIMUS_IMAGES,MINIMUS_POLICY,sandboxDockerArgs} from './minimus-sandbox-policy.mjs';
 
-test('approved Minimus images are major-line pinned',()=>{
+test('approved Distroless images are major-line pinned',()=>{
   assert.deepEqual(Object.keys(MINIMUS_IMAGES),['node','python']);
-  assert.equal(MINIMUS_IMAGES.node,'reg.mini.dev/node:22');
-  assert.equal(MINIMUS_IMAGES.python,'reg.mini.dev/python:3.13');
+  assert.equal(MINIMUS_IMAGES.node,'gcr.io/distroless/nodejs22-debian13:nonroot');
+  assert.equal(MINIMUS_IMAGES.python,'gcr.io/distroless/python3-debian13:nonroot');
 });
 test('the sandbox requires no networking, host mounts, or automatic image pulls',()=>{
   for(const name of Object.keys(MINIMUS_IMAGES)){
