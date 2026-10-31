@@ -93,7 +93,13 @@ export function buildEngineeringEvidence({
       requireContract(workflow.includes(command), 'CI missing ' + name + ': ' + command);
     }
   }
-  for (const job of ['javascript', 'python', 'fresh-clone-smoke', 'container', 'isolated-clone-check']) {
+  for (const job of [
+    'javascript',
+    'python',
+    'fresh-clone-smoke',
+    'container',
+    'isolated-clone-check',
+  ]) {
     requireContract(new RegExp('^  ' + job + ':', 'mu').test(workflow), 'CI job missing: ' + job);
   }
   requireContract(workflow.includes('pull_request:'), 'CI must run on pull requests');
