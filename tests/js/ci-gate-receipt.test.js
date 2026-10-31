@@ -9,7 +9,7 @@ function passingNeeds() {
 }
 
 describe('CI gate outcomes receipt', () => {
-  test('projects all four verified GitHub prerequisite job outcomes onto the exact commit', () => {
+  test('projects all five verified GitHub prerequisite job outcomes onto the exact commit', () => {
     const receipt = buildCiGateReceipt({ needs: passingNeeds(), sha, runId: '40041514498' });
     expect(receipt).toEqual({
       schemaVersion: 1,
@@ -23,6 +23,7 @@ describe('CI gate outcomes receipt', () => {
         python: 'success',
         'fresh-clone-smoke': 'success',
         container: 'success',
+        'isolated-clone-check': 'success',
       },
       authority: 'Consult GitHub Actions for authoritative run and job conclusions',
     });
@@ -32,7 +33,7 @@ describe('CI gate outcomes receipt', () => {
     'rejects a non-success prerequisite result: %s',
     (result) => {
       const needs = passingNeeds();
-      needs.javascript.result = result;
+      needs['isolated-clone-check'].result = result;
       expect(() => buildCiGateReceipt({ needs, sha, runId: 1 })).toThrow(/did not pass/u);
     },
   );

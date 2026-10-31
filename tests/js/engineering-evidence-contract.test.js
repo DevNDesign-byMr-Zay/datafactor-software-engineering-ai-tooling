@@ -19,6 +19,9 @@ describe('maintained engineering evidence contract', () => {
     expect(data.verification.gates.python.dependencyAudit).toBe(
       'pip-audit -r requirements.lock.txt',
     );
+    expect(data.verification.gates.reproduction.isolatedCloneNoNetwork).toBe(
+      'bash scripts/verify-isolated-clone.sh',
+    );
     expect(data.executionProof).toMatch(/does not assert tests passed/u);
   });
 
