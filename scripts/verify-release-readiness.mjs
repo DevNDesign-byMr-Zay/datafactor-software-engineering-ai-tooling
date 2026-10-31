@@ -298,6 +298,14 @@ async function main() {
     'engineering CI must retain the scanner-visible fresh-clone-smoke verification path',
   );
   assert(
+    /^  isolated-clone-check:\s*$/mu.test(ci) &&
+      /name:\s*isolated-clone-check/u.test(ci) &&
+      /run:\s*bash scripts\/verify-isolated-clone\.sh/u.test(ci) &&
+      /needs:\s*\[javascript, python, fresh-clone-smoke, container, isolated-clone-check\]/u.test(ci),
+    'engineering CI must require the tracked-only network-isolated checkout gate before evidence',
+  );
+  await access(new URL('scripts/verify-isolated-clone.sh', root));
+  assert(
     /^  container:\s*$/mu.test(ci) &&
       /name:\s*container-smoke/u.test(ci) &&
       /docker compose -f docker-compose\.yml config --quiet/u.test(ci) &&
