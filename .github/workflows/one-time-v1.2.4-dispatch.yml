@@ -1,0 +1,44 @@
+name: One-time verified v1.2.4 release dispatch
+
+on:
+  push:
+    branches:
+      - ops/dispatch-v1.2.4-verified-20261031
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    name: Dispatch release on validated main
+    if: github.repository == 'DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate release target, exact commit and successful post-merge gates
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: 19cb43b8bd745925d9bdadbeba71f13318d6c5e9
+          TAG: v1.2.4
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          current="$(gh api "repos/$repo/commits/main" --jq .sha)"
+          test "$current" = "$EXPECTED_SHA" || { echo "::error::Main has changed since verification"; exit 1; }
+          version="$(gh api "repos/$repo/contents/package.json?ref=main" --jq .content | base64 --decode | jq -r .version)"
+          test "$version" = "1.2.4" || { echo "::error::Unexpected package version: $version"; exit 1; }
+          if gh release view "$TAG" --repo "$repo" >/dev/null 2>&1; then
+            echo "::error::Release $TAG already exists, refusing to repeat"
+            exit 1
+          fi
+          runs="$(gh api "repos/$repo/actions/runs?branch=main&per_page=30")"
+          for workflow in 'engineering/ci' 'security/codeql' 'Refresh dependency lockfiles'; do
+            jq -e --arg sha "$EXPECTED_SHA" --arg workflow "$workflow" '
+              any(.workflow_runs[]; .head_sha == $sha and .name == $workflow and .status == "completed" and .conclusion == "success")
+            ' <<<"$runs" >/dev/null || { echo "::error::Verified main workflow missing or failing: $workflow"; exit 1; }
+          done
+          printf '%s\n' '{"ref":"main","inputs":{"tag":"v1.2.4"}}' |
+            gh api --method POST "repos/$repo/actions/workflows/release.yml/dispatches" --input -
+          echo "Requested gated release workflow for $TAG at main $EXPECTED_SHA"
