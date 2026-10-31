@@ -179,9 +179,20 @@ jobs:
           docker build --tag maintained-offline-check .
           docker run --rm --network none maintained-offline-check make verify-offline
 
+  isolated-clone-check:
+    name: isolated-clone-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out exact commit without cache
+        uses: actions/checkout@v7
+      - name: Prove tracked-only clean checkout passes without runtime network
+        shell: bash
+        run: bash scripts/verify-isolated-clone.sh
+
   engineering-evidence:
     name: Engineering verification evidence
-    needs: [javascript, python, fresh-clone-smoke, container]
+    needs: [javascript, python, fresh-clone-smoke, container, isolated-clone-check]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
