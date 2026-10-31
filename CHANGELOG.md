@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased — pre-rescore detector hardening
+## Unreleased — v1.2.4 verified engineering release candidate
+
+Current package candidate: `1.2.4`. The GitHub release must not be marked published until the protected release workflow completes for the exact verified `main` commit.
+
+### Added
+
+- New tracked-files-only `isolated-clone-check` gate in engineering CI: `git archive` creates a clean commit snapshot, the snapshot builds into its own Docker image, and maintained tests run with Docker networking disabled after dependency installation.
+- Five-gate commit-linked Engineering Verification receipt; `javascript`, `python`, `fresh-clone-smoke`, `container`, and `isolated-clone-check` must all succeed before evidence is uploaded.
+
+### Fixed
+
+- Resolved newly reported moderate-severity development-tooling advisories by locking compatible `glob` 14.0.3 and `minimatch` 11.0.3 transitive overrides; the strict `npm audit --audit-level=moderate` gate remains enforced.
+- Added and updated regression tests, release-readiness enforcement, formatting, and verification guidance without changing runtime package exports or archived history.
+- All post-merge `main` quality gates, offline clone/container checks, CodeQL languages, and lockfile workflow passed for PR #237 on commit `642e14f241f4d1787f3aea8169268d13801915bd` before preparation of this candidate.
+
+### Known limitations
+
+- Five low-severity findings remained in Jest's indirect `deepmerge` dependency chain at the latest completed npm audit; no security check is disabled to conceal them.
+- A pending release is not proof of publication or a new external assessment score.
+
+## 1.2.3 — 2026-10-27 — pre-rescore detector hardening
 
 ### Changed
 
@@ -18,7 +38,7 @@
 
 ### Changed
 
-- Current package candidate: `1.2.3`. The `v1.2.2` release is the latest hosted milestone; this candidate is not published until the gated manual release workflow publishes it.
+- Released as `v1.2.3` on 2026-10-27 through the gated GitHub release workflow.
 
 ## 1.2.1 — 2026-09-24 — post-release hardening
 
