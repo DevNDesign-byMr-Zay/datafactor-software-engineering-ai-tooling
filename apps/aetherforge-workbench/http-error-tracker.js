@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getLogger } from '../../src/observability/json-logger.js';
 import { createErrorReporter } from '../../src/observability/error-reporter.js';
+import { createErrorWebhookCapture } from '../../src/observability/error-webhook.js';
 
 const SAFE_ROUTES = new Set([
   '/api/health',
@@ -40,7 +41,14 @@ export function boundedRouteLabel(value) {
 
 export function createHttpErrorTracker(
   name,
-  { logger = getLogger(name), createRequestId = randomUUID } = {},
+  {
+    logger = getLogger(name),
+    createRequestId = randomUUID,
+    captureTelemetry = createErrorWebhookCapture({
+      enabled: process.env.AETHERFORGE_ERROR_REPORTING === '1',
+      url: process.env.AETHERFORGE_ERROR_WEBHOOK_URL,
+    }),
+  } = {},
 ) {
   if (!logger || typeof logger.error !== 'function') {
     throw new TypeError('HTTP error tracker requires a structured error logger');
@@ -51,6 +59,7 @@ export function createHttpErrorTracker(
   const reporter = createErrorReporter({
     capture(_error, context) {
       logger.error(context, 'Unhandled HTTP request');
+      return captureTelemetry?.(_error, context);
     },
     logger,
   });

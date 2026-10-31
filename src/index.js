@@ -38,3 +38,5 @@ export * from './workflows/cloud-file-workflow.js';
 
 export { createAdaptiveDurationProgressController } from './promoted/adaptive-duration-progress.js';
 export * from './api/route-safety.js';
+export * from './api/workflow-request-schema.js';
+export { createErrorWebhookCapture } from './observability/error-webhook.js';
