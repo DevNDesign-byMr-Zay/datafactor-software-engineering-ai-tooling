@@ -7,6 +7,7 @@ export const REQUIRED_GATES = Object.freeze([
   'python',
   'fresh-clone-smoke',
   'container',
+  'isolated-clone-check',
 ]);
 
 function assert(ok, message) {
