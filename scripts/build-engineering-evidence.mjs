@@ -85,6 +85,7 @@ export function buildEngineeringEvidence({
     reproduction: [
       ['freshClone', 'make verify-fresh'],
       ['container', 'docker compose up --build'],
+      ['isolatedCloneNoNetwork', 'bash scripts/verify-isolated-clone.sh'],
     ],
   };
   for (const group of Object.values(gates)) {
@@ -92,7 +93,7 @@ export function buildEngineeringEvidence({
       requireContract(workflow.includes(command), 'CI missing ' + name + ': ' + command);
     }
   }
-  for (const job of ['javascript', 'python', 'fresh-clone-smoke', 'container']) {
+  for (const job of ['javascript', 'python', 'fresh-clone-smoke', 'container', 'isolated-clone-check']) {
     requireContract(new RegExp('^  ' + job + ':', 'mu').test(workflow), 'CI job missing: ' + job);
   }
   requireContract(workflow.includes('pull_request:'), 'CI must run on pull requests');
