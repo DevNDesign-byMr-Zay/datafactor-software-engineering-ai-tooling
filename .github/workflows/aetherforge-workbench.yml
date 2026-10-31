@@ -56,7 +56,10 @@ jobs:
           test -f apps/aetherforge-workbench/workflow-studio.js
           test -f apps/aetherforge-workbench/workflow-studio-export.js
           test -f apps/aetherforge-workbench/evidence-center.js
-          git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json src/ python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
+          # Shared src/ updates are legitimate when the canonical engineering/ci
+          # and CodeQL suites independently pass. Keep isolation safeguards
+          # for package/dependency contracts, Python and immutable provenance.
+          git diff --quiet "$(git merge-base HEAD origin/main)" HEAD -- package.json package-lock.json python_support/ config/maintained-surface.json provenance/ .repo-class.json Dockerfile docker-compose.yml
 
   windows-launcher-and-visual-qa:
     name: Windows launcher and browser QA

@@ -62,14 +62,23 @@ function validValue(value, spec) {
 
 export const workflowRequestSchema = Object.freeze({
   parse(body) {
-    if (!plainRecord(body) || Reflect.ownKeys(body).some((key) => !['action', 'inputs'].includes(key))) {
+    if (
+      !plainRecord(body) ||
+      Reflect.ownKeys(body).some((key) => !['action', 'inputs'].includes(key))
+    ) {
       throw new WorkflowValidationError();
     }
     const action = Object.getOwnPropertyDescriptor(body, 'action');
     const inputs = Object.getOwnPropertyDescriptor(body, 'inputs');
-    if (!action || !('value' in action) || typeof action.value !== 'string' ||
-        !Object.hasOwn(WORKFLOW_INPUT_SCHEMAS, action.value) ||
-        !inputs || !('value' in inputs) || !plainRecord(inputs.value)) {
+    if (
+      !action ||
+      !('value' in action) ||
+      typeof action.value !== 'string' ||
+      !Object.hasOwn(WORKFLOW_INPUT_SCHEMAS, action.value) ||
+      !inputs ||
+      !('value' in inputs) ||
+      !plainRecord(inputs.value)
+    ) {
       throw new WorkflowValidationError();
     }
     const fields = WORKFLOW_INPUT_SCHEMAS[action.value];

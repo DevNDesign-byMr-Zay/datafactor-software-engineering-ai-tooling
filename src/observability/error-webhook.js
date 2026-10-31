@@ -17,11 +17,19 @@ function normalizeEndpoint(value) {
   }
   const host = url.hostname.toLowerCase();
   if (
-    url.protocol !== 'https:' || url.username || url.password ||
-    url.search || url.hash || (url.port && url.port !== '443') ||
-    host === 'localhost' || host.endsWith('.localhost') ||
-    host.endsWith('.local') || host.endsWith('.internal') ||
-    host.includes(':') || /^[0-9.]+$/u.test(host) || !host.includes('.')
+    url.protocol !== 'https:' ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash ||
+    (url.port && url.port !== '443') ||
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host.endsWith('.local') ||
+    host.endsWith('.internal') ||
+    host.includes(':') ||
+    /^[0-9.]+$/u.test(host) ||
+    !host.includes('.')
   ) {
     throw new TypeError('Error reporting URL must be public HTTPS without credentials or query');
   }
@@ -37,9 +45,11 @@ function safeEvent(context) {
   const route = context.route;
   const requestId = context.requestId;
   if (
-    !ALLOWED_EVENTS.has(event) || !ALLOWED_METHODS.has(method) ||
+    !ALLOWED_EVENTS.has(event) ||
+    !ALLOWED_METHODS.has(method) ||
     (route !== 'unmatched' && (typeof route !== 'string' || !ALLOWED_ROUTES.test(route))) ||
-    typeof requestId !== 'string' || !/^[a-zA-Z0-9-]{1,64}$/u.test(requestId) ||
+    typeof requestId !== 'string' ||
+    !/^[a-zA-Z0-9-]{1,64}$/u.test(requestId) ||
     context.statusCode !== 500
   ) {
     throw new TypeError('Untrusted error reporting fields');
