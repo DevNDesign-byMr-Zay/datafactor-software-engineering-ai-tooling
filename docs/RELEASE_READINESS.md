@@ -31,3 +31,9 @@ The Python and container lanes remain independently enforced by CI. A hosted rel
 Release readiness does not widen execution authority. Sustainability evidence remains descriptive, holographic readiness remains advisory, runtime-acceptance evidence remains a consumer contract rather than deployment authority, and preserved historical snapshots remain provenance material rather than maintained runtime code.
 
 Do not rewrite historical files to improve release metrics. Release notes should describe only behavior that exists on the maintained surface and has executable verification.
+
+## Release gate tied to actual protected checks
+
+Manual `release/github` dispatch is restricted to `main`. Before any package tests or publication, the workflow verifies that `main` still points to the exact dispatch commit, then retrieves GitHub Actions runs for that SHA. `scripts/verify-release-prerequisites.mjs` **fails closed** unless the latest applicable push runs for both `engineering/ci` and `security/codeql` completed successfully on that exact `main` SHA. Earlier successful runs cannot hide later failures or queued checks.
+
+This check uses GitHub's real run conclusions, not a local certificate. Its `release-prerequisites.json` records the verified commit and relevant run IDs without copying untrusted outputs. The artifact is included in the SHA-256 manifest, uploaded to the retained evidence bundle, and attached to the GitHub release. The full fresh-checkout, Docker verification, SBOM, Python inventory, and checksum validation still run afterward. This policy only applies to **future** releases and does not retroactively modify published v1.2.4 artifacts.
