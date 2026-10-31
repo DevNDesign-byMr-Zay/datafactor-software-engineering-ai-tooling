@@ -56,7 +56,9 @@ export function verifyReleasePrerequisites({ runs, commit, repository }) {
 async function cli() {
   const [input, commit, output] = process.argv.slice(2);
   if (!input || !commit || !output) {
-    throw new TypeError('usage: verify-release-prerequisites <runs.json> <commit-sha> <output.json>');
+    throw new TypeError(
+      'usage: verify-release-prerequisites <runs.json> <commit-sha> <output.json>',
+    );
   }
   const raw = JSON.parse(await readFile(input, 'utf8'));
   const result = verifyReleasePrerequisites({

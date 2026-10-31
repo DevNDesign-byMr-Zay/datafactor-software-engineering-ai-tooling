@@ -24,9 +24,7 @@ const success = () => ({
 
 describe('commit-bound GitHub release prerequisites', () => {
   test('accepts successful CI and CodeQL for the exact main commit and records run IDs', () => {
-    expect(
-      verifyReleasePrerequisites({ runs: success(), commit, repository }),
-    ).toEqual({
+    expect(verifyReleasePrerequisites({ runs: success(), commit, repository })).toEqual({
       schemaVersion: 1,
       evidenceType: 'github-actions-release-prerequisites',
       source: 'github-actions-api',
@@ -49,12 +47,60 @@ describe('commit-bound GitHub release prerequisites', () => {
 
   test.each([
     ['missing CodeQL', { workflow_runs: [run('engineering/ci', 101)] }],
-    ['failed CI', { workflow_runs: [run('engineering/ci', 101, { conclusion: 'failure' }), run('security/codeql', 102)] }],
-    ['skipped CodeQL', { workflow_runs: [run('engineering/ci', 101), run('security/codeql', 102, { conclusion: 'skipped' })] }],
-    ['incomplete CI', { workflow_runs: [run('engineering/ci', 101, { status: 'in_progress', conclusion: null }), run('security/codeql', 102)] }],
-    ['different SHA', { workflow_runs: [run('engineering/ci', 101, { head_sha: 'b'.repeat(40) }), run('security/codeql', 102)] }],
-    ['unprotected branch', { workflow_runs: [run('engineering/ci', 101, { head_branch: 'feature' }), run('security/codeql', 102)] }],
-    ['pull request run', { workflow_runs: [run('engineering/ci', 101, { event: 'pull_request' }), run('security/codeql', 102)] }],
+    [
+      'failed CI',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101, { conclusion: 'failure' }),
+          run('security/codeql', 102),
+        ],
+      },
+    ],
+    [
+      'skipped CodeQL',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101),
+          run('security/codeql', 102, { conclusion: 'skipped' }),
+        ],
+      },
+    ],
+    [
+      'incomplete CI',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101, { status: 'in_progress', conclusion: null }),
+          run('security/codeql', 102),
+        ],
+      },
+    ],
+    [
+      'different SHA',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101, { head_sha: 'b'.repeat(40) }),
+          run('security/codeql', 102),
+        ],
+      },
+    ],
+    [
+      'unprotected branch',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101, { head_branch: 'feature' }),
+          run('security/codeql', 102),
+        ],
+      },
+    ],
+    [
+      'pull request run',
+      {
+        workflow_runs: [
+          run('engineering/ci', 101, { event: 'pull_request' }),
+          run('security/codeql', 102),
+        ],
+      },
+    ],
   ])('fails closed for %s', (_label, runs) => {
     expect(() => verifyReleasePrerequisites({ runs, commit, repository })).toThrow(
       /Release blocked/u,
@@ -77,11 +123,11 @@ describe('commit-bound GitHub release prerequisites', () => {
     expect(() => verifyReleasePrerequisites({ runs: null, commit, repository })).toThrow(
       /workflow run response/u,
     );
-    expect(() => verifyReleasePrerequisites({ runs: success(), commit: 'main', repository })).toThrow(
-      /full Git SHA/u,
-    );
-    expect(() => verifyReleasePrerequisites({ runs: success(), commit, repository: 'invalid' })).toThrow(
-      /owner\/name/u,
-    );
+    expect(() =>
+      verifyReleasePrerequisites({ runs: success(), commit: 'main', repository }),
+    ).toThrow(/full Git SHA/u);
+    expect(() =>
+      verifyReleasePrerequisites({ runs: success(), commit, repository: 'invalid' }),
+    ).toThrow(/owner\/name/u);
   });
 });
