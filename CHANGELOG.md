@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-Current candidate: `1.2.6`. **Not published.** Prepare through protected review, exact-main CI/CodeQL, dependency-refresh acceptance and the existing manual release workflow. Do not retag or modify the published v1.2.5 release.
+Current package candidate: `1.2.6`. **Not published.** Prepare through protected review, exact-main CI/CodeQL, dependency-refresh acceptance and the existing manual release workflow. Do not retag or modify the published v1.2.5 release.
 
 ### Candidate improvements
 
