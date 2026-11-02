@@ -45,10 +45,17 @@ jobs:
           cache-dependency-path: requirements-dev.txt
       - name: Generate npm lockfile
         run: npm install --package-lock-only --ignore-scripts
-      - name: Generate Python lockfile
+      - name: Generate Python lockfile in a clean isolated environment
+        shell: bash
         run: |
-          python -m pip install --disable-pip-version-check -r requirements-dev.txt
-          python -m pip freeze --exclude-editable > requirements.lock.txt
+          set -euo pipefail
+          # Never freeze pre-installed GitHub runner distributions into the lock.
+          python -m venv "$RUNNER_TEMP/python-lock-venv"
+          "$RUNNER_TEMP/python-lock-venv/bin/python" -m pip install \
+            --disable-pip-version-check -r requirements-dev.txt
+          "$RUNNER_TEMP/python-lock-venv/bin/python" -m pip check
+          "$RUNNER_TEMP/python-lock-venv/bin/python" -m pip freeze \
+            --exclude-editable > requirements.lock.txt
           cp requirements.lock.txt requirements.txt
       - name: Regenerate SHA-256 artifact hashes from the exact Python lock
         shell: bash
