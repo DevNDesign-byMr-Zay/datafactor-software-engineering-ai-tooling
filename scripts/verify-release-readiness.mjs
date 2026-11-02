@@ -331,7 +331,10 @@ async function main() {
     'Python CI must install SHA-256-verified distribution artifacts',
   );
   const [dockerfile, makefile] = await Promise.all([text('Dockerfile'), text('Makefile')]);
-  for (const [name, source] of [['Dockerfile', dockerfile], ['Makefile', makefile]]) {
+  for (const [name, source] of [
+    ['Dockerfile', dockerfile],
+    ['Makefile', makefile],
+  ]) {
     assert(
       /--require-hashes -r requirements\.hashed\.txt/u.test(source),
       name + ' must install SHA-256-verified Python artifacts',
