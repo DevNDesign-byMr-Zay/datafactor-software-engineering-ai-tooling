@@ -110,3 +110,7 @@ See `tests/js/error-webhook.test.js` and `tests/js/workflow-request-schema.test.
 ## Authentication and CORS negative-path privacy
 
 The canonical token-authentication adapter compares configured and received UTF-8 token bytes with the Node.js constant-time comparison primitive for equal-length inputs. A missing or mismatched token still returns generic HTTP 401; preflight handling remains unchanged. The CORS adapter continues to permit only configured origins and returns a fixed HTTP 403 failure without copying the untrusted Origin value, query string, or embedded tokens into an error message. See `tests/js/canonical-auth-cors.test.js` for positive/negative regression coverage. These are reusable adapters; this change does not purport to add an authentication provider, session management, or widen the authorized API surface.
+
+## Clean virtual-environment verification for dependency refresh
+
+The automated dependency-refresh job installs and freezes Python dependencies inside `$RUNNER_TEMP/python-lock-venv`. SHA-256 hash regeneration, lock parity verification, audited installation and Python coverage must all run against that same isolated environment, not the GitHub runner's global Python. This prevents missing-module failures caused by invoking a verifier outside the environment where `packaging`, `pytest`, `pip-audit` and `ruff` are installed. The refresh job must still fail on real lock drift, pip integrity problems, security findings or test failures.

@@ -65,7 +65,7 @@ jobs:
           uv pip compile --no-deps --generate-hashes --python-version 3.12 \
             requirements.lock.txt --output-file requirements.hashed.txt
           test -s requirements.hashed.txt
-          python scripts/verify_python_lock.py
+          "$RUNNER_TEMP/python-lock-venv/bin/python" scripts/verify_python_lock.py
       - name: Detect lockfile changes
         id: changes
         shell: bash
@@ -88,14 +88,17 @@ jobs:
           npm run demo:sustainability
       - name: Verify Python lockfile
         if: steps.changes.outputs.changed == 'true'
+        shell: bash
         run: |
-          python scripts/verify_python_lock.py
-          python -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
-          python -m pip check
-          pip-audit -r requirements.lock.txt
-          python -m ruff check .
-          python -m coverage run -m pytest
-          python -m coverage report --include="python_support/*.py" --fail-under=85
+          set -euo pipefail
+          python_venv="$RUNNER_TEMP/python-lock-venv/bin/python"
+          "$python_venv" scripts/verify_python_lock.py
+          "$python_venv" -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
+          "$python_venv" -m pip check
+          "$python_venv" -m pip_audit -r requirements.lock.txt
+          "$python_venv" -m ruff check .
+          "$python_venv" -m coverage run -m pytest
+          "$python_venv" -m coverage report --include="python_support/*.py" --fail-under=85
       - name: Open verified lockfile pull request
         if: steps.changes.outputs.changed == 'true'
         env:
