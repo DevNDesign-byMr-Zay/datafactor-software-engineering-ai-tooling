@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: github-release
@@ -59,6 +60,20 @@ jobs:
           fi
           printf 'tag=%s\n' "$normalized" >> "$GITHUB_OUTPUT"
 
+      - name: Require successful protected CI and CodeQL for exact main commit
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          if [ "$current_main" != "$GITHUB_SHA" ]; then
+            echo "Main moved after release dispatch; refusing stale release" >&2
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$GITHUB_SHA&branch=main&per_page=100" > "$RUNNER_TEMP/release-prerequisite-runs.json"
+          node scripts/verify-release-prerequisites.mjs "$RUNNER_TEMP/release-prerequisite-runs.json" "$GITHUB_SHA" release-prerequisites.json
+
       - name: Verify maintained release candidate
         run: make verify-fresh
 
@@ -77,7 +92,7 @@ jobs:
           npm sbom --sbom-format=cyclonedx > sbom.cdx.json
           python -m pip list --format=json > python-dependencies.json
           printf '%s\n' "$GITHUB_SHA" > release-commit.txt
-          sha256sum sbom.cdx.json python-dependencies.json release-commit.txt release-manifest.json > release-artifacts.sha256
+          sha256sum sbom.cdx.json python-dependencies.json release-commit.txt release-manifest.json release-prerequisites.json > release-artifacts.sha256
 
       - name: Verify release evidence checksums
         run: sha256sum --check release-artifacts.sha256
@@ -94,6 +109,7 @@ jobs:
             release-commit.txt
             release-manifest.json
             release-artifacts.sha256
+            release-prerequisites.json
 
 
       - name: Publish GitHub release
@@ -101,7 +117,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ steps.release_tag.outputs.tag }}" \
-            sbom.cdx.json python-dependencies.json release-commit.txt release-artifacts.sha256 release-manifest.json \
+            sbom.cdx.json python-dependencies.json release-commit.txt release-artifacts.sha256 release-manifest.json release-prerequisites.json \
             --target "$GITHUB_SHA" \
             --title "${{ steps.release_tag.outputs.tag }}" \
             --generate-notes

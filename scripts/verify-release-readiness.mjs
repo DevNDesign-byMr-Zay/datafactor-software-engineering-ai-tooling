@@ -339,6 +339,18 @@ async function main() {
     /javascript-typescript/u.test(codeql) && /python/u.test(codeql),
     'CodeQL must analyze JavaScript and Python',
   );
+  assert(
+    /node scripts\/verify-release-prerequisites\.mjs/u.test(release) &&
+      /actions\/runs\?head_sha=\$GITHUB_SHA&branch=main/u.test(release) &&
+      /actions: read/u.test(release),
+    'release workflow must verify exact-main protected CI and CodeQL before publication',
+  );
+  await access(new URL('scripts/verify-release-prerequisites.mjs', root));
+  assert(
+    /release-prerequisites\.json/u.test(release) &&
+      /release-manifest\.json release-prerequisites\.json/u.test(release),
+    'release workflow must checksum and publish prerequisite run evidence',
+  );
   assert(/workflow_dispatch:/u.test(release), 'GitHub release workflow must remain manual-only');
   assert(/github\.ref == 'refs\/heads\/main'/u.test(release), 'release workflow must require main');
   assert(
