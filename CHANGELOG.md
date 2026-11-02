@@ -1,8 +1,31 @@
 # Changelog
 
-## Unreleased — v1.2.4 verified engineering release candidate
+## Unreleased — v1.2.5 API contracts and release integrity
 
-Current package candidate: `1.2.4`. The GitHub release must not be marked published until the protected release workflow completes for the exact verified `main` commit.
+Current package candidate: `1.2.5`. This is a release **candidate only**. Publication requires protected review/merge, exact-main CI and CodeQL success, and the gated manual release workflow. No v1.2.5 tag or published artifact is claimed.
+
+### Added
+
+- Validated schemas at both actual Companion and Commercial `POST /api/run` entrypoints. Requests use explicit per-action fields, reject unknown and malformed inputs with the established generic 422 response, and preserve supported form-compatible numeric strings.
+- Opt-in, outbound HTTPS 500-error telemetry with strict event/route/method/status allowlists, bounded delivery, and no exception messages, stacks, credentials, raw URLs, query strings, or request bodies. Disabled by default; local structured logs remain.
+- Regression tests for both real workflow servers, negative and malicious payloads, privacy-bounded error reporting, and failure containment.
+- A commit-bound manual release gate requiring the latest applicable successful `engineering/ci` and `security/codeql` push runs for the exact unchanged `main` SHA before further release verification or publication.
+- `release-prerequisites.json` capturing actual CI and CodeQL run IDs, included in SHA-256-verified release attachments and workflow artifacts for future releases.
+
+### Changed
+
+- Corrected the Companion CI shared-source isolation boundary to permit legitimate library fixes while retaining protection for dependency manifests, Python maintained surface, Docker configuration, and historical provenance.
+- Documented operator-only remote telemetry and GitHub-provided release environment variables without storing secrets or broadening deployment authority.
+- Verified post-merge `main` commit `b8ce9dc283fc4587859ea6bdcae6e957db065957`: 93/93 JavaScript suites, 564/564 tests, 88.97% statement and 82.84% branch coverage; all six engineering jobs and both CodeQL analyses passed.
+
+### Known limitations
+
+- Five low-severity indirect development-dependency findings remain; `npm audit --audit-level=moderate` continues to pass without suppressions.
+- A verified GitHub release is not an external DataFactor score. Repository history cannot be legitimately extended with fabricated timestamps or contributors.
+
+## 1.2.4 — 2026-10-31 — verified engineering release
+
+Published as `v1.2.4` on 2026-10-31 from commit `19cb43b8bd745925d9bdadbeba71f13318d6c5e9`. The previous release's verified artifact manifest, SBOM, dependency inventory, and SHA-256 checksums remain available in GitHub Releases.
 
 ### Added
 
@@ -18,7 +41,7 @@ Current package candidate: `1.2.4`. The GitHub release must not be marked publis
 ### Known limitations
 
 - Five low-severity findings remained in Jest's indirect `deepmerge` dependency chain at the latest completed npm audit; no security check is disabled to conceal them.
-- A pending release is not proof of publication or a new external assessment score.
+- Release publication does not establish a new external assessment score.
 
 ## 1.2.3 — 2026-10-27 — pre-rescore detector hardening
 
