@@ -392,8 +392,8 @@ async function main() {
     'release workflow must generate a dependency SBOM',
   );
   assert(
-    /python -m pip list --format=json/u.test(release),
-    'release workflow must snapshot Python dependencies',
+    /node scripts\/build-locked-python-inventory\.mjs --output python-dependencies\.json/u.test(release),
+    'release workflow must inventory exact hash-locked Python artifacts',
   );
   assert(
     /release-artifacts\.sha256/u.test(release),

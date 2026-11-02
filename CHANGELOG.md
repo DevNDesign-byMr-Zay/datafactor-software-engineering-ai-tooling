@@ -2,9 +2,13 @@
 
 ## Unreleased
 
-Current package candidate: `1.2.6`. **Not published.** Prepare through protected review, exact-main CI/CodeQL, dependency-refresh acceptance and the existing manual release workflow. Do not retag or modify the published v1.2.5 release.
+No subsequent candidate has been prepared. Future releases require a new version, protected review, and verified main-branch workflows.
 
-### Candidate improvements
+## 1.2.6 — 2026-11-02 — dependency integrity and security hardening
+
+Current maintained package: `1.2.6`. Published as stable `v1.2.6` on 2026-11-02 at 14:25:01 UTC from merged commit `0c3f50bd7b8603c253a4bf6aae0123836e1f02e6`. GitHub confirmed successful protected CI, CodeQL, dependency refresh, release checksums, and six published evidence assets. The original tag and assets remain immutable.
+
+### Released improvements
 
 - Hash-verified Python installations from `requirements.hashed.txt`, with normalized exact-version parity and regression tests that accept legitimate growth in the transitive package graph without hardcoding a fixed count.
 - Dependency refresh rebuilt in a clean isolated Python environment, with SHA-256 regeneration and consistent execution of lock verification, pip auditing, Ruff, pytest and coverage in that same environment. Preserve vulnerability audits and fail-closed behavior.
@@ -12,7 +16,7 @@ Current package candidate: `1.2.6`. **Not published.** Prepare through protected
 - Actual local error-webhook collector regression coverage and corrected records for the prior published release.
 - Root CI/CodeQL, clean checkout and network-isolated Docker verification remain release prerequisites.
 
-The next release tag must point to the exact merged and verified `main` commit, not this feature-branch commit.
+Future release tags must point to exact merged and verified `main` commits, not feature-branch commits.
 
 ## 1.2.5 — 2026-11-01 — API contracts and release integrity
 
