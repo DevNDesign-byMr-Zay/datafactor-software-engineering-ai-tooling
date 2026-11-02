@@ -1,3 +1,6 @@
+import { Buffer } from 'node:buffer';
+import { timingSafeEqual } from 'node:crypto';
+
 // Canonical adapter for the authenticated token-authentication regression fix.
 // The historical final artifact remains unchanged under Software Engineering & AI Tooling/.
 
@@ -13,10 +16,19 @@
  */
 export function createTokenAuthMiddleware(configuredToken = '') {
   const expected = String(configuredToken);
+  const expectedBytes = Buffer.from(expected, 'utf8');
   return (req, res, next) => {
     if (req.method === 'OPTIONS') return res.sendStatus(204);
     const token = req.header('x-app-token');
-    if (expected && token === expected) return next();
+    if (expected && typeof token === 'string') {
+      const receivedBytes = Buffer.from(token, 'utf8');
+      if (
+        receivedBytes.length === expectedBytes.length &&
+        timingSafeEqual(receivedBytes, expectedBytes)
+      ) {
+        return next();
+      }
+    }
     return res.status(401).json({ error: 'Unauthorized' });
   };
 }
