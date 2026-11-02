@@ -1,0 +1,63 @@
+name: One-time protected v1.2.6 release dispatch
+
+on:
+  push:
+    branches:
+      - ops/one-time-v1.2.6-release-dispatch-20261102
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    name: Verify main and dispatch existing protected release workflow
+    if: github.repository == 'DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check exact main, protected runs, and release uniqueness
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: 0c3f50bd7b8603c253a4bf6aae0123836e1f02e6
+          TAG: v1.2.6
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          current_main="$(gh api "repos/$repo/commits/main" --jq .sha)"
+          if [ "$current_main" != "$EXPECTED_SHA" ]; then
+            echo "::error::Main has moved; release dispatch refused"
+            exit 1
+          fi
+          version="$(gh api "repos/$repo/contents/package.json?ref=main" --jq .content | base64 --decode | jq -r '.version')"
+          if [ "$version" != "1.2.6" ]; then
+            echo "::error::Version drift: package.json is not 1.2.6"
+            exit 1
+          fi
+          if gh release view "$TAG" --repo "$repo" >/dev/null 2>&1; then
+            echo "::error::Release already exists; refusing repeated publication"
+            exit 1
+          fi
+          if gh api "repos/$repo/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag already exists; refusing to overwrite"
+            exit 1
+          fi
+          runs="$(gh api "repos/$repo/actions/runs?head_sha=$EXPECTED_SHA&branch=main&per_page=100")"
+          for workflow in 'engineering/ci' 'security/codeql' 'Refresh dependency lockfiles'; do
+            jq -e --arg sha "$EXPECTED_SHA" --arg workflow "$workflow" '
+              [.workflow_runs[] |
+                select(.head_sha == $sha and
+                       .head_branch == "main" and
+                       .event == "push" and
+                       .name == $workflow)] |
+              sort_by(.id) | last |
+              .status == "completed" and .conclusion == "success"
+            ' <<<"$runs" >/dev/null || {
+              echo "::error::Unsuccessful latest protected main workflow: $workflow"
+              exit 1
+            }
+          done
+          gh api --method POST "repos/$repo/actions/workflows/release.yml/dispatches" \
+            -f ref=main -f inputs[tag]="$TAG"
+          echo "Dispatched existing release/github for $TAG at verified $EXPECTED_SHA"
