@@ -24,7 +24,7 @@ npm run verify:release
 npm run check
 ```
 
-The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green; this document does not claim that a release has already been published.
+The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green. Published versions v1.2.5 and v1.2.6 are independently confirmed by their GitHub Releases records; this guide does not establish publication by itself.
 
 ## Boundary rules
 
@@ -40,7 +40,7 @@ This check uses GitHub's real run conclusions, not a local certificate. Its `rel
 
 ## Published version versus upcoming candidate
 
-The changelog contains a separate `Unreleased` placeholder for future changes and accurately records the published v1.2.5 release with its verified tag, UTC timestamp and commit. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
+The changelog contains a separate `Unreleased` placeholder for future changes and accurately records both published v1.2.5 and v1.2.6 releases with their verified tags, UTC timestamps and commits. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
 
 ## Local error collector acceptance
 
@@ -49,3 +49,7 @@ The changelog contains a separate `Unreleased` placeholder for future changes an
 ## Hash-verified Python installation
 
 A generated `requirements.hashed.txt` locks SHA-256 wheel and source-distribution hashes for the 42 exact Python distributions in the established lock snapshots. It was created with `uv pip compile --no-deps --generate-hashes --python-version 3.12` and tested with `pip --require-hashes`. Normal setup, fresh-clone CI and Docker now install from the hashed file. The lock verifier rejects mismatched, duplicate, missing or malformed records, while pip verifies downloaded artifact hashes. `pip-audit` continues to audit the pinned versions separately. Future dependency changes must regenerate and review the hashed lock before merging. Initial installation still requires network access. The one-time generation workflow was removed.
+
+## Reproducible release dependency evidence
+
+The future-release `python-dependencies.json` asset is built deterministically from `requirements.lock.txt` and `requirements.hashed.txt` with `scripts/build-locked-python-inventory.mjs`. The builder cross-checks normalized package names, exact versions, and SHA-256 artifact hashes, rejecting differences, missing hashes, duplicate names, and unexpected directives. It includes both input-file SHA-256 digests and the bounded package/hash inventory. This describes **the reproducibly locked dependency graph**, not the incidental Python packages preinstalled on a GitHub runner. The existing separate `python-installed-dependencies.json` CI artifact remains available to inspect actual runner installations. The current published v1.2.6 assets remain unmodified; this safeguard applies only to subsequent releases.

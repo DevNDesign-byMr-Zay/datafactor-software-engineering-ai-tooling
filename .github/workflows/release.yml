@@ -90,7 +90,7 @@ jobs:
           set -euo pipefail
           node scripts/create-release-manifest.mjs "${{ steps.release_tag.outputs.tag }}" "$GITHUB_SHA" release-manifest.json
           npm sbom --sbom-format=cyclonedx > sbom.cdx.json
-          python -m pip list --format=json > python-dependencies.json
+          node scripts/build-locked-python-inventory.mjs --output python-dependencies.json
           printf '%s\n' "$GITHUB_SHA" > release-commit.txt
           sha256sum sbom.cdx.json python-dependencies.json release-commit.txt release-manifest.json release-prerequisites.json > release-artifacts.sha256
 
