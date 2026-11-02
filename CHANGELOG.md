@@ -1,8 +1,12 @@
 # Changelog
 
-## Unreleased — v1.2.5 API contracts and release integrity
+## Unreleased
 
-Current package candidate: `1.2.5`. This is a release **candidate only**. Publication requires protected review/merge, exact-main CI and CodeQL success, and the gated manual release workflow. No v1.2.5 tag or published artifact is claimed.
+No future release candidate has been prepared. Changes following v1.2.5 require a new version and protected release workflow.
+
+## 1.2.5 — 2026-11-01 — API contracts and release integrity
+
+Current maintained package: `1.2.5`. Published as stable `v1.2.5` on 2026-11-01 at 22:21 EST (2026-11-02T03:21:26Z) from merged commit `20927da1006f8a635a771a815421095169dede14`. GitHub confirms six release evidence assets and a successful protected workflow.
 
 ### Added
 
@@ -21,7 +25,7 @@ Current package candidate: `1.2.5`. This is a release **candidate only**. Public
 ### Known limitations
 
 - Five low-severity indirect development-dependency findings remain; `npm audit --audit-level=moderate` continues to pass without suppressions.
-- A verified GitHub release is not an external DataFactor score. Repository history cannot be legitimately extended with fabricated timestamps or contributors.
+- A verified GitHub release does not prove a higher external assessment score. Repository history cannot legitimately be extended with fabricated timestamps or contributors.
 
 ## 1.2.4 — 2026-10-31 — verified engineering release
 
