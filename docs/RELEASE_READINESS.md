@@ -37,3 +37,11 @@ Do not rewrite historical files to improve release metrics. Release notes should
 Manual `release/github` dispatch is restricted to `main`. Before any package tests or publication, the workflow verifies that `main` still points to the exact dispatch commit, then retrieves GitHub Actions runs for that SHA. `scripts/verify-release-prerequisites.mjs` **fails closed** unless the latest applicable push runs for both `engineering/ci` and `security/codeql` completed successfully on that exact `main` SHA. Earlier successful runs cannot hide later failures or queued checks.
 
 This check uses GitHub's real run conclusions, not a local certificate. Its `release-prerequisites.json` records the verified commit and relevant run IDs without copying untrusted outputs. The artifact is included in the SHA-256 manifest, uploaded to the retained evidence bundle, and attached to the GitHub release. The full fresh-checkout, Docker verification, SBOM, Python inventory, and checksum validation still run afterward. This policy only applies to **future** releases and does not retroactively modify published v1.2.4 artifacts.
+
+## Published version versus upcoming candidate
+
+The changelog contains a separate `Unreleased` placeholder for future changes and accurately records the published v1.2.5 release with its verified tag, UTC timestamp and commit. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
+
+## Local error collector acceptance
+
+`tests/js/error-webhook-collector.test.js` injects a local HTTP transport into the validated outbound error webhook to prove the actual POST JSON envelope and a rejected-response path. This test does not establish a remote HTTPS connection or configure a production collector; outbound reporting remains explicitly opt-in.
