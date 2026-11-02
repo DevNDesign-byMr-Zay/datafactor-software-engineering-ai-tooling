@@ -7,6 +7,8 @@ on:
     paths:
       - "package.json"
       - "requirements.txt"
+      - "requirements.lock.txt"
+      - "requirements.hashed.txt"
       - "requirements.in"
       - "requirements-dev.txt"
       - "pyproject.toml"
@@ -48,12 +50,21 @@ jobs:
           python -m pip install --disable-pip-version-check -r requirements-dev.txt
           python -m pip freeze --exclude-editable > requirements.lock.txt
           cp requirements.lock.txt requirements.txt
+      - name: Regenerate SHA-256 artifact hashes from the exact Python lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check uv==0.10.0
+          uv pip compile --no-deps --generate-hashes --python-version 3.12 \
+            requirements.lock.txt --output-file requirements.hashed.txt
+          test -s requirements.hashed.txt
+          python scripts/verify_python_lock.py
       - name: Detect lockfile changes
         id: changes
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- package-lock.json requirements.lock.txt requirements.txt; then
+          if git diff --quiet -- package-lock.json requirements.lock.txt requirements.txt requirements.hashed.txt; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Lockfiles already current."
           else
@@ -72,7 +83,7 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         run: |
           python scripts/verify_python_lock.py
-          python -m pip install --disable-pip-version-check -r requirements.txt
+          python -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
           python -m pip check
           pip-audit -r requirements.lock.txt
           python -m ruff check .
@@ -89,14 +100,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
-          git add package-lock.json requirements.lock.txt requirements.txt
+          git add package-lock.json requirements.lock.txt requirements.txt requirements.hashed.txt
           git commit -m "build: refresh verified dependency lockfiles"
           git push --set-upstream origin "$branch"
           if ! gh pr create \
             --base main \
             --head "$branch" \
             --title "build: refresh verified dependency lockfiles" \
-            --body "Regenerates the JavaScript and Python lockfiles from the current manifests. The refresh workflow completed clean installs, dependency audits, linting, formatting checks, maintained test coverage, the sustainability demo, Python dependency validation, and Python coverage before opening this PR. Normal repository CI and security analysis should still validate this exact PR head before merge."; then
+            --body "Regenerates JavaScript and all three exact Python lock snapshots, including pip SHA-256 artifact hashes, from current manifests. The refresh workflow completed clean installs, dependency audits, linting, formatting checks, maintained test coverage, the sustainability demo, Python dependency validation, and Python coverage before opening this PR. Normal repository CI and security analysis should still validate this exact PR head before merge."; then
             echo "::notice title=Lockfile branch published::GitHub Actions cannot open pull requests in this repository. Open a PR from $branch to main."
             echo "Verified dependency branch $branch was published; repository policy requires a human or connected app to open the PR." >> "$GITHUB_STEP_SUMMARY"
           fi
