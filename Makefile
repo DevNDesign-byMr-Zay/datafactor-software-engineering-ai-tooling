@@ -2,7 +2,7 @@
 
 setup:
 	npm ci --ignore-scripts
-	python -m pip install --disable-pip-version-check -r requirements.txt
+	python -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
 
 test: test-js test-python
 

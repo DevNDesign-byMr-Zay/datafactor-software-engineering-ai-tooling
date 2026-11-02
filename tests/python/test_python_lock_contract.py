@@ -67,3 +67,33 @@ def test_declaration_parity_rejects_missing_or_mismatched_ranges():
             expected,
             "runtime",
         )
+
+
+def test_hashed_lock_matches_42_exact_distribution_pins():
+    verifier = _verifier()
+    hashed = verifier.load_hashed_versions()
+    assert len(hashed) == 42
+    assert hashed == verifier.load_locked_versions()
+
+
+@pytest.mark.parametrize(
+    ("body", "reason"),
+    [
+        ("fastapi==0.141.1\n", "missing or duplicate SHA-256 hashes"),
+        ("fastapi==0.141.1 \\\n --hash=sha256:bad\n", "invalid SHA-256 hash entry"),
+        ("fastapi>=0.115 \\\n --hash=sha256:" + "a" * 64 + "\n", "invalid hashed distribution pin"),
+        ("fastapi==0.141.1 \\\n", "unterminated hash continuation"),
+        (
+            "fastapi==0.141.1 \\\n --hash=sha256:" + "a" * 64 + "\n"
+            "FastAPI==0.141.1 \\\n --hash=sha256:" + "b" * 64 + "\n",
+            "duplicate hashed distribution",
+        ),
+    ],
+)
+def test_hashed_lock_rejects_malformed_or_duplicate_hashes(tmp_path, body, reason):
+    verifier = _verifier()
+    path = tmp_path / "requirements.hashed.txt"
+    path.write_text(body, encoding="utf-8")
+    with pytest.raises(SystemExit, match=reason):
+        verifier.load_hashed_versions(path)
+

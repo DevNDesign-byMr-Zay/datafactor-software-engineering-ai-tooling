@@ -97,9 +97,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements.txt
+          cache-dependency-path: requirements.hashed.txt
       - name: Reproducible Python install
-        run: python -m pip install --disable-pip-version-check -r requirements.txt
+        run: python -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
       - name: Verify installed dependency graph
         run: python -m pip check
       - name: Record installed Python dependency inventories

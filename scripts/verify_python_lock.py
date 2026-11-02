@@ -11,10 +11,12 @@ from packaging.version import Version
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT = ROOT / "pyproject.toml"
 LOCKFILE = ROOT / "requirements.lock.txt"
+HASHED_LOCKFILE = ROOT / "requirements.hashed.txt"
 CONVENTIONAL_LOCKFILE = ROOT / "requirements.txt"
 RUNTIME_MANIFEST = ROOT / "requirements.in"
 DEV_MANIFEST = ROOT / "requirements-dev.txt"
 LOCK_PATTERN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s#]+)$")
+HASH_PATTERN = re.compile(r"^--hash=sha256:([0-9a-f]{64})$")
 
 
 def load_declared_requirements() -> list[Requirement]:
@@ -47,6 +49,45 @@ def load_locked_versions(path: Path = LOCKFILE) -> dict[str, Version]:
             raise SystemExit(f"{path.name}: duplicate locked distribution: {canonical}")
         locked[canonical] = Version(version_text)
     return locked
+
+
+
+def load_hashed_versions(path: Path = HASHED_LOCKFILE) -> dict[str, Version]:
+    """Require at least one artifact SHA-256 for every pinned distribution."""
+    pinned: dict[str, Version] = {}
+    pending: list[str] = []
+    for line_number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        continuation = line.endswith("\\")
+        if continuation:
+            line = line[:-1].strip()
+        pending.extend(line.split())
+        if continuation:
+            continue
+        match = LOCK_PATTERN.fullmatch(pending[0]) if pending else None
+        if match is None:
+            raise SystemExit(f"{path.name}:{line_number}: invalid hashed distribution pin")
+        name, version = match.groups()
+        normalized = canonicalize_name(name)
+        if normalized in pinned:
+            raise SystemExit(f"{path.name}: duplicate hashed distribution: {normalized}")
+        digests: list[str] = []
+        for entry in pending[1:]:
+            valid = HASH_PATTERN.fullmatch(entry)
+            if valid is None:
+                raise SystemExit(f"{path.name}:{line_number}: invalid SHA-256 hash entry")
+            digests.append(valid.group(1))
+        if not digests or len(digests) != len(set(digests)):
+            raise SystemExit(f"{path.name}:{line_number}: missing or duplicate SHA-256 hashes")
+        pinned[normalized] = Version(version)
+        pending = []
+    if pending:
+        raise SystemExit(f"{path.name}: unterminated hash continuation")
+    if not pinned:
+        raise SystemExit(f"{path.name}: no hashed distributions found")
+    return pinned
 
 
 def load_manifest_requirements(path: Path, *, include: str | None = None) -> list[Requirement]:
@@ -86,6 +127,10 @@ def main() -> None:
     locked = load_locked_versions()
 
     conventional = load_locked_versions(CONVENTIONAL_LOCKFILE)
+    if load_hashed_versions() != locked:
+        raise SystemExit(
+            'Python lock parity failed: requirements.hashed.txt differs from requirements.lock.txt'
+        )
     if conventional != locked:
         raise SystemExit(
             "Python lock parity failed: requirements.txt differs from requirements.lock.txt"
@@ -129,7 +174,8 @@ def main() -> None:
 
     print(
         f"Python lock parity verified for {len(declared)} declared runtime/dev requirements "
-        f"against {len(locked)} exact pinned distributions in both lock snapshots."
+        f"against {len(locked)} exact pinned distributions in both lock snapshots "
+        "and the SHA-256 artifact lock."
     )
 
 
