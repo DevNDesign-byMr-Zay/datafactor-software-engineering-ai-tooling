@@ -15,7 +15,7 @@ export function createCorsOriginValidator(allowedOrigins = []) {
   return (origin, callback) => {
     if (!origin) return callback(null, true);
     if (allowed.includes(origin)) return callback(null, true);
-    return callback(new Error(`Not allowed by CORS: ${origin}`));
+    return callback(new Error('Not allowed by CORS'));
   };
 }
 
@@ -25,7 +25,7 @@ export function createCorsOriginValidator(allowedOrigins = []) {
 export function createCorsErrorHandler() {
   return (error, _req, res, next) => {
     if (error?.message?.startsWith('Not allowed by CORS')) {
-      return res.status(403).json({ error: error.message });
+      return res.status(403).json({ error: 'Not allowed by CORS' });
     }
     return next(error);
   };

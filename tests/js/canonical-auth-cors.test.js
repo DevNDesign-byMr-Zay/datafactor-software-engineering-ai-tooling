@@ -50,7 +50,7 @@ describe('canonical CORS adapter', () => {
     policy.options.origin('https://denied.example', callback);
     const [error] = callback.mock.lastCall;
     expect(error).toBeInstanceOf(Error);
-    expect(error.message).toContain('https://denied.example');
+    expect(error.message).toBe('Not allowed by CORS');
     expect(policy.options.credentials).toBe(true);
   });
 
@@ -61,10 +61,46 @@ describe('canonical CORS adapter', () => {
 
     policy.errorHandler(new Error('Not allowed by CORS: x'), {}, res, next);
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Not allowed by CORS: x' });
+    expect(res.json).toHaveBeenCalledWith({ error: 'Not allowed by CORS' });
 
     const unrelated = new Error('boom');
     policy.errorHandler(unrelated, {}, responseDouble(), next);
     expect(next).toHaveBeenCalledWith(unrelated);
+  });
+});
+
+describe('credential and origin refusal hardening', () => {
+  test('compares UTF-8 token bytes and rejects near matches without revealing tokens', () => {
+    const goodToken = 'secrét-private';
+    const middleware = createTokenAuthMiddleware(goodToken);
+    const ok = responseDouble();
+    const success = jest.fn();
+    middleware({ method: 'POST', header: () => goodToken }, ok, success);
+    expect(success).toHaveBeenCalledTimes(1);
+
+    for (const value of ['secrét-privat', 'secrét-private-extra', 'secret-private', '']) {
+      const denied = responseDouble();
+      const next = jest.fn();
+      middleware({ method: 'POST', header: () => value }, denied, next);
+      expect(denied.status).toHaveBeenCalledWith(401);
+      expect(denied.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
+      expect(next).not.toHaveBeenCalled();
+      expect(JSON.stringify(denied.json.mock.calls)).not.toContain(goodToken);
+    }
+  });
+
+  test('rejects disallowed origin without reflecting supplied query strings or tokens', () => {
+    const origin = 'https://denied.example/?token=private-token';
+    const validator = createCorsPolicy(['https://allowed.example']);
+    const callback = jest.fn();
+    validator.options.origin(origin, callback);
+    const [error] = callback.mock.lastCall;
+    expect(error.message).toBe('Not allowed by CORS');
+    expect(error.message).not.toContain('private-token');
+    const response = responseDouble();
+    validator.errorHandler(error, {}, response, jest.fn());
+    expect(response.status).toHaveBeenCalledWith(403);
+    expect(response.json).toHaveBeenCalledWith({ error: 'Not allowed by CORS' });
+    expect(JSON.stringify(response.json.mock.calls)).not.toContain('private-token');
   });
 });
