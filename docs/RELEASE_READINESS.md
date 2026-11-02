@@ -24,7 +24,7 @@ npm run verify:release
 npm run check
 ```
 
-The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green; this document does not claim that a release has already been published.
+The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green. Published versions v1.2.5 and v1.2.6 are independently confirmed by their GitHub Releases records; this guide does not establish publication by itself.
 
 ## Boundary rules
 
@@ -40,7 +40,7 @@ This check uses GitHub's real run conclusions, not a local certificate. Its `rel
 
 ## Published version versus upcoming candidate
 
-The changelog contains a separate `Unreleased` placeholder for future changes and accurately records the published v1.2.5 release with its verified tag, UTC timestamp and commit. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
+The changelog contains a separate `Unreleased` placeholder for future changes and accurately records both published v1.2.5 and v1.2.6 releases with their verified tags, UTC timestamps and commits. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
 
 ## Local error collector acceptance
 
