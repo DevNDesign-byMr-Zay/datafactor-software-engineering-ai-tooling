@@ -45,3 +45,7 @@ The changelog contains a separate `Unreleased` placeholder for future changes an
 ## Local error collector acceptance
 
 `tests/js/error-webhook-collector.test.js` injects a local HTTP transport into the validated outbound error webhook to prove the actual POST JSON envelope and a rejected-response path. This test does not establish a remote HTTPS connection or configure a production collector; outbound reporting remains explicitly opt-in.
+
+## Hash-verified Python installation
+
+A generated `requirements.hashed.txt` locks SHA-256 wheel and source-distribution hashes for the 42 exact Python distributions in the established lock snapshots. It was created with `uv pip compile --no-deps --generate-hashes --python-version 3.12` and tested with `pip --require-hashes`. Normal setup, fresh-clone CI and Docker now install from the hashed file. The lock verifier rejects mismatched, duplicate, missing or malformed records, while pip verifies downloaded artifact hashes. `pip-audit` continues to audit the pinned versions separately. Future dependency changes must regenerate and review the hashed lock before merging. Initial installation still requires network access. The one-time generation workflow was removed.

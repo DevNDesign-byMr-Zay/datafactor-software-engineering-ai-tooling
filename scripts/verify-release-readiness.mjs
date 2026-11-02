@@ -11,6 +11,7 @@ const REQUIRED_FILES = Object.freeze([
   'docs/MAINTAINED_SURFACE.md',
   'docs/RELEASE_READINESS.md',
   'requirements.lock.txt',
+  'requirements.hashed.txt',
   'package-lock.json',
   'SECURITY.md',
   'CONTRIBUTING.md',
@@ -336,6 +337,20 @@ async function main() {
     /pip-audit -r requirements\.lock\.txt/u.test(ci),
     'engineering CI must audit Python dependencies',
   );
+  assert(
+    /--require-hashes -r requirements\.hashed\.txt/u.test(ci),
+    'Python CI must install SHA-256-verified distribution artifacts',
+  );
+  const [dockerfile, makefile] = await Promise.all([text('Dockerfile'), text('Makefile')]);
+  for (const [name, source] of [
+    ['Dockerfile', dockerfile],
+    ['Makefile', makefile],
+  ]) {
+    assert(
+      /--require-hashes -r requirements\.hashed\.txt/u.test(source),
+      name + ' must install SHA-256-verified Python artifacts',
+    );
+  }
   assert(
     /python scripts\/verify_python_lock\.py/u.test(ci),
     'engineering CI must verify Python declaration/lock parity',

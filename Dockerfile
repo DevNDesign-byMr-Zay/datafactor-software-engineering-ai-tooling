@@ -15,8 +15,8 @@ WORKDIR /workspace
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 
-COPY requirements.txt ./
-RUN python -m pip install --disable-pip-version-check -r requirements.txt
+COPY requirements.txt requirements.lock.txt requirements.hashed.txt ./
+RUN python -m pip install --disable-pip-version-check --require-hashes -r requirements.hashed.txt
 
 COPY . .
 
