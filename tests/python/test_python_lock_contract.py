@@ -69,11 +69,30 @@ def test_declaration_parity_rejects_missing_or_mismatched_ranges():
         )
 
 
-def test_hashed_lock_matches_42_exact_distribution_pins():
+def test_hashed_lock_matches_every_exact_distribution_pin():
     verifier = _verifier()
     hashed = verifier.load_hashed_versions()
-    assert len(hashed) == 42
-    assert hashed == verifier.load_locked_versions()
+    locked = verifier.load_locked_versions()
+    assert hashed
+    assert len(hashed) == len(locked)
+    assert hashed == locked
+
+
+def test_hashed_lock_allows_new_transitive_distributions(tmp_path):
+    verifier = _verifier()
+    # A synthetic fixture proves lock growth is accepted only with matching
+    # exact versions and SHA-256 hashes; it does not change the real lock.
+    distribution_count = len(verifier.load_locked_versions()) + 1
+    generated = "".join(
+        f"example-dependency-{i}==1.0.0 \\\n"
+        f"    --hash=sha256:{i:064x}\n"
+        for i in range(distribution_count)
+    )
+    snapshot = tmp_path / "requirements.hashed.txt"
+    snapshot.write_text(generated, encoding="utf-8")
+    parsed = verifier.load_hashed_versions(snapshot)
+    assert len(parsed) == distribution_count
+    assert all(str(version) == "1.0.0" for version in parsed.values())
 
 
 @pytest.mark.parametrize(
