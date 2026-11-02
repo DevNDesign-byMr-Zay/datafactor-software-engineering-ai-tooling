@@ -228,8 +228,18 @@ async function main() {
     'changelog must describe the unreleased maintained surface',
   );
   assert(
-    changelog.includes('Current package candidate: ' + String.fromCharCode(96) + pkg.version + String.fromCharCode(96)) ||
-      changelog.includes('Current maintained package: ' + String.fromCharCode(96) + pkg.version + String.fromCharCode(96)),
+    changelog.includes(
+      'Current package candidate: ' +
+        String.fromCharCode(96) +
+        pkg.version +
+        String.fromCharCode(96),
+    ) ||
+      changelog.includes(
+        'Current maintained package: ' +
+          String.fromCharCode(96) +
+          pkg.version +
+          String.fromCharCode(96),
+      ),
     'changelog must identify the actual candidate or published package version',
   );
   assert(
