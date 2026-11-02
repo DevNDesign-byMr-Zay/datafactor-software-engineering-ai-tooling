@@ -9,7 +9,12 @@ describe('published version is not called an unreleased candidate', () => {
     expect(pkg.version).toBe('1.2.5');
     expect(content).toMatch(/^## Unreleased$/mu);
     expect(content).toMatch(/^## 1\.2\.5 — 2026-11-01 —/mu);
-    expect(content).toContain('Current maintained package: ' + String.fromCharCode(96) + pkg.version + String.fromCharCode(96));
+    expect(content).toContain(
+      'Current maintained package: ' +
+        String.fromCharCode(96) +
+        pkg.version +
+        String.fromCharCode(96),
+    );
     expect(content).not.toContain('No v1.2.5 tag or published artifact is claimed');
   });
 });
