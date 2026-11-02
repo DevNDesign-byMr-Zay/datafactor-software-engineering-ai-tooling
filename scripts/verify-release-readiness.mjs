@@ -392,7 +392,9 @@ async function main() {
     'release workflow must generate a dependency SBOM',
   );
   assert(
-    /node scripts\/build-locked-python-inventory\.mjs --output python-dependencies\.json/u.test(release),
+    /node scripts\/build-locked-python-inventory\.mjs --output python-dependencies\.json/u.test(
+      release,
+    ),
     'release workflow must inventory exact hash-locked Python artifacts',
   );
   assert(

@@ -82,7 +82,9 @@ async function cli() {
   ]);
   const inventory = buildLockedPythonInventory(lockedText, hashedText);
   await writeFile(process.argv[3], JSON.stringify(inventory, null, 2) + '\n', 'utf8');
-  process.stdout.write('Verified ' + inventory.packageCount + ' hash-locked Python distributions\n');
+  process.stdout.write(
+    'Verified ' + inventory.packageCount + ' hash-locked Python distributions\n',
+  );
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -32,7 +32,11 @@ describe('release dependency evidence is generated from exact hash-verified pins
     ['missing package', pins, hashed.split('another.package==')[0]],
     ['missing hash', 'a==1\n', 'a==1\n'],
     ['duplicate pin', 'a==1\na==1\n', 'a==1 \\\n --hash=sha256:' + hashA + '\n'],
-    ['duplicate hash', 'a==1\n', 'a==1 \\\n --hash=sha256:' + hashA + ' \\\n --hash=sha256:' + hashA + '\n'],
+    [
+      'duplicate hash',
+      'a==1\n',
+      'a==1 \\\n --hash=sha256:' + hashA + ' \\\n --hash=sha256:' + hashA + '\n',
+    ],
     ['invalid hash', 'a==1\n', 'a==1 \\\n --hash=sha256:NOT-A-HASH\n'],
     ['unexpected directive', 'a==1\n', '-r requirements.txt\n'],
   ])('rejects %s', (_label, exact, artifact) => {
