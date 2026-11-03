@@ -108,6 +108,70 @@ describe('route safety boundaries', () => {
     expect(Object.isFrozen(result.value.files[0])).toBe(true);
   });
 
+  test('rejects inherited chat fields without reading their values', () => {
+    const inherited = Object.create({ sessionId: 'inherited', text: 'stolen text' });
+    expect(parseChatRequestBody(inherited)).toEqual({
+      ok: false,
+      error: 'Chat body contains unsupported fields',
+    });
+    // A plain JSON object must not see polluted prototype fields either.
+    const body = { text: 'real' };
+    expect(parseChatRequestBody(body).value.sessionId).toBe('default');
+  });
+
+  test('rejects accessor and symbol keys before invoking a getter', () => {
+    let calls = 0;
+    const body = { text: 'hello' };
+    Object.defineProperty(body, 'sessionId', {
+      enumerable: true,
+      get() {
+        calls += 1;
+        throw new Error('getter must not execute');
+      },
+    });
+    expect(parseChatRequestBody(body)).toEqual({
+      ok: false,
+      error: 'Chat body contains unsupported fields',
+    });
+    const symbolBody = { text: 'hello', [Symbol('hidden')]: 'untrusted' };
+    expect(parseChatRequestBody(symbolBody).ok).toBe(false);
+    expect(calls).toBe(0);
+  });
+
+  test('rejects accessor and inherited file references', () => {
+    let calls = 0;
+    const accessorFile = {};
+    Object.defineProperty(accessorFile, 'objectName', {
+      get() {
+        calls += 1;
+        return 'uploads/secret.txt';
+      },
+    });
+    const inheritedFile = Object.create({ objectName: 'uploads/inherited.txt' });
+    for (const file of [accessorFile, inheritedFile]) {
+      expect(parseChatRequestBody({ files: [file] })).toEqual({
+        ok: false,
+        error: 'Invalid chat file reference',
+      });
+    }
+    expect(calls).toBe(0);
+  });
+
+  test('accepts null-prototype JSON-shaped data records', () => {
+    const body = Object.assign(Object.create(null), {
+      text: ' hello ',
+      files: [Object.assign(Object.create(null), { objectName: 'uploads/ok.pdf' })],
+    });
+    expect(parseChatRequestBody(body)).toEqual({
+      ok: true,
+      value: {
+        sessionId: 'default',
+        text: 'hello',
+        files: [{ objectName: 'uploads/ok.pdf', mimeType: 'application/octet-stream' }],
+      },
+    });
+  });
+
   test.each([
     [null, 'Chat body must be an object'],
     [[], 'Chat body must be an object'],
