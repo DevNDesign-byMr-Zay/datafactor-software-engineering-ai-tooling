@@ -80,11 +80,14 @@ describe('provider-neutral JavaScript error reporter', () => {
   test('contains invalid context and proxy descriptor failures', () => {
     const capture = jest.fn();
     const reporter = createErrorReporter({ capture });
-    const throwingProxy = new Proxy({}, {
-      ownKeys() {
-        throw new Error('untrusted proxy');
+    const throwingProxy = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error('untrusted proxy');
+        },
       },
-    });
+    );
     expect(reporter.capture(new Error('private'), throwingProxy)).toBe(false);
     expect(reporter.capture(new Error('private'), [])).toBe(false);
     expect(capture).not.toHaveBeenCalled();
