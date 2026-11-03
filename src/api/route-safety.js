@@ -119,43 +119,70 @@ function normalizeSessionId(value) {
   return sessionId;
 }
 
+/**
+ * Extract only own, data-valued keys from a JSON-shaped record. Neither
+ * inherited fields nor getters may provide a chat request or file reference.
+ * @param {unknown} candidate
+ * @param {ReadonlySet<string>} allowed
+ * @returns {Record<string, PropertyDescriptor> | null}
+ */
+function ownDataRecord(candidate, allowed) {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return null;
+  try {
+    const prototype = Object.getPrototypeOf(candidate);
+    if (prototype !== Object.prototype && prototype !== null) return null;
+    const descriptors = Object.getOwnPropertyDescriptors(candidate);
+    if (
+      Reflect.ownKeys(descriptors).some(
+        (key) =>
+          typeof key !== 'string' || !allowed.has(key) || !Object.hasOwn(descriptors[key], 'value'),
+      )
+    ) {
+      return null;
+    }
+    return descriptors;
+  } catch {
+    // Proxy descriptor/prototype traps must not escape the validation boundary.
+    return null;
+  }
+}
+
+const CHAT_KEYS = new Set(['sessionId', 'text', 'files']);
+const CHAT_FILE_KEYS = new Set(['objectName', 'mimeType']);
+
 export function parseChatRequestBody(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return invalid('Chat body must be an object');
   }
 
-  const allowedKeys = new Set(['sessionId', 'text', 'files']);
-  if (Object.keys(body).some((key) => !allowedKeys.has(key))) {
-    return invalid('Chat body contains unsupported fields');
-  }
+  const fields = ownDataRecord(body, CHAT_KEYS);
+  if (!fields) return invalid('Chat body contains unsupported fields');
 
-  const sessionId = normalizeSessionId(body.sessionId);
+  const sessionId = normalizeSessionId(fields.sessionId?.value);
   if (!sessionId) return invalid('Invalid sessionId');
 
-  if (body.text !== undefined && typeof body.text !== 'string') {
+  const rawText = fields.text?.value;
+  if (rawText !== undefined && typeof rawText !== 'string') {
     return invalid('Chat text must be a string');
   }
-  const text = (body.text ?? '').trim();
+  const text = (rawText ?? '').trim();
   if (text.length > MAX_CHAT_TEXT_LENGTH) return invalid('Chat text is too long');
 
-  if (body.files !== undefined && !Array.isArray(body.files)) {
+  const rawFiles = fields.files?.value;
+  if (rawFiles !== undefined && !Array.isArray(rawFiles)) {
     return invalid('Chat files must be an array');
   }
-  const inputFiles = body.files ?? [];
+  const inputFiles = rawFiles ?? [];
   if (inputFiles.length > MAX_CHAT_FILES) return invalid('Too many chat files');
 
   const files = [];
   for (const file of inputFiles) {
-    if (!file || typeof file !== 'object' || Array.isArray(file)) {
-      return invalid('Invalid chat file reference');
-    }
-    if (Object.keys(file).some((key) => !['objectName', 'mimeType'].includes(key))) {
-      return invalid('Invalid chat file reference');
-    }
+    const fileFields = ownDataRecord(file, CHAT_FILE_KEYS);
+    if (!fileFields) return invalid('Invalid chat file reference');
 
-    const parsedObject = parseStorageObjectName(file.objectName);
+    const parsedObject = parseStorageObjectName(fileFields.objectName?.value);
     if (!parsedObject.ok) return invalid('Invalid chat file reference');
-    const mimeType = normalizeMimeType(file.mimeType, { optional: true });
+    const mimeType = normalizeMimeType(fileFields.mimeType?.value, { optional: true });
     if (!mimeType) return invalid('Invalid chat file MIME type');
     files.push(Object.freeze({ objectName: parsedObject.value.objectName, mimeType }));
   }
