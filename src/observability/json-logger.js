@@ -2,6 +2,17 @@ import process from 'node:process';
 
 const LEVELS = Object.freeze(['error', 'warn', 'info']);
 const LEVEL_SET = new Set(LEVELS);
+const RESERVED_METADATA_KEYS = new Set([
+  'timestamp',
+  'level',
+  'logger',
+  'message',
+  '__proto__',
+  'prototype',
+  'constructor',
+]);
+const SENSITIVE_METADATA_KEY =
+  /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
 
 function boundedName(value) {
   if (typeof value !== 'string') throw new TypeError('logger name must be a string');
@@ -21,7 +32,25 @@ function boundedMetadata(value = {}) {
   }
 
   const result = {};
-  for (const [key, item] of Object.entries(value)) {
+  let descriptors;
+  try {
+    descriptors = Object.getOwnPropertyDescriptors(value);
+  } catch {
+    // Keep writing the trusted envelope if hostile proxy metadata cannot be read.
+    return result;
+  }
+
+  for (const [key, descriptor] of Object.entries(descriptors)) {
+    if (
+      !descriptor.enumerable ||
+      !Object.hasOwn(descriptor, 'value') ||
+      RESERVED_METADATA_KEYS.has(key) ||
+      SENSITIVE_METADATA_KEY.test(key)
+    ) {
+      continue;
+    }
+
+    const item = descriptor.value;
     if (typeof item === 'string') result[key] = item.slice(0, 256);
     else if (typeof item === 'number' && Number.isFinite(item)) result[key] = item;
     else if (typeof item === 'boolean' || item === null) result[key] = item;
