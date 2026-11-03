@@ -135,9 +135,7 @@ function ownDataRecord(candidate, allowed) {
     if (
       Reflect.ownKeys(descriptors).some(
         (key) =>
-          typeof key !== 'string' ||
-          !allowed.has(key) ||
-          !Object.hasOwn(descriptors[key], 'value'),
+          typeof key !== 'string' || !allowed.has(key) || !Object.hasOwn(descriptors[key], 'value'),
       )
     ) {
       return null;
