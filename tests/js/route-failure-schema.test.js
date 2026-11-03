@@ -152,16 +152,21 @@ describe('route failure schema boundary', () => {
         throw new Error('metadata descriptor trap');
       },
     });
-    const badContext = new Proxy({}, {
-      ownKeys() {
-        throw new Error('context enumerator trap');
+    const badContext = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error('context enumerator trap');
+        },
       },
-    });
-    expect(createRouteFailureRecord({
-      event: 'route.failed',
-      error: maliciousError,
-      context: badContext,
-    })).toEqual({
+    );
+    expect(
+      createRouteFailureRecord({
+        event: 'route.failed',
+        error: maliciousError,
+        context: badContext,
+      }),
+    ).toEqual({
       schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
       event: 'route.failed',
     });
@@ -184,16 +189,25 @@ describe('route failure schema boundary', () => {
     const inherited = Object.create({ schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION });
     inherited.event = 'route.failed';
     expect(isRouteFailureRecord(inherited)).toBe(false);
-    expect(isRouteFailureRecord({
-      schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
-      event: 'route.failed',
-      [Symbol('hidden')]: 'untrusted',
-    })).toBe(false);
-    expect(isRouteFailureRecord(new Proxy({}, {
-      ownKeys() {
-        throw new Error('proxy trap');
-      },
-    }))).toBe(false);
+    expect(
+      isRouteFailureRecord({
+        schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
+        event: 'route.failed',
+        [Symbol('hidden')]: 'untrusted',
+      }),
+    ).toBe(false);
+    expect(
+      isRouteFailureRecord(
+        new Proxy(
+          {},
+          {
+            ownKeys() {
+              throw new Error('proxy trap');
+            },
+          },
+        ),
+      ),
+    ).toBe(false);
   });
 
   test('rejects malformed schema records', () => {
