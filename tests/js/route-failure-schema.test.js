@@ -55,6 +55,62 @@ describe('route failure schema boundary', () => {
     });
   });
 
+  test('refuses sensitive keys, record overrides, accessors and nonfinite values', () => {
+    const context = Object.assign(Object.create(null), {
+      schemaVersion: 999,
+      event: 'spoofed.event',
+      errorName: 'spoofed',
+      errorCode: 'spoofed',
+      accessToken: 'PRIVATE_TOKEN',
+      api_key: 'PRIVATE_KEY',
+      authorization: 'Bearer PRIVATE',
+      password: 'PRIVATE_PASSWORD',
+      requestId: 'safe-42',
+      retries: 2,
+      invalidFloat: Number.POSITIVE_INFINITY,
+    });
+    let getterCalls = 0;
+    Object.defineProperty(context, 'surprise', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        throw new Error('accessor must never run');
+      },
+    });
+    Object.defineProperty(context, '__proto__', { value: 'untrusted', enumerable: true });
+
+    expect(sanitizeRouteFailureContext(context)).toEqual({
+      requestId: 'safe-42',
+      retries: 2,
+    });
+    const record = createRouteFailureRecord({ event: 'route.failed', context });
+    expect(record).toEqual({
+      schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
+      event: 'route.failed',
+      requestId: 'safe-42',
+      retries: 2,
+    });
+    expect(getterCalls).toBe(0);
+    expect(JSON.stringify(record)).not.toContain('PRIVATE');
+  });
+
+  test('excludes unbounded error labels and invalid record numbers', () => {
+    const error = new Error('message stays private');
+    error.name = 'x'.repeat(200);
+    error.code = 'y'.repeat(200);
+    expect(createRouteFailureRecord({ event: 'route.failed', error })).toEqual({
+      schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
+      event: 'route.failed',
+    });
+    expect(
+      isRouteFailureRecord({
+        schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
+        event: 'route.failed',
+        elapsedMs: Number.NaN,
+      }),
+    ).toBe(false);
+  });
+
   test('rejects malformed schema records', () => {
     expect(isRouteFailureRecord(null)).toBe(false);
     expect(isRouteFailureRecord({ schemaVersion: 999, event: 'route.failed' })).toBe(false);
