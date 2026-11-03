@@ -69,19 +69,44 @@ function normalizeFilename(value) {
 }
 
 export function parseUploadFile(file) {
-  if (!file || typeof file !== 'object') return invalid('No file uploaded');
+  if (!file || typeof file !== 'object' || Array.isArray(file)) {
+    return invalid('No file uploaded');
+  }
 
-  const originalname = normalizeFilename(file.originalname);
+  let fields;
+  try {
+    fields = Object.getOwnPropertyDescriptors(file);
+  } catch {
+    return invalid('Invalid upload filename');
+  }
+
+  // Only own data values may supply upload metadata; Multer's extra
+  // administrative fields remain allowed for compatibility.
+  const filenameField = fields.originalname;
+  const bufferField = fields.buffer;
+  const mimeField = fields.mimetype;
+  if (!filenameField || !Object.hasOwn(filenameField, 'value')) {
+    return invalid('Invalid upload filename');
+  }
+  const originalname = normalizeFilename(filenameField.value);
   if (!originalname) return invalid('Invalid upload filename');
-  if (!Buffer.isBuffer(file.buffer)) return invalid('Invalid upload body');
-  if (file.buffer.length === 0 || file.buffer.length > MAX_UPLOAD_BYTES) {
+
+  if (!bufferField || !Object.hasOwn(bufferField, 'value')) {
+    return invalid('Invalid upload body');
+  }
+  const buffer = bufferField.value;
+  if (!Buffer.isBuffer(buffer)) return invalid('Invalid upload body');
+  if (buffer.length === 0 || buffer.length > MAX_UPLOAD_BYTES) {
     return invalid('Upload size must be between 1 byte and 10 MiB');
   }
 
-  const mimetype = normalizeMimeType(file.mimetype);
+  if (!mimeField || !Object.hasOwn(mimeField, 'value')) {
+    return invalid('Invalid upload MIME type');
+  }
+  const mimetype = normalizeMimeType(mimeField.value);
   if (!mimetype) return invalid('Invalid upload MIME type');
 
-  return ok({ originalname, buffer: file.buffer, mimetype });
+  return ok({ originalname, buffer, mimetype });
 }
 
 export function parseStorageObjectName(value) {
