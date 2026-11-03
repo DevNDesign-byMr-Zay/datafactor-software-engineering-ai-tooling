@@ -29,8 +29,16 @@ export function sanitizeRouteFailureContext(context) {
   const safe = {};
   if (!context || typeof context !== 'object' || Array.isArray(context)) return safe;
 
+  // A malformed proxy must not turn diagnostic recording into another failure.
+  let descriptors;
+  try {
+    descriptors = Object.getOwnPropertyDescriptors(context);
+  } catch {
+    return safe;
+  }
+
   // Do not invoke accessor properties or allow context to rewrite record identity.
-  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(context))) {
+  for (const [key, descriptor] of Object.entries(descriptors)) {
     if (
       RESERVED_CONTEXT_KEYS.has(key) ||
       SENSITIVE_CONTEXT_KEY.test(key) ||
@@ -54,6 +62,34 @@ export function sanitizeRouteFailureContext(context) {
 }
 
 /**
+ * Read a data-valued error label without evaluating getters, including on
+ * standard Error and TypeError prototypes. Bound prototype traversal so
+ * malformed objects cannot make failure reporting recurse indefinitely.
+ *
+ * @param {unknown} error
+ * @param {'name' | 'code'} key
+ * @returns {string | null}
+ */
+function safeErrorLabel(error, key) {
+  if (!error || typeof error !== 'object') return null;
+  /** @type {object | null} */
+  let current = error;
+  try {
+    for (let depth = 0; current && depth < 8; depth += 1) {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key);
+      if (descriptor) {
+        const value = descriptor.value;
+        return typeof value === 'string' && SAFE_ERROR_LABEL.test(value) ? value : null;
+      }
+      current = Object.getPrototypeOf(current);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/**
  * @param {RouteFailureRecordInput} input
  * @returns {Readonly<Record<string, string | number | boolean | null>>}
  */
@@ -69,17 +105,10 @@ export function createRouteFailureRecord({ event, error, context = {} }) {
     ...sanitizeRouteFailureContext(context),
   };
 
-  const errorLike =
-    error && typeof error === 'object'
-      ? /** @type {{ name?: unknown, code?: unknown }} */ (error)
-      : null;
-
-  if (typeof errorLike?.name === 'string' && SAFE_ERROR_LABEL.test(errorLike.name)) {
-    record.errorName = errorLike.name;
-  }
-  if (typeof errorLike?.code === 'string' && SAFE_ERROR_LABEL.test(errorLike.code)) {
-    record.errorCode = errorLike.code;
-  }
+  const errorName = safeErrorLabel(error, 'name');
+  const errorCode = safeErrorLabel(error, 'code');
+  if (errorName) record.errorName = errorName;
+  if (errorCode) record.errorCode = errorCode;
 
   return Object.freeze(record);
 }
@@ -90,19 +119,38 @@ export function createRouteFailureRecord({ event, error, context = {} }) {
  */
 export function isRouteFailureRecord(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const record = /** @type {Record<string, unknown>} */ (value);
-  return (
-    record.schemaVersion === ROUTE_FAILURE_SCHEMA_VERSION &&
-    typeof record.event === 'string' &&
-    record.event.length > 0 &&
-    Object.values(record).every(
-      (entry) =>
+
+  try {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    const version = descriptors.schemaVersion;
+    const event = descriptors.event;
+    if (
+      !version ||
+      !Object.hasOwn(version, 'value') ||
+      version.value !== ROUTE_FAILURE_SCHEMA_VERSION ||
+      !event ||
+      !Object.hasOwn(event, 'value') ||
+      typeof event.value !== 'string' ||
+      event.value.length === 0
+    ) {
+      return false;
+    }
+
+    return Reflect.ownKeys(descriptors).every((key) => {
+      if (typeof key !== 'string') return false;
+      const descriptor = descriptors[key];
+      if (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) return false;
+      const entry = descriptor.value;
+      return (
         entry === null ||
         typeof entry === 'string' ||
         (typeof entry === 'number' && Number.isFinite(entry)) ||
-        typeof entry === 'boolean',
-    )
-  );
+        typeof entry === 'boolean'
+      );
+    });
+  } catch {
+    return false;
+  }
 }
 
 export { ROUTE_FAILURE_SCHEMA_VERSION };
