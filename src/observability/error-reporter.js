@@ -40,7 +40,11 @@ function sanitizeContext(context = {}) {
 function reporterFailureMetadata(error) {
   let errorName = 'Error';
   try {
-    if (error instanceof Error && typeof error.name === 'string' && SAFE_ERROR_NAME.test(error.name)) {
+    if (
+      error instanceof Error &&
+      typeof error.name === 'string' &&
+      SAFE_ERROR_NAME.test(error.name)
+    ) {
       errorName = error.name;
     }
   } catch {
