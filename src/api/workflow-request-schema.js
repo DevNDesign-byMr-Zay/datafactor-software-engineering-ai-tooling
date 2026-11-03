@@ -32,6 +32,9 @@ export const WORKFLOW_INPUT_SCHEMAS = Object.freeze({
   }),
 });
 
+const DECIMAL_NUMBER_STRING_PATTERN = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/iu;
+const MAX_DECIMAL_NUMBER_LENGTH = 64;
+
 export class WorkflowValidationError extends TypeError {
   constructor() {
     super('Invalid workflow input. Review the required fields.');
@@ -54,8 +57,14 @@ function validValue(value, spec) {
   if (spec.kind === 'object') return plainRecord(value);
   if (spec.kind === 'finite-number') {
     if (typeof value === 'number') return Number.isFinite(value);
-    if (typeof value !== 'string' || !value.trim()) return false;
-    return Number.isFinite(Number(value));
+    if (typeof value !== 'string') return false;
+    const trimmed = value.trim();
+    return (
+      trimmed.length > 0 &&
+      trimmed.length <= MAX_DECIMAL_NUMBER_LENGTH &&
+      DECIMAL_NUMBER_STRING_PATTERN.test(trimmed) &&
+      Number.isFinite(Number(trimmed))
+    );
   }
   return false;
 }
