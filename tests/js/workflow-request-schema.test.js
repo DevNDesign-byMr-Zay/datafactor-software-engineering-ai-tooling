@@ -59,6 +59,28 @@ describe('schema-validated workflow API boundary', () => {
     expect(result.error.statusCode).toBe(422);
     expect(() => workflowRequestSchema.parse(body)).toThrow('Invalid workflow input');
   });
+  test.each([
+    { action: 'brush', inputs: { brushSize: '+2.5', distance: '1e2', feather: '.75', shape: 'circle' } },
+    { action: 'energy', inputs: { durationMs: ' 120.5 ', estimatedEnergyWh: '0.25', renewableRatio: '-0' } },
+  ])('accepts bounded decimal strings without coercion for $action', (body) => {
+    const result = workflowRequestSchema.safeParse(body);
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(body);
+  });
+
+  test.each(['0x10', '0b101', '0o77', '1_000', '1e999', '1'.repeat(65), '+', '.'])(
+    'rejects nondecimal or unbounded numeric string %s',
+    (value) => {
+      const body = {
+        action: 'brush',
+        inputs: { brushSize: value, distance: 10, feather: 2, shape: 'circle' },
+      };
+      const result = workflowRequestSchema.safeParse(body);
+      expect(result.success).toBe(false);
+      expect(result.error.statusCode).toBe(422);
+    },
+  );
+
   test('rejects accessor properties without running them', () => {
     let invoked = false;
     const payload = { action: 'cloud', inputs: {} };
@@ -87,6 +109,18 @@ describe('schema-validated workflow API boundary', () => {
       });
       expect(rejected.status).toBe(422);
       expect(await rejected.json()).toEqual({
+        error: 'Invalid workflow input. Review the required fields.',
+      });
+      const nonDecimal = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: 'energy',
+          inputs: { durationMs: '0x10', estimatedEnergyWh: '14', renewableRatio: '0.5' },
+        }),
+      });
+      expect(nonDecimal.status).toBe(422);
+      expect(await nonDecimal.json()).toEqual({
         error: 'Invalid workflow input. Review the required fields.',
       });
       const good = await fetch(endpoint, {
