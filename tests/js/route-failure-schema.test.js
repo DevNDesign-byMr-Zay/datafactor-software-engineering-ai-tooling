@@ -102,11 +102,13 @@ describe('route failure schema boundary', () => {
       schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
       event: 'route.failed',
     });
-    expect(isRouteFailureRecord({
-      schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
-      event: 'route.failed',
-      elapsedMs: Number.NaN,
-    })).toBe(false);
+    expect(
+      isRouteFailureRecord({
+        schemaVersion: ROUTE_FAILURE_SCHEMA_VERSION,
+        event: 'route.failed',
+        elapsedMs: Number.NaN,
+      }),
+    ).toBe(false);
   });
 
   test('rejects malformed schema records', () => {
