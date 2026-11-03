@@ -35,6 +35,76 @@ describe('route safety boundaries', () => {
     expect(Object.isFrozen(result.value)).toBe(true);
   });
 
+  test('ignores extra Multer fields and preserves the exact supplied bytes', () => {
+    const buffer = Buffer.from('image');
+    const parsed = parseUploadFile({
+      originalname: 'reference.png',
+      buffer,
+      mimetype: 'image/png',
+      fieldname: 'upload',
+      encoding: '7bit',
+      size: buffer.length,
+    });
+    expect(parsed.ok).toBe(true);
+    expect(parsed.value).toEqual({
+      originalname: 'reference.png',
+      buffer,
+      mimetype: 'image/png',
+    });
+    expect(parsed.value.buffer).toBe(buffer);
+  });
+
+  test('rejects inherited upload fields without trusting prototype values', () => {
+    const inheritedFile = Object.create({
+      originalname: 'inherited.txt',
+      buffer: Buffer.from('x'),
+      mimetype: 'text/plain',
+    });
+    expect(parseUploadFile(inheritedFile)).toEqual({
+      ok: false,
+      error: 'Invalid upload filename',
+    });
+  });
+
+  test('does not invoke accessor properties in uploaded file metadata', () => {
+    let getterCalls = 0;
+    const goodBytes = Buffer.from('safe');
+    const fields = ['originalname', 'buffer', 'mimetype'];
+    for (const field of fields) {
+      const file = {
+        originalname: 'normal.txt',
+        buffer: goodBytes,
+        mimetype: 'text/plain',
+      };
+      Object.defineProperty(file, field, {
+        enumerable: true,
+        get() {
+          getterCalls += 1;
+          throw new Error('untrusted upload getter');
+        },
+      });
+      const parsed = parseUploadFile(file);
+      expect(parsed.ok).toBe(false);
+    }
+    expect(getterCalls).toBe(0);
+  });
+
+  test('rejects throwing upload proxies and arrays without reading their fields', () => {
+    const untrusted = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error('untrusted metadata');
+        },
+      },
+    );
+    expect(parseUploadFile(untrusted)).toEqual({
+      ok: false,
+      error: 'Invalid upload filename',
+    });
+    expect(parseUploadFile([])).toEqual({ ok: false, error: 'No file uploaded' });
+  });
+
   test.each([
     [null, 'No file uploaded'],
     [
