@@ -60,8 +60,14 @@ describe('schema-validated workflow API boundary', () => {
     expect(() => workflowRequestSchema.parse(body)).toThrow('Invalid workflow input');
   });
   test.each([
-    { action: 'brush', inputs: { brushSize: '+2.5', distance: '1e2', feather: '.75', shape: 'circle' } },
-    { action: 'energy', inputs: { durationMs: ' 120.5 ', estimatedEnergyWh: '0.25', renewableRatio: '-0' } },
+    {
+      action: 'brush',
+      inputs: { brushSize: '+2.5', distance: '1e2', feather: '.75', shape: 'circle' },
+    },
+    {
+      action: 'energy',
+      inputs: { durationMs: ' 120.5 ', estimatedEnergyWh: '0.25', renewableRatio: '-0' },
+    },
   ])('accepts bounded decimal strings without coercion for $action', (body) => {
     const result = workflowRequestSchema.safeParse(body);
     expect(result.success).toBe(true);
