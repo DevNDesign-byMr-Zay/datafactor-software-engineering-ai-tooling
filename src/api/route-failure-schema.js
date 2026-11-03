@@ -1,10 +1,16 @@
 const ROUTE_FAILURE_SCHEMA_VERSION = 1;
 const MAX_CONTEXT_STRING_LENGTH = 256;
 const RESERVED_CONTEXT_KEYS = new Set([
-  'schemaVersion', 'event', 'errorName', 'errorCode',
-  '__proto__', 'prototype', 'constructor',
+  'schemaVersion',
+  'event',
+  'errorName',
+  'errorCode',
+  '__proto__',
+  'prototype',
+  'constructor',
 ]);
-const SENSITIVE_CONTEXT_KEY = /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
+const SENSITIVE_CONTEXT_KEY =
+  /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
 const SAFE_ERROR_LABEL = /^[a-z][a-z0-9_.-]{0,63}$/iu;
 
 /**
@@ -29,12 +35,16 @@ export function sanitizeRouteFailureContext(context) {
       RESERVED_CONTEXT_KEYS.has(key) ||
       SENSITIVE_CONTEXT_KEY.test(key) ||
       !('value' in descriptor)
-    ) continue;
+    )
+      continue;
 
     const value = descriptor.value;
     if (value === null) {
       safe[key] = null;
-    } else if (typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) {
+    } else if (
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    ) {
       safe[key] = value;
     } else if (typeof value === 'string') {
       safe[key] = value.slice(0, MAX_CONTEXT_STRING_LENGTH);
