@@ -90,11 +90,14 @@ describe('route safety boundaries', () => {
   });
 
   test('rejects throwing upload proxies and arrays without reading their fields', () => {
-    const untrusted = new Proxy({}, {
-      ownKeys() {
-        throw new Error('untrusted metadata');
+    const untrusted = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error('untrusted metadata');
+        },
       },
-    });
+    );
     expect(parseUploadFile(untrusted)).toEqual({
       ok: false,
       error: 'Invalid upload filename',
