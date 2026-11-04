@@ -49,6 +49,12 @@ The Companion and Commercial server entrypoints use the maintained `src/observab
 
 `tests/js/aetherforge-http-error-tracking.test.js` exercises a real failing route in both servers, checks that exactly one structured JSON error entry was emitted and proves untrusted query values are not copied to the log. External error reporting is not automatically activated, and logging does not authorize deployments or customer-data collection.
 
+### Generic JSON logger metadata boundary
+
+The shared `getLogger` adapter emits its trusted timestamp, level, logger name and message independently of optional structured metadata. It only copies enumerable, own, data-valued primitive metadata, with bounded string lengths and finite numbers; it ignores known sensitive or prototype-related field names and never invokes metadata accessors. If a Proxy refuses descriptor enumeration, the logger still emits the trusted envelope with no supplied metadata. The regression suite is `tests/js/json-logger.test.js`.
+
+This filtering is based on **field names**, not secret detection in arbitrary values. API callers must continue to avoid placing credentials or raw user input inside log messages, event labels, or apparently safe metadata fields. This behavior does not enable external telemetry or authorize network disclosure.
+
 ## Installed dependency accounting
 
 The root JavaScript production manifest declares **0 external runtime packages**; its four development dependencies provide lint, formatting, tests and typechecking. Python declares **2 direct runtime requirements**, FastAPI and Pillow, in `pyproject.toml` and `requirements.in`. Python lock snapshots additionally resolve development/audit tools and transitive dependencies. These are separate language boundaries.

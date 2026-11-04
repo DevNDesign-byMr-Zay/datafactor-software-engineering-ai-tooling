@@ -84,6 +84,72 @@ describe('structured JavaScript logger', () => {
     });
   });
 
+  test('does not read accessor metadata, secret fields or inherited values', () => {
+    const { lines, sink } = capture();
+    const logger = getLogger('route-safety', {
+      sink,
+      now: () => '2026-11-03T07:00:00.000Z',
+    });
+    const data = Object.assign(Object.create({ inherited: 'PRIVATE_INHERITED' }), {
+      event: 'route.failed',
+      requestId: 'safe-id',
+      accessToken: 'PRIVATE_TOKEN',
+      api_key: 'PRIVATE_KEY',
+      cookie: 'PRIVATE_COOKIE',
+      retries: 2,
+      invalidFloat: Number.POSITIVE_INFINITY,
+    });
+    let getterCalls = 0;
+    Object.defineProperty(data, 'queryGetter', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        throw new Error('getter should not execute');
+      },
+    });
+    Object.defineProperty(data, '__proto__', {
+      enumerable: true,
+      value: 'PRIVATE_PROTOTYPE',
+    });
+
+    logger.error(data, 'Route failed');
+    expect(getterCalls).toBe(0);
+    expect(lines).toHaveLength(1);
+    expect(JSON.parse(lines[0])).toEqual({
+      timestamp: '2026-11-03T07:00:00.000Z',
+      level: 'error',
+      logger: 'route-safety',
+      message: 'Route failed',
+      event: 'route.failed',
+      requestId: 'safe-id',
+      retries: 2,
+    });
+    expect(lines[0]).not.toContain('PRIVATE_');
+  });
+
+  test('emits the trusted envelope when proxy metadata throws', () => {
+    const { lines, sink } = capture();
+    const logger = getLogger('route-safety', {
+      sink,
+      now: () => '2026-11-03T07:00:00.000Z',
+    });
+    const invalidMetadata = new Proxy(
+      {},
+      {
+        ownKeys() {
+          throw new Error('metadata trap');
+        },
+      },
+    );
+    expect(() => logger.warn(invalidMetadata, 'Failure details unavailable')).not.toThrow();
+    expect(JSON.parse(lines[0])).toEqual({
+      timestamp: '2026-11-03T07:00:00.000Z',
+      level: 'warn',
+      logger: 'route-safety',
+      message: 'Failure details unavailable',
+    });
+  });
+
   test('rejects invalid logger construction inputs', () => {
     expect(() => getLogger('')).toThrow(/logger name/);
     expect(() => getLogger('valid', { sink: {} })).toThrow(/sink/);
