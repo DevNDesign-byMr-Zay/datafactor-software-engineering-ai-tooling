@@ -32,7 +32,8 @@ function Stop-WorkbenchServer {
 function Invoke-Launcher {
   $start = [Diagnostics.ProcessStartInfo]::new()
   $start.FileName = $env:ComSpec
-  $start.Arguments = '/d /c call "' + $launcher + '" <NUL'
+  $launchLog = Join-Path $testRoot ('launcher-' + [guid]::NewGuid().ToString('N') + '.log')
+  $start.Arguments = '/d /c call "' + $launcher + '" <NUL >"' + $launchLog + '" 2>&1'
   $start.WorkingDirectory = $appDir
   $start.UseShellExecute = $false
   $start.CreateNoWindow = $true
@@ -46,7 +47,7 @@ function Invoke-Launcher {
   [pscustomobject]@{
     ExitCode = $process.ExitCode
     Elapsed = $watch.Elapsed
-    Output = ''
+    Output = $(if (Test-Path $launchLog) { Get-Content -LiteralPath $launchLog -Raw } else { '' })
   }
 }
 
@@ -130,7 +131,7 @@ try {
   & where.exe node 2>$null | Out-Null
   if ($LASTEXITCODE -eq 0) { throw 'Portable test PATH unexpectedly contains global Node.' }
   $portable = Invoke-Launcher
-  if ($portable.ExitCode -ne 0) { throw 'Portable runtime launcher failed without global Node.' }
+  if ($portable.ExitCode -ne 0) { throw ('Portable runtime launcher failed without global Node: ' + $portable.Output) }
   $health = Invoke-RestMethod -Uri 'http://127.0.0.1:4545/api/health' -TimeoutSec 5
   if ($health.adapter -ne 'ready' -or $health.source -ne 'maintained-library') {
     throw 'Portable runtime did not start the maintained adapter.'
