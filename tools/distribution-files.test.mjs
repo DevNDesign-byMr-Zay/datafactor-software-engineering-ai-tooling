@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  assertOutsideRepository,
   copyDistributionSource,
   distributionFiles,
   verifyDistribution,
@@ -180,3 +181,16 @@ for (const [name, build, app] of [
       }
     }));
 }
+
+
+test('refuses an output path whose existing parent aliases the source repository', async () => {
+  const temp = await mkdtemp(join(tmpdir(), 'distribution-output-alias-'));
+  try {
+    const source = join(temp, 'source');
+    await mkdir(source);
+    const alias = join(temp, 'source-alias');
+    await symlink(source, alias, 'dir');
+    assert.throws(() => assertOutsideRepository(join(alias, 'output'), source), /overlap repository/u);
+    assert.deepEqual(await readdir(source), []);
+  } finally { await rm(temp, {recursive: true, force: true}); }
+});

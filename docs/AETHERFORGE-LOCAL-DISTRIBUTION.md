@@ -80,7 +80,7 @@ Reproducible distribution regression checks from the checkout:
 node --test tools/distribution-files.test.mjs tools/package-aetherforge-commercial.test.mjs apps/aetherforge-workbench/package-workbench.test.mjs
 ```
 
-The tests independently extract the generated ZIP, check integrity, start the actual packaged adapters and exercise health, UI assets and workflow calculation. Native `.cmd` execution still requires Windows; source inspection and Linux adapter tests cannot establish it. `apps/aetherforge-workbench/windows-launcher-smoke.ps1` is the existing native Windows acceptance entry point.
+The tests independently extract the generated ZIP, check integrity, start the actual packaged adapters and exercise health, UI assets and workflow calculation. The Windows CI smoke test additionally copies the approved Node executable into a package path with spaces and removes global Node from PATH before starting the adapter. Native `.cmd` execution still requires Windows; source inspection and Linux adapter tests cannot establish it. `apps/aetherforge-workbench/windows-launcher-smoke.ps1` is the existing native Windows acceptance entry point.
 
 ## iOS boundary
 

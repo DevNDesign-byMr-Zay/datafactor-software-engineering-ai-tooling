@@ -73,7 +73,7 @@ Docker and approved Distroless images are optional prerequisites only for an exp
  for (const file of ['distribution-files.mjs','verify-distribution.mjs']) await cp(join(base,'tools',file),join(out,file));
  await cp(join(base,'docs/AETHERFORGE-LOCAL-DISTRIBUTION.md'),join(out,'LOCAL-DISTRIBUTION.md'));
  const manifest=await writeDistributionManifest(out,{
-  release:RELEASE_TAG,application:'ÆTHERFORGE Commercial',version:'1.5.0-cloud',source:'repository checkout',
+  buildKind:'unpublished-source-distribution',release:RELEASE_TAG,application:'ÆTHERFORGE Commercial',version:'1.5.0-cloud',source:'repository checkout',
   runtime:{node:'>=22',defaultPort:4546,installRequired:false},
   entrypoints:{browser:'index.html',windows:'AETHERFORGE.cmd',server:'apps/aetherforge-commercial/server.mjs'}
  });

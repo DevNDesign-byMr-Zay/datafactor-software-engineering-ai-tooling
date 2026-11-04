@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -8,6 +8,17 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
+
+test('rejects an aliased checkout before checking or replacing its contents', async () => {
+  const tempRoot = await mkdtemp(join(tmpdir(), 'aetherforge-output-alias-'));
+  try {
+    const alias = join(tempRoot, 'checkout-alias');
+    await symlink(repoRoot, alias, 'dir');
+    const { buildWorkbenchPackage } = await import('./package-workbench.mjs');
+    await assert.rejects(buildWorkbenchPackage(alias), /overlap repository/);
+    await readFile(join(repoRoot, 'package.json'));
+  } finally { await rm(tempRoot, { recursive: true, force: true }); }
+});
 
 test('excludes credential-named and hidden modules from a used checkout', async () => {
   const tempRoot = await mkdtemp(join(tmpdir(), 'aetherforge-private-modules-'));

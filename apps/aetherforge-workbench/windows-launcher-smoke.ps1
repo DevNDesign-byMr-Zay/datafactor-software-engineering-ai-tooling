@@ -114,6 +114,34 @@ try {
   $env:AETHERFORGE_REAL_NODE = $originalRealNode
   & $realNode $QaScriptPath
   if ($LASTEXITCODE -ne 0) { throw "Responsive browser QA exited with code $LASTEXITCODE." }
+
+  # Prove the optional portable runtime works with spaces and no global Node PATH.
+  Stop-WorkbenchServer
+  $packageRoot = (Resolve-Path (Join-Path $appDir '..\..')).Path
+  $portableRoot = Join-Path $testRoot 'Portable Workbench With Spaces'
+  Copy-Item -LiteralPath $packageRoot -Destination $portableRoot -Recurse
+  $runtimeRoot = Join-Path $portableRoot 'runtime'
+  New-Item -ItemType Directory -Force -Path $runtimeRoot | Out-Null
+  Copy-Item -LiteralPath $realNode -Destination (Join-Path $runtimeRoot 'node.exe')
+  $appDir = Join-Path $portableRoot 'apps\aetherforge-workbench'
+  $launcher = Join-Path $appDir 'launch-aetherforge.cmd'
+  $serverPath = (Resolve-Path (Join-Path $appDir 'server.mjs')).Path
+  $env:PATH = "$env:SystemRoot\System32;$env:SystemRoot;$env:SystemRoot\System32\WindowsPowerShell\v1.0"
+  & where.exe node 2>$null | Out-Null
+  if ($LASTEXITCODE -eq 0) { throw 'Portable test PATH unexpectedly contains global Node.' }
+  $portable = Invoke-Launcher
+  if ($portable.ExitCode -ne 0) { throw 'Portable runtime launcher failed without global Node.' }
+  $health = Invoke-RestMethod -Uri 'http://127.0.0.1:4545/api/health' -TimeoutSec 5
+  if ($health.adapter -ne 'ready' -or $health.source -ne 'maintained-library') {
+    throw 'Portable runtime did not start the maintained adapter.'
+  }
+  $processes = Get-CimInstance Win32_Process | Where-Object {
+    $_.Name -eq 'node.exe' -and $_.ExecutablePath -and
+      $_.ExecutablePath.Equals((Join-Path $runtimeRoot 'node.exe'), [StringComparison]::OrdinalIgnoreCase)
+  }
+  if (-not $processes) { throw 'Adapter did not use the package-local Node executable.' }
+  Write-Host 'PASS: package-local Node starts from a path with spaces without global Node or an installer.'
+
 }
 finally {
   $env:PATH = $originalPath

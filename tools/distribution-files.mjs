@@ -1,12 +1,31 @@
 /** Dependency-free source distribution integrity and deterministic ZIP helpers. */
 import { createHash } from 'node:crypto';
+import { realpathSync } from 'node:fs';
 import { cp, lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 
+function physicalLocation(path) {
+  let existing = resolve(path);
+  const missing = [];
+  for (;;) {
+    try {
+      return resolve(realpathSync(existing), ...missing.reverse());
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      missing.push(basename(existing));
+      const parent = dirname(existing);
+      if (parent === existing) throw error;
+      existing = parent;
+    }
+  }
+}
+
 export function assertOutsideRepository(output, root) {
-  const forward = relative(root, output);
-  const reverse = relative(output, root);
+  const canonicalRoot = physicalLocation(root);
+  const canonicalOutput = physicalLocation(output);
+  const forward = relative(canonicalRoot, canonicalOutput);
+  const reverse = relative(canonicalOutput, canonicalRoot);
   const inside = (path) =>
     path === '' || (!path.startsWith(`..${sep}`) && path !== '..' && !isAbsolute(path));
   if (inside(forward) || inside(reverse)) throw new Error('Output must not overlap repository');
