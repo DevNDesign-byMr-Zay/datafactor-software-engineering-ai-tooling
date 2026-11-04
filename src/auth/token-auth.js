@@ -15,12 +15,23 @@ import { timingSafeEqual } from 'node:crypto';
  * @returns {(req: TokenAuthRequest, res: TokenAuthResponse, next: TokenAuthNext) => unknown}
  */
 export function createTokenAuthMiddleware(configuredToken = '') {
-  const expected = String(configuredToken);
+  // Missing credentials must not become the literal tokens "null" or "undefined".
+  const expected = configuredToken == null ? '' : String(configuredToken);
   const expectedBytes = Buffer.from(expected, 'utf8');
   return (req, res, next) => {
     if (req.method === 'OPTIONS') return res.sendStatus(204);
-    const token = req.header('x-app-token');
-    if (expected && typeof token === 'string') {
+    // Never invoke a request credential accessor when authentication is unconfigured.
+    if (!expected) return res.status(401).json({ error: 'Unauthorized' });
+
+    let token;
+    try {
+      token = req.header('x-app-token');
+    } catch {
+      // A malformed request/header adapter must fail closed without exposing details.
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (typeof token === 'string') {
       const receivedBytes = Buffer.from(token, 'utf8');
       if (
         receivedBytes.length === expectedBytes.length &&
