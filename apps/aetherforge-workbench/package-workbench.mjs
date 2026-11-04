@@ -1,7 +1,7 @@
 import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { copyDistributionSource, verifyDistribution, writeDistributionManifest, writeDistributionArchive } from '../../tools/distribution-files.mjs';
+import { copyDistributionSource, isDistributionSource, verifyDistribution, writeDistributionManifest, writeDistributionArchive } from '../../tools/distribution-files.mjs';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
@@ -125,8 +125,8 @@ export async function buildWorkbenchPackage(outputPath, { previewPath = null } =
   }
   await copyDistributionSource(join(appDir, 'assets'), join(packageAppDir, 'assets'));
   for (const name of await readdir(appDir)) {
-    if (name.endsWith('.mjs') && !name.endsWith('.test.mjs') && !['package-workbench.mjs', 'browser-qa.mjs', 'server.mjs', 'asset-store.mjs'].includes(name)) {
-      await cp(join(appDir, name), join(packageAppDir, name));
+    if (isDistributionSource(name) && name.endsWith('.mjs') && !name.endsWith('.test.mjs') && !['package-workbench.mjs', 'browser-qa.mjs', 'server.mjs', 'asset-store.mjs'].includes(name)) {
+      await copyDistributionSource(join(appDir, name), join(packageAppDir, name), name);
     }
   }
   await copyDistributionSource(join(repoRoot, 'src'), join(outputDir, 'src'));

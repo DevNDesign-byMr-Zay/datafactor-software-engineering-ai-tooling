@@ -1,13 +1,34 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
+
+test('excludes credential-named and hidden modules from a used checkout', async () => {
+  const tempRoot = await mkdtemp(join(tmpdir(), 'aetherforge-private-modules-'));
+  const names = ['.credentials.mjs', 'credentials.mjs', 'secrets.mjs'];
+  try {
+    const checkout = join(tempRoot, 'checkout');
+    for (const directory of ['apps', 'src', 'tools', 'docs']) {
+      await cp(join(repoRoot, directory), join(checkout, directory), { recursive: true });
+    }
+    await writeFile(join(checkout, 'package.json'), '{"type":"module"}');
+    const copiedApp = join(checkout, 'apps/aetherforge-workbench');
+    for (const name of names) await writeFile(join(copiedApp, name), 'PRIVATE_MODULE_FIXTURE');
+    const { buildWorkbenchPackage } = await import(pathToFileURL(join(copiedApp, 'package-workbench.mjs')).href);
+    const output = join(tempRoot, 'bundle');
+    await buildWorkbenchPackage(output);
+    const entries = await readdir(join(output, 'apps/aetherforge-workbench'));
+    for (const name of names) assert.equal(entries.includes(name), false, `${name} must not ship`);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
 
 test('packages a root HTML entry point with the complete runnable workbench', async () => {
   const tempRoot = await mkdtemp(join(tmpdir(), 'aetherforge-package-'));
