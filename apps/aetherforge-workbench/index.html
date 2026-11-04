@@ -10,13 +10,13 @@
 <link rel="stylesheet" href="./app.css">
 <link rel="stylesheet" href="./app-v2.css">
 <link rel="stylesheet" href="../aetherforge-corpus/navigation.css">
-<script type="module" src="./app.js" defer></script>
-<script type="module" src="./app-behavior.js" defer></script>
-<script type="module" src="./workspace-memory.js" defer></script>
-<script type="module" src="./command-rail.js" defer></script>
-<script type="module" src="./workflow-studio.js" defer></script>
-<script type="module" src="./workflow-studio-export.js" defer></script>
-<script type="module" src="./evidence-center.js" defer></script>
+<!-- The canonical evidence-center.js module is loaded by app.js only on the local adapter. -->
+<script src="./app.js" defer></script>
+<script src="./app-behavior.js" defer></script>
+<script src="./workspace-memory.js" defer></script>
+<script src="./command-rail.js" defer></script>
+<script src="./workflow-studio.js" defer></script>
+<script src="./workflow-studio-export.js" defer></script>
 </head>
 <body>
 <div class="shell" id="shell">
@@ -37,7 +37,7 @@
 </aside>
 <div class="workspace">
  <header class="topbar"><div class="mobile-brand"><img src="./assets/aetherforge-icon.svg" alt="" width="34" height="34">ÆTHERFORGE</div><div class="crumbs">WORKSPACE <span> / </span><b id="crumbName">OVERVIEW</b></div><div class="command-search-wrap"><label class="command-search"><span>⌕</span><input type="search" id="globalSearch" aria-label="Search modules and tools" placeholder="Search modules, workflows, documentation…"><kbd>⌘ K</kbd></label></div><div class="top-actions"><a class="corpus-link" href="../aetherforge-corpus/index.html" aria-label="Open complete Drive reference library"><span aria-hidden="true">▤</span> Drive Library</a><span id="connectionBadge" class="connection">CHECKING ADAPTER</span><button id="themeButton" aria-label="Toggle light or dark theme" title="Toggle appearance">☼</button><span class="profile">AF</span></div></header>
- <main id="main" tabindex="-1" aria-live="polite"></main>
+ <main id="main" tabindex="-1" aria-live="polite"><p class="content">Initializing ÆtherForge…</p><noscript><p>Enable JavaScript to use the workbench. Open START-HERE.md for local service instructions.</p></noscript></main>
 </div>
 </div>
 <nav class="mobile-nav" aria-label="Mobile workbench navigation">

@@ -1,6 +1,7 @@
 import { getLogger } from '../../src/observability/json-logger.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
 import { createServer } from 'node:http';
+import { createRequestBodyReader, RequestBodyError } from '../aetherforge-workbench/http-request-body.mjs';
 import { createHttpErrorTracker } from '../aetherforge-workbench/http-error-tracker.js';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -103,7 +104,7 @@ function runAction(body) {
   }
 }
 function summary(){const categories=[...new Set(modules.map(m=>m.category))].map(category=>({category,count:modules.filter(m=>m.category===category).length}));return{source:'maintained-library',moduleCount:modules.length,categories,quickActions:[{id:'studio',label:'Open Workflow Studio',description:'Run bounded library calculations',page:'studio'},{id:'modules',label:'Browse Module Library',description:'Inspect maintained capabilities',page:'modules'},{id:'evidence',label:'Verify Evidence',description:'Fail-closed receipt inspection',page:'evidence'},{id:'assets',label:'Open Asset Studio',description:'Review shipped ÆtherForge assets',page:'assets'}],boundary:{cloudMutations:false,aiProvider:false,localAdapterOnly:true,externalNetworkCalls:false}};}
-export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces'),errorTracker=createHttpErrorTracker('aetherforge-commercial')}={}){return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
+export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces'),errorTracker=createHttpErrorTracker('aetherforge-commercial')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const host=String(req.headers.host||'');
  const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
  const csName=String(process.env.CODESPACE_NAME||'');
@@ -128,8 +129,8 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
    const id=url.pathname.split('/').at(-1);
    if(!validProjectId(id))return respond(res,400,{error:'Invalid project ID'});
    if(req.headers['x-aetherforge-local']!=='1'||!String(req.headers['content-type']||'').startsWith('application/json'))return respond(res,415,{error:'Explicit local JSON request required'});
-   let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>MAX_PROJECT_BYTES){req.resume();return respond(res,413,{error:'Project is too large'});}chunks.push(chunk);}
-   try{return respond(res,200,{project:await putProject(workspaceRoot,id,JSON.parse(Buffer.concat(chunks).toString('utf8')))});}
+   const bytes=await readBody(req,res,MAX_PROJECT_BYTES,'Project is too large');
+   try{return respond(res,200,{project:await putProject(workspaceRoot,id,JSON.parse(bytes.toString('utf8')))});}
    catch{return respond(res,422,{error:'Project schema rejected'});}
  }
  if(req.method==='GET'&&url.pathname==='/api/diagnostics'){
@@ -145,9 +146,9 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  if(req.method==='GET'&&url.pathname==='/api/execution/capabilities')return respond(res,200,await capability());
  if(req.method==='POST'&&url.pathname==='/api/execution/project'){
    if(req.headers['x-aetherforge-local']!=='1'||!String(req.headers['content-type']||'').startsWith('application/json'))return respond(res,415,{error:'Explicit local JSON request required'});
-   let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>76000){req.resume();return respond(res,413,{error:'Execution snapshot too large'});}chunks.push(chunk);}
+   const bytes=await readBody(req,res,76000,'Execution snapshot too large');
    try{
-     const body=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+     const body=JSON.parse(bytes.toString('utf8'));
      if(!body||body.confirmRun!==true)return respond(res,422,{error:'Explicit execution confirmation required'});
      const job=validateRunnableProject(body);
      const available=await capability();if(!available.available)return respond(res,503,{error:available.reason,requiresDocker:true});
@@ -157,8 +158,8 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  }
  if(req.method==='POST'&&url.pathname==='/api/execution/run'){
    if(req.headers['x-aetherforge-local']!=='1'||!String(req.headers['content-type']||'').startsWith('application/json'))return respond(res,415,{error:'Explicit local JSON request required'});
-   let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>35000){req.resume();return respond(res,413,{error:'Execution source too large'});}chunks.push(chunk);}
-   try{const body=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+   const bytes=await readBody(req,res,35000,'Execution source too large');
+   try{const body=JSON.parse(bytes.toString('utf8'));
      if(!body||body.confirmRun!==true)return respond(res,422,{error:'Explicit execution confirmation required'});
      const available=await capability();if(!available.available)return respond(res,503,{error:available.reason,requiresDocker:true});
      if(available.images?.find(item=>item.language===body.language)?.status!=='ready')return respond(res,503,{error:'The selected Google Distroless image is not preloaded in Docker. Pull the approved image first.',requiresDocker:true,requiresImage:body.language});
@@ -167,10 +168,10 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  }
  if(req.method==='GET'&&url.pathname==='/api/modules')return respond(res,200,{source:'canonical maintained exports',modules});
  if(req.method==='GET'&&url.pathname==='/api/workbench/summary')return respond(res,200,summary());
- if(req.method==='POST'&&url.pathname==='/api/run'){if(req.headers['content-type']?.split(';')[0]?.trim()!=='application/json')return respond(res,415,{error:'JSON content type required'});let chunks=[],size=0;for await(const chunk of req){size+=chunk.length;if(size>64*1024){req.resume();return respond(res,413,{error:'Request exceeds limit'});}chunks.push(chunk);}const raw=Buffer.concat(chunks).toString('utf8');try{return respond(res,200,runAction(workflowRequestSchema.parse(JSON.parse(raw))));}catch{return respond(res,422,{error:'Invalid workflow input. Review the required fields.'});}}
+ if(req.method==='POST'&&url.pathname==='/api/run'){if(req.headers['content-type']?.split(';')[0]?.trim()!=='application/json')return respond(res,415,{error:'JSON content type required'});const raw=(await readBody(req,res,64*1024,'Request exceeds limit')).toString('utf8');try{return respond(res,200,runAction(workflowRequestSchema.parse(JSON.parse(raw))));}catch{return respond(res,422,{error:'Invalid workflow input. Review the required fields.'});}}
  if(req.method==='GET'&&url.pathname==='/api/assets')return respond(res,200,{assets:await listLocalAssets(assetRoot)});
  if(req.method==='GET'&&url.pathname.startsWith('/api/assets/')){const id=url.pathname.slice('/api/assets/'.length);if(!/^[a-f0-9]{64}\.(?:png|jpg|webp)$/.test(id))return respond(res,404,{error:'Invalid asset'});try{const data=await getLocalAsset(assetRoot,id);return respond(res,200,data.bytes,data.mime);}catch{return respond(res,404,{error:'Asset not found'});}}
- if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const chunks=[];let size=0;for await(const chunk of req){size+=chunk.length;if(size>6*1024*1024)return respond(res,413,{error:'File too large'});chunks.push(chunk);}try{const item=await saveLocalAsset(assetRoot,Buffer.concat(chunks),name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
+ if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const bytes=await readBody(req,res,6*1024*1024,'File too large');try{const item=await saveLocalAsset(assetRoot,bytes,name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
  if(req.method==='GET'&&url.pathname==='/sandbox-frame.html'){
    // This is the only same-origin frameable route; the main app and all APIs
    // retain X-Frame-Options DENY and frame-ancestors none.
@@ -188,7 +189,7 @@ export function createWorkbenchServer({assetRoot=process.env.AETHERFORGE_DATA_DI
  }
 
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
- }catch(error){errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
+ }catch(error){if(error instanceof RequestBodyError){if(req.aborted||res.destroyed)return;res.setHeader('Connection','close');if(error.statusCode===503)res.setHeader('Retry-After','1');return respond(res,error.statusCode,{error:error.message});}errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
  const port=Number(process.env.AETHERFORGE_PORT||4546);
  const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';
