@@ -76,11 +76,7 @@ describe('credential and origin refusal hardening', () => {
       const header = jest.fn(() => String(configuration));
       const response = responseDouble();
       const next = jest.fn();
-      createTokenAuthMiddleware(configuration)(
-        { method: 'POST', header },
-        response,
-        next,
-      );
+      createTokenAuthMiddleware(configuration)({ method: 'POST', header }, response, next);
       expect(response.status).toHaveBeenCalledWith(401);
       expect(response.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
       expect(header).not.toHaveBeenCalled();
@@ -114,11 +110,7 @@ describe('credential and origin refusal hardening', () => {
   test('preserves explicitly configured non-null scalar tokens', () => {
     const next = jest.fn();
     const response = responseDouble();
-    createTokenAuthMiddleware(0)(
-      { method: 'POST', header: () => '0' },
-      response,
-      next,
-    );
+    createTokenAuthMiddleware(0)({ method: 'POST', header: () => '0' }, response, next);
     expect(next).toHaveBeenCalledTimes(1);
   });
 
