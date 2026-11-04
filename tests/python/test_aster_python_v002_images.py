@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import logging
+from io import BytesIO
 from pathlib import Path
 
 from PIL import Image
@@ -99,3 +100,30 @@ def test_invalid_feather_value_logs_warning_and_leaves_mask_unchanged(monkeypatc
     assert result is mask
     assert records[-1].event == "invalid_mask_feather"
     assert records[-1].error_type == "ValueError"
+
+
+def test_png_decoded_source_prefill_and_mask_round_trip_preserve_pixels(monkeypatch):
+    monkeypatch.setenv("ASTER_EXPAND_PREFILL_BLUR", "0")
+    monkeypatch.setenv("ASTER_EXPAND_MASK_FEATHER", "0")
+    source_bytes = BytesIO()
+    make_source().save(source_bytes, format="PNG")
+    source_bytes.seek(0)
+
+    with Image.open(source_bytes) as source:
+        source.load()
+        canvas = aster.build_expand_prefill_canvas(source, 2, 1, 3, 2)
+        assert canvas.mode == "RGB"
+        assert canvas.size == (7, 5)
+        assert canvas.crop((2, 1, 4, 3)).tobytes() == source.tobytes()
+        assert canvas.getpixel((0, 0)) == (255, 0, 0)
+        assert canvas.getpixel((6, 4)) == (255, 255, 0)
+
+    mask = Image.new("L", canvas.size, 0)
+    mask.putpixel((2, 1), 255)
+    output_bytes = BytesIO()
+    aster.maybe_feather_mask(mask).save(output_bytes, format="PNG")
+    output_bytes.seek(0)
+    with Image.open(output_bytes) as decoded:
+        assert decoded.mode == "L"
+        assert decoded.size == mask.size
+        assert decoded.tobytes() == mask.tobytes()
