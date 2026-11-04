@@ -7,6 +7,8 @@ on:
       - 'apps/aetherforge-workbench/**'
       - 'tools/*engineering-corpus*'
       - 'tools/package-aetherforge-commercial*'
+      - 'tools/distribution-files*'
+      - 'tools/verify-distribution.mjs'
       - 'tests/aetherforge-corpus*'
       - '.github/workflows/engineering-corpus.yml'
   push:
@@ -17,6 +19,8 @@ on:
       - 'apps/aetherforge-workbench/**'
       - 'tools/*engineering-corpus*'
       - 'tools/package-aetherforge-commercial*'
+      - 'tools/distribution-files*'
+      - 'tools/verify-distribution.mjs'
       - 'tests/aetherforge-corpus*'
       - '.github/workflows/engineering-corpus.yml'
   workflow_dispatch:
@@ -37,7 +41,7 @@ jobs:
       - name: Verify complete inventory, ZIP hashes, offline catalog, HTTP boundaries and both packages
         run: |
           python tools/verify-engineering-corpus.py
-          node --test tests/aetherforge-corpus.test.mjs tools/package-aetherforge-commercial.test.mjs apps/aetherforge-workbench/package-workbench.test.mjs
+          node --test tests/aetherforge-corpus.test.mjs tools/distribution-files.test.mjs tools/package-aetherforge-commercial.test.mjs apps/aetherforge-workbench/package-workbench.test.mjs
       - name: Prepare isolated browser test client
         run: |
           npm install --prefix "$RUNNER_TEMP/corpus-qa" --no-save --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
