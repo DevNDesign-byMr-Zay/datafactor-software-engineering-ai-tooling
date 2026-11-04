@@ -15,6 +15,7 @@ const runtimeFiles = [
   'command-rail.js',
   'evidence-center.js',
   'http-error-tracker.js',
+  'http-request-body.mjs',
   'launch-aetherforge.cmd',
   'server.mjs',
   'workflow-studio-export.js',
