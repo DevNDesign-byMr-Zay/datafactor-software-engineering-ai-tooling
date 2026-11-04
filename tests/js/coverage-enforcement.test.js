@@ -46,6 +46,29 @@ test('the real Jest coverage gate rejects an unexecuted function', () => {
     const output = result.stdout + result.stderr;
     expect(output).toMatch(/Tests:\s+1 passed/u);
     expect(output).toMatch(/Coverage for functions \(0%\) does not meet .*threshold \(85%\)/iu);
+    writeFileSync(
+      join(directory, 'subject.test.cjs'),
+      "test('executes', () => expect(require('./subject.cjs')()).toBe(42));\n",
+    );
+    const restored = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('../../node_modules/jest/bin/jest.js', import.meta.url)),
+        '--config',
+        JSON.stringify(fixtureConfig),
+        '--runInBand',
+        '--coverage',
+        '--no-cache',
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 20000,
+        env: { ...process.env, NODE_OPTIONS: '' },
+      },
+    );
+    expect(restored.error).toBeUndefined();
+    expect(restored.status).toBe(0);
+    expect(restored.stdout + restored.stderr).toMatch(/Tests:\s+1 passed/u);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

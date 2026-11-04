@@ -1,3 +1,4 @@
+import { runInNewContext } from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import {
   generateEvidenceCenterArtifacts,
@@ -70,4 +71,32 @@ describe('single-source Evidence Center', () => {
       ),
     ).toThrow(/maintained receipt request/u);
   });
+});
+
+test('shipped classic browser classifier matches both modules for changed, rejected and pending input', async () => {
+  const source = await readFile(
+    new URL('apps/aetherforge-commercial/evidence-center.browser.js', root),
+    'utf8',
+  );
+  const browser = runInNewContext(source + '\nclassifyEvidence;', {});
+  const fingerprint = 'a'.repeat(64);
+  const payload = {
+    status: 'checked',
+    authority: 'none',
+    result: { status: 'changed', fingerprint, reason: null },
+  };
+  for (const [response, receipt, current, verdict] of [
+    [payload, { accepted: true }, fingerprint, 'CHANGED'],
+    [payload, { accepted: false }, fingerprint, 'REJECTED'],
+    [null, null, '', 'PENDING'],
+  ]) {
+    const result = browser(response, receipt, current);
+    expect(result.verdict).toBe(verdict);
+    expect(result.authority).toBe('NONE');
+    for (const entry of [workbench, commercial]) {
+      expect(JSON.parse(JSON.stringify(result))).toEqual(
+        entry.classifyEvidence(response, receipt, current),
+      );
+    }
+  }
 });
