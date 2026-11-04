@@ -4,7 +4,7 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
@@ -43,6 +43,8 @@ test('packages a root HTML entry point with the complete runnable workbench', as
       await readFile(join(packagedApp, file));
     }
     await readFile(join(bundleDir, 'src', 'index.js'));
+    await readFile(join(packagedApp, 'http-request-body.mjs'));
+    await import(pathToFileURL(join(packagedApp, 'server.mjs')).href);
 
     const manifest = JSON.parse(await readFile(join(bundleDir, 'package.json'), 'utf8'));
     assert.equal(manifest.type, 'module');
