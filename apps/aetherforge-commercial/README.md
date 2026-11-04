@@ -1,5 +1,7 @@
 # ÆtherForge — Engineering Workbench
 
+**Current local distribution:** see [the verified local source-package guide](../../docs/AETHERFORGE-LOCAL-DISTRIBUTION.md). The package root HTML opens browser mode; `AETHERFORGE.cmd` starts Commercial on 4546 and `START-COMPANION.cmd` starts Companion on 4545. An optional user-supplied `runtime/node.exe` supports Windows without a global installation. Historical portable-version notes below describe earlier milestones.
+
 > **Current Codespaces guidance (2026-10-23):** Commercial source is committed in PR #211 and served from **private port 4546**; the original companion remains on **private port 4545**. Start both with `bash .devcontainer/start-all.sh`. Use Google Distroless images, **not discontinued Minimus registry tags**. The versioned notes below describe historical portable milestones and should not be treated as current cloud setup instructions. See [README-CLOUD.md](README-CLOUD.md) and [the current cloud runbook](../../docs/AETHERFORGE-COMMERCIAL-CLOUD.md).
 
 

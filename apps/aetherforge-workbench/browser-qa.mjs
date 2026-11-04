@@ -9,7 +9,7 @@ const baseUrl = process.env.AETHERFORGE_URL || 'http://127.0.0.1:4545/';
 const screenshotDir = process.env.AETHERFORGE_SCREENSHOT_DIR || '.aetherforge-visual-qa';
 await mkdir(screenshotDir, { recursive: true });
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
 const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, reducedMotion: 'reduce' });
 const pageErrors = [];
 page.on('pageerror', error => pageErrors.push(error.message));

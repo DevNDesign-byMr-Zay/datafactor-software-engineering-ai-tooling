@@ -1,6 +1,7 @@
-import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { copyDistributionSource, verifyDistribution, writeDistributionManifest, writeDistributionArchive } from '../../tools/distribution-files.mjs';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
@@ -49,6 +50,7 @@ function rootHtml(hasBrowserPreview) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./apps/aetherforge-workbench/index.html">
 <meta name="theme-color" content="#081223">
 <meta name="description" content="ÆtherForge Engineering Workbench preview and launch instructions.">
 <title>ÆtherForge · Engineering Workbench</title>
@@ -60,15 +62,15 @@ function rootHtml(hasBrowserPreview) {
 <main class="wrap">
   <div class="brand"><img src="./apps/aetherforge-workbench/assets/aetherforge-emblem.svg" alt=""><div>ÆTHERFORGE<small>ENGINEERING WORKBENCH</small></div></div>
   <section class="hero" aria-labelledby="title">
-    <div class="copy"><div class="eyebrow">BUILD · VERIFY · AUTOMATE · EVOLVE</div><h1 id="title">ENGINEER THE<br><span>NEXT POSSIBILITY.</span></h1><p>A visual workbench for exploring maintained engineering modules, planning bounded workflows, reviewing evidence, and understanding what can run locally.</p><div class="buttons"><a class="button" href="#run">Run the interactive workbench</a><a class="button secondary" href="./START-HERE.md">Open setup notes</a></div></div>
-    <figure class="preview"><img src="${previewSrc}" alt="ÆtherForge engineering workbench desktop interface preview"><figcaption class="caption">Visual preview · the full interactive workbench runs through the included localhost launcher.</figcaption></figure>
+    <div class="copy"><div class="eyebrow">BUILD · VERIFY · AUTOMATE · EVOLVE</div><h1 id="title">ENGINEER THE<br><span>NEXT POSSIBILITY.</span></h1><p>A visual workbench for exploring maintained engineering modules, planning bounded workflows, reviewing evidence, and understanding what can run locally.</p><div class="buttons"><a class="button" href="./apps/aetherforge-workbench/index.html">Open the interactive workbench</a><a class="button secondary" href="./START-HERE.md">Open setup notes</a></div></div>
+    <figure class="preview"><img src="${previewSrc}" alt="ÆtherForge engineering workbench desktop interface preview"><figcaption class="caption">Opening the workbench · browser navigation and local image previews are available offline.</figcaption></figure>
   </section>
   <section class="steps" id="run" aria-label="How to run the application">
     <div class="step"><b>1 · Extract the full ZIP</b><p>Keep the included folders together so the application can reach its maintained source and assets.</p></div>
     <div class="step"><b>2 · Start the local adapter</b><p>On Windows, double-click <code>apps/aetherforge-workbench/launch-aetherforge.cmd</code>. Node.js 22 or newer is required.</p></div>
     <div class="step"><b>3 · Use the workbench</b><p>The launcher opens the complete UI in your browser. Close its server console when you are finished.</p></div>
   </section>
-  <p class="foot">The application HTML is at <code>apps/aetherforge-workbench/index.html</code>. This root entry point previews the tested UI. Workflow execution and local asset persistence require the included Node.js server. No deployment, cloud mutation, external network call, or AI provider is enabled by this companion.</p>
+  <p class="foot">The application HTML is at <code>apps/aetherforge-workbench/index.html</code>. This root entry point automatically opens the browser-compatible UI. Workflow execution and local asset persistence require the included Node.js server. No deployment, cloud mutation, external network call, or AI provider is enabled by this companion.</p>
 </main>
 </body>
 </html>
@@ -82,11 +84,11 @@ This ZIP includes the visible HTML entry point, the complete workbench UI, its l
 ## Windows
 
 1. Extract the entire ZIP and keep its folder structure intact.
-2. Install or use Node.js 22 or newer.
+2. Use Node.js 22 or newer already on PATH, or extract the approved Windows Node.js ZIP and place node.exe at runtime/node.exe. No administrator installation or npm install is required.
 3. Double-click \`apps/aetherforge-workbench/launch-aetherforge.cmd\`.
 4. The launcher starts the local adapter and opens the interactive workbench in your browser. Close the server console to stop it.
 
-Open the root \`index.html\` for a visual preview and launch instructions. The application HTML is at \`apps/aetherforge-workbench/index.html\`.
+Open the root \`index.html\` to initialize the interactive UI directly. Direct-file mode supports navigation, module reference, guide, appearance settings and temporary image previews. Maintained calculations and receipt verification require the local adapter; HTML cannot start it. The application HTML is at \`apps/aetherforge-workbench/index.html\`.
 
 ## Other systems
 
@@ -100,7 +102,20 @@ export async function buildWorkbenchPackage(outputPath, { previewPath = null } =
   const outputDir = resolve(outputPath);
   assertSafeOutput(outputDir);
 
-  await rm(outputDir, { recursive: true, force: true });
+  // A second build (for example to attach a verified screenshot) is safe only
+  // when the complete previous package still matches its own manifest.
+  let existing = [];
+  try { existing = await readdir(outputDir); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (existing.length) {
+    try {
+      const previous = await verifyDistribution(outputDir);
+      if (previous.application !== 'ÆtherForge Engineering Workbench') throw new Error('Not a workbench package');
+    } catch (error) {
+      throw new Error(`Refusing to replace nonempty output: ${error.message}`);
+    }
+    await rm(outputDir, { recursive: true });
+  }
   await mkdir(outputDir, { recursive: true });
   const packageAppDir = join(outputDir, 'apps', 'aetherforge-workbench');
   await mkdir(packageAppDir, { recursive: true });
@@ -108,20 +123,35 @@ export async function buildWorkbenchPackage(outputPath, { previewPath = null } =
   for (const file of runtimeFiles) {
     await cp(join(appDir, file), join(packageAppDir, file));
   }
-  await cp(join(appDir, 'assets'), join(packageAppDir, 'assets'), { recursive: true });
-  await cp(join(repoRoot, 'src'), join(outputDir, 'src'), { recursive: true });
-  await cp(join(repoRoot, 'apps/aetherforge-corpus'), join(outputDir, 'apps/aetherforge-corpus'), { recursive: true });
+  await copyDistributionSource(join(appDir, 'assets'), join(packageAppDir, 'assets'));
+  for (const name of await readdir(appDir)) {
+    if (name.endsWith('.mjs') && !name.endsWith('.test.mjs') && !['package-workbench.mjs', 'browser-qa.mjs', 'server.mjs', 'asset-store.mjs'].includes(name)) {
+      await cp(join(appDir, name), join(packageAppDir, name));
+    }
+  }
+  await copyDistributionSource(join(repoRoot, 'src'), join(outputDir, 'src'));
+  await copyDistributionSource(join(repoRoot, 'apps/aetherforge-corpus'), join(outputDir, 'apps/aetherforge-corpus'));
+  await cp(join(repoRoot, 'tools/distribution-files.mjs'), join(outputDir, 'distribution-files.mjs'));
+  await cp(join(repoRoot, 'tools/verify-distribution.mjs'), join(outputDir, 'verify-distribution.mjs'));
+  await writeFile(join(outputDir, 'START-AETHERFORGE.cmd'), '@echo off\r\ncall "%~dp0apps\\aetherforge-workbench\\launch-aetherforge.cmd"\r\n');
 
   if (previewPath) await cp(resolve(previewPath), join(outputDir, 'preview.png'));
 
   await writeFile(join(outputDir, 'index.html'), rootHtml(Boolean(previewPath)), 'utf8');
-  await writeFile(join(outputDir, 'START-HERE.md'), startHere, 'utf8');
+  await writeFile(join(outputDir, 'START-HERE.md'), startHere + '\nBefore first launch run `node verify-distribution.mjs` to check every payload file. See LOCAL-DISTRIBUTION.md for checksums, archive structure, browser boundaries and clean-extraction smoke commands.\n', 'utf8');
+  await cp(join(repoRoot, 'docs/AETHERFORGE-LOCAL-DISTRIBUTION.md'), join(outputDir, 'LOCAL-DISTRIBUTION.md'));
   await writeFile(join(outputDir, 'package.json'), `${JSON.stringify({
     name: 'aetherforge-workbench-portable',
     private: true,
     type: 'module',
     engines: { node: '>=22' }
   }, null, 2)}\n`, 'utf8');
+  await writeDistributionManifest(outputDir, {
+    application: 'ÆtherForge Engineering Workbench',
+    buildKind: 'unpublished-source-distribution',
+    runtime: { node: '>=22', defaultPort: 4545, installRequired: false },
+    entrypoints: { browser: 'index.html', windows: 'START-AETHERFORGE.cmd', server: 'apps/aetherforge-workbench/server.mjs' }
+  });
   return outputDir;
 }
 
@@ -132,7 +162,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const previewPath = previewIndex >= 0 ? args[previewIndex + 1] : null;
     if (previewIndex >= 0 && !previewPath) throw new Error('A preview image path must follow --preview.');
     const outputDir = await buildWorkbenchPackage(readOutputArgument(args), { previewPath });
-    process.stdout.write(`ÆtherForge package created at ${outputDir}\n`);
+    const archive = await writeDistributionArchive(outputDir);
+    process.stdout.write(`ÆtherForge package created at ${outputDir}\nZIP: ${archive.path}\nSHA-256: ${archive.sha256}\n`);
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
     process.exitCode = 1;

@@ -21,3 +21,8 @@ body.light{--bg:#ebf2ff;--sidebar:#f7fbff;--surface:#fff;--surface2:#e2f0ff;--ca
 .command-search-wrap{position:relative;display:flex;flex:1;min-width:100px;max-width:520px}.command-search-wrap>.command-search{width:100%;max-width:none}
 .swatch-ink{background:#081223}.swatch-navy{background:#0d1e3a}.swatch-cyan{background:#27d6ff;color:#051124}.swatch-blue{background:#3a88ff}.swatch-violet{background:#8a5cff}.swatch-slate{background:#5b6e91}
 @media(max-width:650px){.command-search-wrap{max-width:none;flex:1}}
+
+/* Readiness follows the actual adapter check, with a static reduced-motion state. */
+#connectionBadge:not([data-ready])::before{content:"";display:inline-block;width:10px;height:10px;margin-right:7px;border:2px solid #27d6ff;border-right-color:transparent;border-radius:50%;animation:af-adapter-check .8s linear infinite;vertical-align:middle}
+@keyframes af-adapter-check{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#connectionBadge:not([data-ready])::before{animation:none}}
