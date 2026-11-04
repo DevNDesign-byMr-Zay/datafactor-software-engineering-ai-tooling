@@ -61,6 +61,8 @@ Historically sourced maintained behavior lives in provenance-bound copies under 
 
 JavaScript CI fails below 85% statements/functions/lines or 75% branches across the measured maintained surface. Python CI enforces its existing maintained-surface coverage floor.
 
+The single canonical Jest configuration is [jest.config.json](jest.config.json), including its explicit `coverageThreshold.global` values. `npm run test:coverage` runs Jest's own gate, then validates its measured JSON summary and prints the floors and actual percentages. CI retains `coverage/coverage-summary.json` and `coverage/coverage-gate.json` with the tested commit SHA and both input hashes. The fail/restore regression exercises the real Jest exit code rather than treating this report as proof by itself.
+
 The ordinary `checkJs` pass covers a wider maintained subset. A separate strict TypeScript configuration blocks regressions in the public authentication, CORS, and backend-configuration APIs without forcing the historical corpus or the full bootstrap graph into strict mode.
 
 ## Fresh-clone install
@@ -78,6 +80,15 @@ make verify-fresh
 ```
 
 `make verify-fresh` performs the reproducible JavaScript/Python setup and then runs the maintained lint, formatting, tests, coverage, and dependency-audit contract.
+
+To reproduce first-install behavior in a clean Node 22/Python 3.12 container:
+
+```bash
+docker build --pull --no-cache -f Dockerfile.bootstrap -t aetherforge-clean-bootstrap .
+docker run --rm aetherforge-clean-bootstrap
+```
+
+This separate image contains the runtimes and system tools but no installed project dependencies. Before running the same `make verify-fresh`, it rejects existing `node_modules`, Python project distributions and populated registry caches. Initial setup needs public base images, Debian packages, npm/PyPI packages and vulnerability data. Chrome, Playwright, Drive credentials and AI providers are not required. CI retains the successful `cold-bootstrap-<SHA>` execution log; separate network-disabled verification remains mandatory.
 
 Equivalent setup commands:
 
@@ -192,6 +203,10 @@ docker run --rm --network none maintained-offline-check make verify-offline
 The build downloads dependencies. The fresh runtime container has networking disabled and runs surface/lock checks, type checks, lint, formatting, JS/Python coverage, release readiness and generated-file parity. `make verify-offline` deliberately performs no installation or online advisory lookup. Full `make verify-fresh` and CI still require the existing npm/pip security audits to pass separately. The CI container job executes both phases and fails if either fails.
 
 ## Environment, logging, and errors
+
+The local Companion and Commercial adapters use one runtime observability path: `getLogger` in `src/observability/json-logger.js`, `createErrorReporter` in `src/observability/error-reporter.js`, and their shared `http-error-tracker.js` adapter. Startup and unexpected HTTP 500s produce bounded JSON on stdout. This is a deliberately local default, with no third-party logging service required.
+
+An operator can opt in to external 500-error reporting with both `AETHERFORGE_ERROR_REPORTING=1` and an approved public HTTPS `AETHERFORGE_ERROR_WEBHOOK_URL`. Only allowlisted event/route/method/status fields and a generated request ID are sent; bodies, query strings, exceptions and credentials are excluded. Delivery failure does not change HTTP responses. Leave reporting disabled for local-only operation. `tests/js/server-webhook-wiring.test.js` exercises both real servers through their default environment configuration and a private test collector transport, including disabled reporting and collector failure.
 
 See the [Environment configuration contract](docs/ENVIRONMENT_CONTRACT.md) for optional ÆTHERFORGE Codespaces/browser controls, credential boundaries, and the automated `.env.example` completeness check.
 
