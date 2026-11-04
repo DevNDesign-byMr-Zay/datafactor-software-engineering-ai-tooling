@@ -1,3 +1,5 @@
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { execFileSync } from 'node:child_process';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -145,5 +147,64 @@ describe('default server error pipeline', () => {
       expect(records[0].requestId).toEqual(expect.any(String));
       expect(JSON.stringify(records)).not.toMatch(/PRIVATE_QUERY|package\.json|stack|ENOENT/u);
     },
+  );
+});
+
+describe('CLI lifecycle logging', () => {
+  test.each(['aetherforge-commercial', 'aetherforge-workbench'])(
+    '%s emits structured startup JSON with its actual listening port',
+    async (app) => {
+      const child = spawn(
+        process.execPath,
+        [fileURLToPath(new URL('../../apps/' + app + '/server.mjs', import.meta.url))],
+        {
+          env: {
+            ...process.env,
+            AETHERFORGE_PORT: '0',
+            CODESPACES: '',
+            AETHERFORGE_CODESPACES_BIND: '',
+          },
+          stdio: ['ignore', 'pipe', 'pipe'],
+        },
+      );
+      let output = '';
+      let stderr = '';
+      child.stderr.on('data', (chunk) => {
+        stderr += chunk;
+      });
+      try {
+        const line = await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('No startup event: ' + stderr)), 5000);
+          child.once('error', reject);
+          child.once('exit', (code) => {
+            clearTimeout(timer);
+            reject(new Error('Premature exit: ' + code + stderr));
+          });
+          child.stdout.on('data', (chunk) => {
+            output += chunk;
+            if (output.includes('\n')) {
+              clearTimeout(timer);
+              resolve(output.split('\n')[0]);
+            }
+          });
+        });
+        const record = JSON.parse(line);
+        expect(record).toMatchObject({
+          event: 'http.server.started',
+          logger: app,
+          level: 'info',
+          host: '127.0.0.1',
+        });
+        expect(record.port).toBeGreaterThan(0);
+        const response = await fetch('http://127.0.0.1:' + record.port + '/api/health');
+        expect(response.status).toBe(200);
+        expect(stderr).toBe('');
+      } finally {
+        const exited = once(child, 'exit');
+        child.kill();
+        await exited;
+      }
+    },
+    10000,
   );
 });

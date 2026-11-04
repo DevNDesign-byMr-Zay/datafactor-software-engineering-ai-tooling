@@ -120,7 +120,7 @@ export async function buildWorkbenchPackage(outputPath, { previewPath = null } =
   }
   await copyDistributionSource(join(appDir, 'assets'), join(packageAppDir, 'assets'));
   for (const name of await readdir(appDir)) {
-    if (isDistributionSource(name) && name.endsWith('.mjs') && !name.endsWith('.test.mjs') && !['package-workbench.mjs', 'browser-qa.mjs', 'server.mjs', 'asset-store.mjs'].includes(name)) {
+    if (isDistributionSource(name) && name.endsWith('.mjs') && !name.endsWith('.test.mjs') && !runtimeFiles.includes(name) && !['package-workbench.mjs', 'browser-qa.mjs', 'server.mjs', 'asset-store.mjs'].includes(name)) {
       await copyDistributionSource(join(appDir, name), join(packageAppDir, name), name);
     }
   }

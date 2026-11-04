@@ -1,3 +1,4 @@
+import { getLogger } from '../../src/observability/json-logger.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
 import { createServer } from 'node:http';
 import { createRequestBodyReader, RequestBodyError } from '../aetherforge-workbench/http-request-body.mjs';
@@ -189,4 +190,12 @@ export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentB
 
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
  }catch(error){if(error instanceof RequestBodyError){if(req.aborted||res.destroyed)return;res.setHeader('Connection','close');if(error.statusCode===503)res.setHeader('Retry-After','1');return respond(res,error.statusCode,{error:error.message});}errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
-if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){const port=Number(process.env.AETHERFORGE_PORT||4546);const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';createWorkbenchServer().listen(port,bound,()=>process.stdout.write('ÆtherForge Commercial ready at http://127.0.0.1:'+port+'\n'));}
+if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
+ const port=Number(process.env.AETHERFORGE_PORT||4546);
+ const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';
+ const logger=getLogger('aetherforge-commercial');
+ const server=createWorkbenchServer();
+ server.listen(port,bound,()=>{
+   logger.info({event:'http.server.started',host:bound,port:server.address().port},'Local adapter ready');
+ });
+}

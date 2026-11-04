@@ -1,3 +1,4 @@
+import { getLogger } from '../../src/observability/json-logger.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
 import { createServer } from 'node:http';
 import { createRequestBodyReader, RequestBodyError } from './http-request-body.mjs';
@@ -98,4 +99,12 @@ export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentB
  if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const bytes=await readBody(req,res,6*1024*1024,'File too large');try{const item=await saveLocalAsset(assetRoot,bytes,name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
  }catch(error){if(error instanceof RequestBodyError){if(req.aborted||res.destroyed)return;res.setHeader('Connection','close');if(error.statusCode===503)res.setHeader('Retry-After','1');return respond(res,error.statusCode,{error:error.message});}errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
-if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){const port=Number(process.env.AETHERFORGE_PORT||4545);const codespacesBind=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1';const host=codespacesBind?'0.0.0.0':'127.0.0.1';createWorkbenchServer().listen(port,host,()=>process.stdout.write('ÆtherForge ready at http://127.0.0.1:'+port+' ('+host+')\n'));}
+if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
+ const port=Number(process.env.AETHERFORGE_PORT||4545);
+ const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';
+ const logger=getLogger('aetherforge-workbench');
+ const server=createWorkbenchServer();
+ server.listen(port,bound,()=>{
+   logger.info({event:'http.server.started',host:bound,port:server.address().port},'Local adapter ready');
+ });
+}
