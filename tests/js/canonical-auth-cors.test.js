@@ -70,6 +70,50 @@ describe('canonical CORS adapter', () => {
 });
 
 describe('credential and origin refusal hardening', () => {
+  test.each([null, undefined, ''])(
+    'fails closed for missing token configuration %#',
+    (configuration) => {
+      const header = jest.fn(() => String(configuration));
+      const response = responseDouble();
+      const next = jest.fn();
+      createTokenAuthMiddleware(configuration)({ method: 'POST', header }, response, next);
+      expect(response.status).toHaveBeenCalledWith(401);
+      expect(response.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
+      expect(header).not.toHaveBeenCalled();
+      expect(next).not.toHaveBeenCalled();
+    },
+  );
+
+  test('contains header adapter failures without granting access or leaking details', () => {
+    const next = jest.fn();
+    const response = responseDouble();
+    const middleware = createTokenAuthMiddleware('configured-secret');
+
+    expect(() =>
+      middleware(
+        {
+          method: 'POST',
+          header() {
+            throw new Error('PRIVATE_HEADER_ERROR');
+          },
+        },
+        response,
+        next,
+      ),
+    ).not.toThrow();
+    expect(response.status).toHaveBeenCalledWith(401);
+    expect(response.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
+    expect(JSON.stringify(response.json.mock.calls)).not.toContain('PRIVATE_');
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  test('preserves explicitly configured non-null scalar tokens', () => {
+    const next = jest.fn();
+    const response = responseDouble();
+    createTokenAuthMiddleware(0)({ method: 'POST', header: () => '0' }, response, next);
+    expect(next).toHaveBeenCalledTimes(1);
+  });
+
   test('compares UTF-8 token bytes and rejects near matches without revealing tokens', () => {
     const goodToken = 'secrét-private';
     const middleware = createTokenAuthMiddleware(goodToken);
