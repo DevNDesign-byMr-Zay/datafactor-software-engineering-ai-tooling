@@ -1,5 +1,6 @@
 /* Explicit-only Docker sandbox. NEVER run untrusted source with host node, vm, exec, or Python. */
 import {spawn} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
 import {posix as posixPath} from 'node:path';
 import {MINIMUS_IMAGES,sandboxDockerArgs} from './minimus-sandbox-policy.mjs';
 export const RUNTIMES=Object.freeze({
@@ -11,14 +12,39 @@ function runCommand(args,{input='',timeout=3000,maxOutput=24000,spawnImpl=spawn}
     const child=spawnImpl('docker',args,{shell:false,stdio:['pipe','pipe','pipe'],windowsHide:true,env:{...process.env,DOCKER_CLI_HINTS:'false'}});
     let stdout='',stderr='',exceeded=false,finished=false;
     const abort=setTimeout(()=>{exceeded=true;child.kill('SIGKILL');},timeout);
-    const record=(key,chunk)=>{if(key==='stdout')stdout+=String(chunk);else stderr+=String(chunk);
-      if(stdout.length+stderr.length>maxOutput){exceeded=true;child.kill('SIGKILL');}};
+    const record=(key,chunk)=>{
+      if(exceeded)return;
+      const value=String(chunk),remaining=Math.max(0,maxOutput-stdout.length-stderr.length);
+      if(key==='stdout')stdout+=value.slice(0,remaining);else stderr+=value.slice(0,remaining);
+      if(value.length>remaining){exceeded=true;child.kill('SIGKILL');}
+    };
     child.stdout.on('data',b=>record('stdout',b));child.stderr.on('data',b=>record('stderr',b));
     child.on('error',e=>{if(!finished){finished=true;clearTimeout(abort);reject(e);}});
     child.on('close',(code)=>{if(finished)return;finished=true;clearTimeout(abort);resolve({exitCode:code,
       stdout:stdout.slice(0,maxOutput),stderr:stderr.slice(0,maxOutput),terminated:exceeded});});
     child.stdin.on('error',()=>{});child.stdin.end(input);
   });
+}
+// Docker is daemon-managed: killing its CLI alone does not stop a container.
+// Cleanup uses an internally generated name and never targets another job.
+async function removeSandbox(sandboxId,spawnImpl){
+  try{
+    const removed=await runCommand(['rm','--force',sandboxId],{timeout:2500,maxOutput:512,spawnImpl});
+    if(removed.exitCode===0&&!removed.terminated)return {confirmed:true};
+    // --rm may already have removed it. A successful empty listing proves absence;
+    // a failed daemon connection or a timed-out probe must never count as success.
+    const listed=await runCommand(['ps','--all','--quiet','--filter',`name=^/${sandboxId}$`],{timeout:2500,maxOutput:512,spawnImpl});
+    return {confirmed:listed.exitCode===0&&!listed.terminated&&!listed.stdout.trim()};
+  }catch{return {confirmed:false};}
+}
+async function runSandbox(args,options){
+  const sandboxId='aetherforge-'+randomUUID();
+  const named=[args[0],'--name',sandboxId,...args.slice(1)];
+  let out;
+  try{out=await runCommand(named,options);}
+  catch(error){await removeSandbox(sandboxId,options.spawnImpl);throw error;}
+  const cleanup=await removeSandbox(sandboxId,options.spawnImpl);
+  return {...out,sandboxId,cleanup,requiresOperatorAction:!cleanup.confirmed};
 }
 // A running Docker daemon is not enough: --pull=never requires preloaded,
 // explicitly-approved images. Report image state without downloading anything.
@@ -48,9 +74,9 @@ export async function runIsolated({language,code},{spawnImpl=spawn}={}){
     throw new Error('Invalid runner input');
   const r=RUNTIMES[language];
   const args=sandboxDockerArgs(language,r.command);
-  const out=await runCommand(args,{input:code,timeout:6500,maxOutput:24000,spawnImpl});
+  const out=await runSandbox(args,{input:code,timeout:6500,maxOutput:24000,spawnImpl});
   return {...out,engine:'docker',language,isolation:'no network; read-only; unprivileged; resource limited',
-    status:out.terminated?'terminated':out.exitCode===0?'completed':'failed'};
+    status:!out.cleanup.confirmed?'failed':out.terminated?'terminated':out.exitCode===0?'completed':'failed'};
 }
 
 /* Run a whole project only inside Docker. The project is transferred via stdin
@@ -98,8 +124,8 @@ export async function runIsolatedProject(job,{spawnImpl=spawn}={}){
   const image=RUNTIMES[safe.language].image;
   const cmd=safe.language==='node'?['node','-e',NODE_PROJECT_BOOTSTRAP]:['python','-I','-c',PYTHON_PROJECT_BOOTSTRAP];
   const args=sandboxDockerArgs(safe.language,cmd);
-  const out=await runCommand(args,{input:JSON.stringify(safe),timeout:7500,maxOutput:24000,spawnImpl});
+  const out=await runSandbox(args,{input:JSON.stringify(safe),timeout:7500,maxOutput:24000,spawnImpl});
   return {...out,engine:'docker',language:safe.language,entry:safe.entry,fileCount:Object.keys(safe.files).length,
     isolation:'no network; no host mounts; read-only image; unprivileged; bounded resources',
-    status:out.terminated?'terminated':out.exitCode===0?'completed':'failed'};
+    status:!out.cleanup.confirmed?'failed':out.terminated?'terminated':out.exitCode===0?'completed':'failed'};
 }

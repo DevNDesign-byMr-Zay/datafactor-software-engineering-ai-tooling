@@ -4,12 +4,14 @@ on:
     paths:
       - 'apps/aetherforge-commercial/**'
       - 'tests/aetherforge-commercial-cloud.test.mjs'
+      - 'tests/aetherforge-runner-cleanup*'
       - '.github/workflows/aetherforge-commercial-cloud.yml'
   push:
     branches: [feat/aetherforge-workbench-ui]
     paths:
       - 'apps/aetherforge-commercial/**'
       - 'tests/aetherforge-commercial-cloud.test.mjs'
+      - 'tests/aetherforge-runner-cleanup*'
       - '.github/workflows/aetherforge-commercial-cloud.yml'
   workflow_dispatch:
 permissions:
@@ -30,7 +32,7 @@ jobs:
           node --check apps/aetherforge-commercial/server.mjs
           node --check apps/aetherforge-commercial/isolated-runner.mjs
           node --check apps/aetherforge-commercial/engineering-ide.js
-          node --test apps/aetherforge-commercial/minimus-sandbox-policy.test.mjs
+          node --test apps/aetherforge-commercial/minimus-sandbox-policy.test.mjs tests/aetherforge-runner-cleanup.test.mjs
           node --test tests/aetherforge-commercial-cloud.test.mjs tests/aetherforge-cloud-ui-regression.test.mjs tests/aetherforge-ide-stabilization.test.mjs tests/aetherforge-workspace-persistence.test.mjs tests/aetherforge-preview-policy.test.mjs .devcontainer/commercial-restart.test.mjs
       - name: Prove real server health and same-origin boundary
         run: |
@@ -86,3 +88,6 @@ jobs:
             console.log('PASS '+job.language+' — '+needle);
           }
           NODE
+
+      - name: Prove timed-out and noisy projects leave no daemon containers
+        run: node tests/aetherforge-runner-cleanup-live.mjs
