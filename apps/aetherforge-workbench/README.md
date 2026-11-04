@@ -19,6 +19,10 @@
 
 Desktop uses a persistent workbench rail. Smaller screens switch to a bottom navigation bar and stacked touch-first cards. Dark mode is primary; light mode is supported. Reduced-motion preferences are respected.
 
+## Current local distribution
+
+See [the local distribution guide](../../docs/AETHERFORGE-LOCAL-DISTRIBUTION.md) for browser mode, optional portable Windows Node runtime, complete ZIP/checksum generation, integrity verification and clean-extraction acceptance. Root package `index.html` now opens the interactive UI automatically; local HTML does not start the adapter.
+
 ## Start (Node.js 22+)
 
 From the repository root:
@@ -41,7 +45,7 @@ Create a portable package outside the repository with:
 
     node apps/aetherforge-workbench/package-workbench.mjs --output /path/to/aetherforge-workbench
 
-The package has a root `index.html` visual entry point, a copy of the complete workbench under `apps/aetherforge-workbench/`, the required maintained `src/` files, and `START-HERE.md`. The Windows launcher path remains `apps/aetherforge-workbench/launch-aetherforge.cmd`. Node.js 22+ is required; no npm install is needed. Windows CI runs the launcher and browser acceptance checks against this staged package before publishing the `aetherforge-workbench-html-bundle` workflow artifact.
+The builder creates a staging directory, a sibling `.zip` and `.zip.sha256`. The package has a root `index.html` entry point that opens the browser-compatible application automatically, a copy of the complete workbench under `apps/aetherforge-workbench/`, the required maintained `src/` files, and `START-HERE.md`. The Windows launcher path remains `apps/aetherforge-workbench/launch-aetherforge.cmd`. Node.js 22+ is required for the adapter; browser navigation and temporary previews work without it. No npm install is needed. Windows CI runs the launcher and browser acceptance checks against this staged package before publishing the `aetherforge-workbench-html-bundle` workflow artifact.
 
 The builder accepts `--preview <png>` to include a verified browser screenshot in the root HTML entry point:
 
