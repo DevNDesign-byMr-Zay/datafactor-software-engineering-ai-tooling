@@ -155,6 +155,19 @@ jobs:
           python-version: "3.12"
       - name: Run fresh clone verification suite
         run: make verify-fresh
+      - name: Prove Node 22 and Python 3.12 bootstrap without dependency caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --pull --no-cache --file Dockerfile.bootstrap --tag aetherforge-clean-bootstrap .
+          docker run --rm --env GITHUB_SHA="$GITHUB_SHA" aetherforge-clean-bootstrap 2>&1 | tee cold-bootstrap.log
+      - name: Retain clean-container bootstrap execution log
+        uses: actions/upload-artifact@v7
+        with:
+          name: cold-bootstrap-${{ github.sha }}
+          path: cold-bootstrap.log
+          if-no-files-found: error
+          retention-days: 30
 
   container:
     name: container-smoke
@@ -198,11 +211,15 @@ jobs:
     steps:
       - name: Check out verified commit
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Generate machine-readable verification contract
         run: node scripts/build-engineering-evidence.mjs --output engineering-evidence.json
+      - name: Report complete and recent maintenance history separately
+        run: node scripts/build-maintenance-evidence.mjs --output maintenance-evidence.json
       - name: Capture actual successful prerequisite job conclusions
         shell: bash
         env:
@@ -222,5 +239,6 @@ jobs:
           path: |
             engineering-evidence.json
             ci-gate-results.json
+            maintenance-evidence.json
           if-no-files-found: error
           retention-days: 30

@@ -22,7 +22,7 @@ mkdir -p "$snapshot"
 # git archive excludes unstaged, ignored and untracked local files and does not copy .git.
 git -C "$root" archive --format=tar "$sha" | tar -xf - -C "$snapshot"
 test ! -e "$snapshot/.git"
-for required in Dockerfile Makefile package-lock.json requirements.txt jest.config.js; do
+for required in Dockerfile Makefile package-lock.json requirements.txt jest.config.json; do
   test -f "$snapshot/$required" || { echo "Missing tracked snapshot file: $required" >&2; exit 1; }
 done
 echo "Building a self-contained tracked checkout of $sha"

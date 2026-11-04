@@ -1,10 +1,10 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
-import config from '../../jest.config.js';
+const config = JSON.parse(readFileSync(new URL('../../jest.config.json', import.meta.url), 'utf8'));
 
 test('the real Jest coverage gate rejects an unexecuted function', () => {
   expect(config.coverageThreshold.global).toEqual({

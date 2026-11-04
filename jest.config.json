@@ -1,0 +1,15 @@
+{
+  "testEnvironment": "node",
+  "testMatch": ["**/*.test.js"],
+  "transform": {},
+  "collectCoverageFrom": ["src/**/*.js", "src/promoted/*.mjs"],
+  "coverageReporters": ["text", "lcov", "json", "json-summary"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 75,
+      "functions": 85,
+      "lines": 85,
+      "statements": 85
+    }
+  }
+}
