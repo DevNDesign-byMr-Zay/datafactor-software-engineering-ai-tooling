@@ -20,7 +20,7 @@ const REQUIRED_FILES = Object.freeze([
   '.github/workflows/ci.yml',
   'scripts/create-release-manifest.mjs',
   'scripts/verify_python_lock.py',
-  'jest.config.js',
+  'jest.config.json',
   'jsconfig.json',
   '.repo-class.json',
   'docs/PROJECT_SCOPE.md',
@@ -91,7 +91,7 @@ async function main() {
     json('.repo-class.json'),
     text('docs/PROJECT_SCOPE.md'),
     json('package-lock.json'),
-    text('jest.config.js'),
+    json('jest.config.json'),
     json('jsconfig.json'),
     json('config/maintained-surface.json'),
     json('provenance/HISTORICAL_CORPUS_V1_2_2_MANIFEST.json'),
@@ -252,7 +252,7 @@ async function main() {
   }
 
   assert(
-    /coverageThreshold:\s*\{/u.test(jestConfig),
+    typeof jestConfig.coverageThreshold?.global === 'object',
     'Jest coverage thresholds must remain configured',
   );
   for (const [metric, floor] of Object.entries({
@@ -262,7 +262,7 @@ async function main() {
     statements: 85,
   })) {
     assert(
-      new RegExp(`${metric}:\\s*${floor}`, 'u').test(jestConfig),
+      jestConfig.coverageThreshold.global[metric] === floor,
       `Jest ${metric} coverage floor must remain ${floor}%`,
     );
   }

@@ -35,7 +35,7 @@
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:js": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand tests/js",
-    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --coverage",
+    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --coverage && node scripts/verify-coverage-gate.mjs",
     "lint": "eslint --max-warnings=0 src tests/js scripts",
     "format": "prettier --write src tests/js scripts",
     "format:check": "prettier --check src tests/js scripts",

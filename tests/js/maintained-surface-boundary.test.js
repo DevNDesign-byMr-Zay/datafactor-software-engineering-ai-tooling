@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 
 const CORPUS_ROOT = new URL('../../Software Engineering & AI Tooling/', import.meta.url);
 const PACKAGE = new URL('../../package.json', import.meta.url);
-const JEST_CONFIG = new URL('../../jest.config.js', import.meta.url);
+const JEST_CONFIG = new URL('../../jest.config.json', import.meta.url);
 const ESLINT_CONFIG = new URL('../../eslint.config.js', import.meta.url);
 const PYPROJECT = new URL('../../pyproject.toml', import.meta.url);
 const SURFACE = new URL('../../config/maintained-surface.json', import.meta.url);
@@ -15,11 +15,8 @@ test('historical corpus is externalized from the scored maintained tree', async 
 });
 
 test('JavaScript coverage measures maintained source only', async () => {
-  const source = await readFile(JEST_CONFIG, 'utf8');
-
-  assert.match(source, /'src\/\*\*\/\*\.js'/u);
-  assert.match(source, /'src\/promoted\/\*\.mjs'/u);
-  assert.doesNotMatch(source, /Software Engineering & AI Tooling/u);
+  const config = JSON.parse(await readFile(JEST_CONFIG, 'utf8'));
+  assert.deepEqual(config.collectCoverageFrom, ['src/**/*.js', 'src/promoted/*.mjs']);
 });
 
 test('lint, formatting, and Python quality paths do not depend on archive files', async () => {
