@@ -211,11 +211,15 @@ jobs:
     steps:
       - name: Check out verified commit
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
       - name: Generate machine-readable verification contract
         run: node scripts/build-engineering-evidence.mjs --output engineering-evidence.json
+      - name: Report complete and recent maintenance history separately
+        run: node scripts/build-maintenance-evidence.mjs --output maintenance-evidence.json
       - name: Capture actual successful prerequisite job conclusions
         shell: bash
         env:
@@ -235,5 +239,6 @@ jobs:
           path: |
             engineering-evidence.json
             ci-gate-results.json
+            maintenance-evidence.json
           if-no-files-found: error
           retention-days: 30
