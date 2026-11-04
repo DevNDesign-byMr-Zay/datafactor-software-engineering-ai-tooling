@@ -2,7 +2,24 @@
 
 ## Unreleased
 
-No subsequent candidate has been prepared. Future releases require a new version, protected review, and verified main-branch workflows.
+Current package candidate: `1.2.7`. Prepared from merged `main` commit `9f8f48b6f593ac971b7ab90cbfe3154e641decb9`. Publication requires this version change to be reviewed and merged, successful exact-main CI and CodeQL, and the gated `release/github` workflow. No v1.2.7 publication is claimed yet.
+
+### Verified runtime and verification improvements
+
+- Both local adapters use the shared JSON logger for startup events, report their actual bound port, and preserve generic structured HTTP error reporting with private-data redaction.
+- Real coverage-gate fixtures prove failure below the documented floors and success after restoration. The shipped classic-browser Evidence Center classifier is exercised against both modules, and generated-artifact drift remains a CI failure.
+- Absolute HTTP body deadlines, byte limits, disconnect cleanup and active-request bounds protect both local adapters without changing supported workflow contracts.
+- Coordinate Python toolchain updates across both exact version snapshots and the SHA-256 artifact lock. Fresh-clone and tracked-only container checks verify maintained tests with external networking disabled after dependency installation.
+- Deterministic portable ZIP builders include payload manifests, private-file exclusions, safe output-path guards, working browser entrypoints and Windows portable Node discovery. Integration checks verify clean extraction, packaged imports and actual adapter startup; explicitly copied runtime modules are excluded from automatic discovery to prevent duplicate-copy failures.
+- UUID-scoped Docker lifecycle cleanup removes only the current execution container after deadlines or output overflow, confirms daemon-side absence, bounds combined retained output, and reports unconfirmed cleanup as failure requiring operator action.
+- Reconcile the complete offline reference collection with 1,610 live Drive file records across 40 folders by ID, name and size. This metadata reconciliation does not claim every provider payload was downloaded again.
+- Preserve fail-closed authentication, request schema validation, untrusted logger metadata boundaries, existing public exports and immutable historical releases.
+
+### Release verification and boundaries
+
+The integrated implementation passed 99 JavaScript suites / 673 tests (89.36% statements, 83.53% branches), 37 Python tests (97% coverage), and 60 packaging/server/corpus/sandbox checks. The exact merged implementation passed engineering, CodeQL, package and Windows verification. The release metadata commit must pass its own protected checks before publication.
+
+Opening index.html initializes browser-compatible functionality; server-backed features require the documented launcher and Node.js 22+. HTML does not start host processes. Docker remains optional for explicit isolated code execution. No signed iOS package or hosted service is claimed. The known development-only Jest/deepmerge limitation remains tracked in issue #252; existing audit gates remain enforced.
 
 ## 1.2.6 — 2026-11-02 — dependency integrity and security hardening
 
