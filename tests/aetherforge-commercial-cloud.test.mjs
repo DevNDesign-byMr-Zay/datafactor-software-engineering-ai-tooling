@@ -25,7 +25,7 @@ test('approved Distroless container entrypoints, no host mounts',()=>{
 test('project execution never falls back to host interpreter',async()=>{
  let called=false; let body='';let actualArgs;
  function fake(command,args,options){
-  called=true;actualArgs=args;assert.equal(command,'docker');assert.equal(options.shell,false);
+  called=true;if(args[0]==='run')actualArgs=args;assert.equal(command,'docker');assert.equal(options.shell,false);
   const child=new EventEmitter();child.stdout=new PassThrough();child.stderr=new PassThrough();
   child.stdin=new Writable({write(chunk,enc,done){body+=chunk.toString('utf8');done()},final(done){done();queueMicrotask(()=>child.emit('close',0))}});
   child.kill=()=>{};
