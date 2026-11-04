@@ -8,16 +8,21 @@ if /I "%AETHERFORGE_LAUNCH_APP%"=="commercial" (
   set "AETHERFORGE_PORT=4546"
   set "AETHERFORGE_TITLE=Commercial Workbench"
 )
-set "NODE_COMMAND=node"
-if exist "%~dp0..\..\runtime\node.exe" set "NODE_COMMAND=%~dp0..\..\runtime\node.exe"
-where "%NODE_COMMAND%" >nul 2>&1
-if errorlevel 1 (
-  echo [AetherForge] Node.js 22+ is required. Node was not found on PATH.
-  echo Use an approved Node.js Windows ZIP: place node.exe at runtime\node.exe in the extracted package.
-  echo An existing Node.js on PATH also works. No installer or administrator privileges are required.
-  pause
-  endlocal
-  exit /b 1
+set "NODE_COMMAND="
+if exist "%~dp0..\..\runtime\node.exe" (
+  for %%N in ("%~dp0..\..\runtime\node.exe") do set "NODE_COMMAND=%%~fN"
+)
+if not defined NODE_COMMAND (
+  where node >nul 2>&1
+  if errorlevel 1 (
+    echo [AetherForge] Node.js 22+ is required. Node was not found on PATH.
+    echo Use an approved Node.js Windows ZIP: place node.exe at runtime\node.exe in the extracted package.
+    echo An existing Node.js on PATH also works. No installer or administrator privileges are required.
+    pause
+    endlocal
+    exit /b 1
+  )
+  set "NODE_COMMAND=node"
 )
 set "NODE_MAJOR="
 for /f "tokens=1 delims=." %%v in ('call "%NODE_COMMAND%" -p "process.versions.node" 2^>nul') do set "NODE_MAJOR=%%v"

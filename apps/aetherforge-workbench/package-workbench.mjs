@@ -1,7 +1,7 @@
 import { cp, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { copyDistributionSource, isDistributionSource, verifyDistribution, writeDistributionManifest, writeDistributionArchive } from '../../tools/distribution-files.mjs';
+import { assertOutsideRepository, copyDistributionSource, isDistributionSource, verifyDistribution, writeDistributionManifest, writeDistributionArchive } from '../../tools/distribution-files.mjs';
 
 const appDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(appDir, '../..');
@@ -32,13 +32,7 @@ function readOutputArgument(argv) {
 }
 
 function assertSafeOutput(outputDir) {
-  const relativeOutput = relative(repoRoot, outputDir);
-  const relativeRepo = relative(outputDir, repoRoot);
-  const overlapsRepo = relativeOutput === '' ||
-    (!relativeOutput.startsWith(`..${sep}`) && relativeOutput !== '..' && !isAbsolute(relativeOutput)) ||
-    relativeRepo === '' ||
-    (!relativeRepo.startsWith(`..${sep}`) && relativeRepo !== '..' && !isAbsolute(relativeRepo));
-  if (overlapsRepo) throw new Error('Output directory must be outside the repository.');
+  assertOutsideRepository(outputDir, repoRoot);
 }
 
 function rootHtml(hasBrowserPreview) {
