@@ -93,7 +93,7 @@ jobs:
           cp AETHERFORGE-Commercial-v1.5.0-cloud.zip AETHERFORGE-Commercial-v1.5.0-cloud.sha256 RELEASE-NOTES.md RELEASE-COMMIT.txt RELEASE-METADATA.sha256 "$GITHUB_WORKSPACE/release-upload/"
       - name: Retain verified artifact
         if: steps.release_guard.outputs.publish == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: aetherforge-commercial-v1.5.0-cloud
           path: release-upload/
