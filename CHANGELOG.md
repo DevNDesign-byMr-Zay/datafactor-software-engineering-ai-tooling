@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-Current package candidate: `1.2.7`. Prepared from merged `main` commit `9f8f48b6f593ac971b7ab90cbfe3154e641decb9`. Publication requires this version change to be reviewed and merged, successful exact-main CI and CodeQL, and the gated `release/github` workflow. No v1.2.7 publication is claimed yet.
+Current package candidate: `1.2.8`. Prepared after the verification followups merged in PR #276. Publication requires protected review and merge, successful exact-main CI and CodeQL, and the gated `release/github` workflow. No v1.2.8 publication is claimed yet.
+
+### Reproducible verification followups
+
+- Verify the first dependency installation and `make verify-fresh` in a no-cache Node 22/Python 3.12 container that rejects preinstalled project dependencies and populated registry caches. Retain the commit-bound successful execution log.
+- Use canonical `jest.config.json` coverage floors and retain validated, measured receipts bound to the commit, configuration and summary. Enforce 85% statements/functions/lines and 75% branches.
+- Check generated Evidence Center parity during lint. Disposable-checkout tests prove direct body/header edits fail and regeneration restores success.
+- Exercise both real servers through default environment-driven webhook reporting, including disabled reporting and collector refusal. Document local stdout defaults and optional external reporting while preserving the six-field payload allowlist.
+- Report complete Git history and recent activity separately. Repository lifespan does not establish steady maintenance; no historical dates or contributors were rewritten.
+- Postmerge verification for PR #276 passed 104 JavaScript suites / 699 tests, 37 Python tests at 97% coverage, all engineering gates and both CodeQL analyses. Measured JavaScript coverage is 89.36% statements, 83.53% branches, 98.78% functions and 92.62% lines. The actual uncached container bootstrap passed on Node v22.23.4 and Python 3.12.16.
+
+## 1.2.7 — 2026-11-04 — runtime reliability and packaging
+
+Current maintained package: `1.2.7`. Published as stable `v1.2.7` on 2026-11-04 at 22:25:11 UTC from merged commit `a0239e907e0a18b5a4cecf3307f3727648d7d2c3`. Protected CI, CodeQL and release workflow 41924848855 passed; all six published evidence assets were independently checked against their SHA-256 digests and checksum manifest. The original tag and assets remain immutable.
 
 ### Verified runtime and verification improvements
 
@@ -17,7 +30,7 @@ Current package candidate: `1.2.7`. Prepared from merged `main` commit `9f8f48b6
 
 ### Release verification and boundaries
 
-The integrated implementation passed 99 JavaScript suites / 673 tests (89.36% statements, 83.53% branches), 37 Python tests (97% coverage), and 60 packaging/server/corpus/sandbox checks. The exact merged implementation passed engineering, CodeQL, package and Windows verification. The release metadata commit must pass its own protected checks before publication.
+The integrated implementation passed 99 JavaScript suites / 673 tests (89.36% statements, 83.53% branches), 37 Python tests (97% coverage), and 60 packaging/server/corpus/sandbox checks. The exact merged implementation passed engineering, CodeQL, package and Windows verification. The release metadata commit passed its own protected checks before publication.
 
 Opening index.html initializes browser-compatible functionality; server-backed features require the documented launcher and Node.js 22+. HTML does not start host processes. Docker remains optional for explicit isolated code execution. No signed iOS package or hosted service is claimed. The known development-only Jest/deepmerge limitation remains tracked in issue #252; existing audit gates remain enforced.
 
