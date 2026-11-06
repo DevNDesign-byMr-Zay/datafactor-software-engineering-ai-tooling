@@ -70,12 +70,10 @@ describe('shared ÆtherForge host and origin boundary', () => {
     expect(check({ host: 'private-workbench-4546.app.github.dev' }, options)).toBe(
       'Local or private Codespaces host required',
     );
-    expect(
-      check({ host: 'localhost:4545', origin: 'https://' + forwardHost }, options),
-    ).toBeNull();
-    expect(
-      check({ host: 'localhost:4545', origin: 'https://' + forwardHost }, localOptions),
-    ).toBe('Cross-origin requests are not accepted');
+    expect(check({ host: 'localhost:4545', origin: 'https://' + forwardHost }, options)).toBeNull();
+    expect(check({ host: 'localhost:4545', origin: 'https://' + forwardHost }, localOptions)).toBe(
+      'Cross-origin requests are not accepted',
+    );
   });
 
   test('does not trust an invalid Codespaces name or a plausible external subdomain', () => {
