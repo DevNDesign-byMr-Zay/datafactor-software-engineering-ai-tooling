@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
   assertOutsideRepository,
@@ -134,6 +134,31 @@ for (const [name, build, app] of [
       assert.equal(check.status, 0, check.stderr || check.stdout);
       const manifest = await verifyDistribution(clean);
       assert.ok(manifest.files.some((file) => file.path === 'index.html'));
+
+      // Inspect the *extracted* static catalog, not the checkout's catalog.
+      // Every mapped route must target an inventoried, SHA-256-verified file
+      // inside this archive. This catches incomplete offline packages even
+      // when their entry point and a few HTML-linked scripts still work.
+      const { createWorkbenchStaticRoutes } = await import(
+        pathToFileURL(join(clean, 'src', 'api', 'workbench-static-routes.js')).href
+      );
+      const edition = app === 'aetherforge-commercial' ? 'commercial' : 'companion';
+      const routes = createWorkbenchStaticRoutes(edition);
+      assert.equal(routes.size, edition === 'commercial' ? 56 : 31);
+      const inventoried = new Set(manifest.files.map((file) => file.path));
+      for (const [url, [source, mime]] of routes) {
+        const target = resolve(clean, 'apps', app, source);
+        const rel = relative(clean, target);
+        assert.ok(
+          rel && rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel),
+          `${edition} static route escapes its distribution: ${url}`,
+        );
+        assert.ok(
+          inventoried.has(rel.split(sep).join('/')),
+          `${edition} route ${url} is missing its inventoried file: ${source}`,
+        );
+        assert.ok(typeof mime === 'string' && mime.length > 0, `${url} has no content type`);
+      }
       assert.match(
         await readFile(join(clean, 'index.html'), 'utf8'),
         new RegExp(`http-equiv="refresh"[^>]+apps/${app}/index\\.html`),
@@ -152,6 +177,24 @@ for (const [name, build, app] of [
         const summary = await (await fetch(`${base}/api/workbench/summary`)).json();
         assert.ok(summary.moduleCount > 0);
         const html = await (await fetch(base)).text();
+        // Smoke representative offline HTML, JavaScript, artwork, and
+        // reference-library routes through each extracted, running server.
+        // A mapped but absent file must never be hidden behind a 200.
+        for (const route of [
+          '/app.js',
+          '/assets/aetherforge-logo.svg',
+          '/assets/references/desktop-ui-concept.webp',
+          '/aetherforge-corpus/index.html',
+        ]) {
+          const response = await fetch(`${base}${route}`);
+          assert.equal(response.status, 200, `${edition} returned ${response.status} for ${route}`);
+          assert.equal(response.headers.get('content-type'), routes.get(route)[1]);
+          assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+          assert.ok((await response.arrayBuffer()).byteLength > 0, `${route} is empty`);
+        }
+        const notGet = await fetch(`${base}/assets/aetherforge-logo.svg`, { method: 'HEAD' });
+        assert.equal(notGet.status, 404, 'Static assets must remain GET-only');
+
         // Every directly referenced script and stylesheet must actually be served.
         for (const [, path] of html.matchAll(/(?:src|href)="(\.\/[^"]+\.(?:js|css))"/gu)) {
           const response = await fetch(`${base}/${path.slice(2)}`);
