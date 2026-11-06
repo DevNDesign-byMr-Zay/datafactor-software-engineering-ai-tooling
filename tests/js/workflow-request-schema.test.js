@@ -212,5 +212,4 @@ describe('schema-validated workflow API boundary', () => {
     }
     expect(getterCalls).toBe(0);
   });
-
 });
