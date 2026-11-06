@@ -39,11 +39,7 @@ export function sanitizeRouteFailureContext(context) {
 
   // Do not invoke accessor properties or allow context to rewrite record identity.
   for (const [key, descriptor] of Object.entries(descriptors)) {
-    if (
-      RESERVED_CONTEXT_KEYS.has(key) ||
-      isSensitiveDiagnosticKey(key) ||
-      !('value' in descriptor)
-    )
+    if (RESERVED_CONTEXT_KEYS.has(key) || isSensitiveDiagnosticKey(key) || !('value' in descriptor))
       continue;
 
     const value = descriptor.value;

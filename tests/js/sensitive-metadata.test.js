@@ -42,7 +42,11 @@ describe('shared diagnostic sensitive-field classification', () => {
 
     let logged = '';
     const logger = getLogger('diagnostic-test', {
-      sink: { write(value) { logged = value; } },
+      sink: {
+        write(value) {
+          logged = value;
+        },
+      },
       now: () => '2026-11-06T00:00:00.000Z',
     });
     logger.info(metadata, 'test event');
