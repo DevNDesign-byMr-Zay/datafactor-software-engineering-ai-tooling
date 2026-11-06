@@ -2,7 +2,19 @@
 
 ## Unreleased
 
-Current package candidate: `1.2.8`. Prepared after the verification followups merged in PR #276. Publication requires protected review and merge, successful exact-main CI and CodeQL, and the gated `release/github` workflow. No v1.2.8 publication is claimed yet.
+Current package candidate: `1.2.8`. Prepared after PRs #276–#286, including the shared ÆtherForge local-server safeguards and extracted-ZIP integrity checks. Publication still requires protected review and merge, successful exact-main CI and CodeQL, and the gated `release/github` workflow. No v1.2.8 publication is claimed here.
+
+### ÆtherForge integration and portable archive acceptance
+
+The following improvements were merged after the v1.2.7 release; the linked PRs are the scope of this *unreleased* candidate:
+
+- **Input and telemetry safety:** [#278](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/278) preserves sanitized 422 request-validation errors, while [#279](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/279) consolidates sensitive-field redaction for diagnostic logging.
+- **Shared adapters without widened permissions:** [#280](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/280) centralizes workflow request contracts; [#281](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/281) centralizes local image asset storage; [#282](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/282) shares HTTP response construction without changing edition-specific CSP; [#283](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/283) shares exact loopback, origin, cross-site and private Codespaces checks; [#284](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/284) shares failure handling while retaining 408/413/503, connection-close, retry headers, aborted-request behavior and bounded 500 telemetry.
+- **Static assets and Windows acceptance:** [#285](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/285) shares 29 identical static entries while preserving the full **31 Companion** and **56 Commercial** route/MIME contracts, distinct edition-specific files, and Commercial's separately sandboxed iframe. Its bounded eager-image readiness check passed Windows launcher/browser QA with missing-image failures still enforced.
+- **Verified offline packaging:** [#286](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/286) adds mandatory Engineering CI execution of independent ZIP extraction, SHA-256 inventory, and static route/HTTP checks for both editions. The **7 native distribution checks** passed; they are distinct from **111 JavaScript suites / 782 Jest tests**, which also passed. At this checkpoint the measured Jest coverage was **89.74% statements** and **84.06% branches**.
+- **Protected acceptance:** exact-main Engineering CI, both CodeQL languages and Engineering Reference Collection passed after [#286](https://github.com/DevNDesign-byMr-Zay/datafactor-software-engineering-ai-tooling/pull/286) merged at `f1c52f1754644c1c79121bdbca987c27c4c83370`. The Companion/Windows verification passed after #285; the #286 test-only change did not trigger an additional Companion workflow.
+
+The package remains a private developer-tooling and reusable-library project, not an infrastructure deployment. Browser-only HTML cannot start Node.js or Docker; server-backed features still require Node.js 22+ and the documented local adapter. No provider billing credentials, independent DataFactor score, production cloud deployment, or untested release artifact is claimed. The general `release/github` workflow publishes SBOM, locked Python inventory, checksums and commit/prerequisite evidence; standalone Companion and Commercial ZIPs are built and verified separately, **not advertised as general-release attachments**.
 
 ### Reproducible verification followups
 
