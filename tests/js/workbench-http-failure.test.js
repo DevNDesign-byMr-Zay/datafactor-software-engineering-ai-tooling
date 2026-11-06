@@ -56,7 +56,9 @@ describe('ÆtherForge shared unhandled HTTP request boundary', () => {
   ])('does not write to a %s or log a predictable abort', (_name, request, response) => {
     const { handler, sent, captured, headerCalls } = harness();
     const res = { setHeader: () => headerCalls.push('called'), ...response };
-    expect(handler(new RequestBodyError(400, 'Request body was aborted'), request, res)).toBeUndefined();
+    expect(
+      handler(new RequestBodyError(400, 'Request body was aborted'), request, res),
+    ).toBeUndefined();
     expect(sent).toEqual([]);
     expect(captured).toEqual([]);
     expect(headerCalls).toEqual([]);
@@ -74,38 +76,41 @@ describe('ÆtherForge shared unhandled HTTP request boundary', () => {
   });
 
   test('rejects incomplete handler wiring rather than silently skipping diagnostic capture', () => {
-    expect(() => createWorkbenchFailureHandler({ RequestBodyError, respond: null, errorTracker: {} })).toThrow(
-      'HTTP failure handler requires a body error type and responder',
-    );
-    expect(() => createWorkbenchFailureHandler({ RequestBodyError, respond: () => {}, errorTracker: null })).toThrow(
-      'HTTP failure handler requires an error tracker',
-    );
+    expect(() =>
+      createWorkbenchFailureHandler({ RequestBodyError, respond: null, errorTracker: {} }),
+    ).toThrow('HTTP failure handler requires a body error type and responder');
+    expect(() =>
+      createWorkbenchFailureHandler({ RequestBodyError, respond: () => {}, errorTracker: null }),
+    ).toThrow('HTTP failure handler requires an error tracker');
   });
 
   test.each([
     ['companion', createCompanion],
     ['commercial', createCommercial],
-  ])('%s retains sanitized live 500 responses and exactly one diagnostic', async (_name, factory) => {
-    const captured = [];
-    const server = factory({
-      assetRoot: new URL('../../package.json', import.meta.url).pathname,
-      errorTracker: {
-        capture(error, request) {
-          captured.push({ code: error.code, path: request.url });
+  ])(
+    '%s retains sanitized live 500 responses and exactly one diagnostic',
+    async (_name, factory) => {
+      const captured = [];
+      const server = factory({
+        assetRoot: new URL('../../package.json', import.meta.url).pathname,
+        errorTracker: {
+          capture(error, request) {
+            captured.push({ code: error.code, path: request.url });
+          },
         },
-      },
-    });
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    try {
-      const base = `http://127.0.0.1:${server.address().port}`;
-      const response = await fetch(base + '/api/assets?private=hidden');
-      expect(response.status).toBe(500);
-      expect(await response.json()).toEqual({ error: 'Workbench request failed' });
-      expect(captured).toHaveLength(1);
-    } finally {
-      await new Promise((resolve, reject) =>
-        server.close((error) => (error ? reject(error) : resolve())),
-      );
-    }
-  });
+      });
+      await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+      try {
+        const base = `http://127.0.0.1:${server.address().port}`;
+        const response = await fetch(base + '/api/assets?private=hidden');
+        expect(response.status).toBe(500);
+        expect(await response.json()).toEqual({ error: 'Workbench request failed' });
+        expect(captured).toHaveLength(1);
+      } finally {
+        await new Promise((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve())),
+        );
+      }
+    },
+  );
 });
