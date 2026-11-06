@@ -24,12 +24,7 @@ export function createWorkbenchResponder(adapter) {
   }
 
   const policy = CSP[adapter];
-  return function respond(
-    res,
-    code,
-    body,
-    type = 'application/json; charset=utf-8',
-  ) {
+  return function respond(res, code, body, type = 'application/json; charset=utf-8') {
     res.writeHead(code, {
       'Content-Type': type,
       'X-Content-Type-Options': 'nosniff',

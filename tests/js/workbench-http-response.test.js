@@ -37,22 +37,25 @@ function responseRecorder() {
 }
 
 describe('shared ÆtherForge HTTP response contract', () => {
-  test.each(adapters)('%s maintains its exact default security headers', (adapter, _server, csp) => {
-    const capture = responseRecorder();
-    createWorkbenchResponder(adapter)(capture.response, 200, { ok: true });
-    expect(capture.result()).toEqual({
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Content-Type-Options': 'nosniff',
-        'Cache-Control': 'no-store',
-        'Referrer-Policy': 'no-referrer',
-        'Content-Security-Policy': csp,
-        'X-Frame-Options': 'DENY',
-      },
-      payload: '{"ok":true}',
-    });
-  });
+  test.each(adapters)(
+    '%s maintains its exact default security headers',
+    (adapter, _server, csp) => {
+      const capture = responseRecorder();
+      createWorkbenchResponder(adapter)(capture.response, 200, { ok: true });
+      expect(capture.result()).toEqual({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'X-Content-Type-Options': 'nosniff',
+          'Cache-Control': 'no-store',
+          'Referrer-Policy': 'no-referrer',
+          'Content-Security-Policy': csp,
+          'X-Frame-Options': 'DENY',
+        },
+        payload: '{"ok":true}',
+      });
+    },
+  );
 
   test('preserves text and raw Buffer payloads without coercion or JSON wrapping', () => {
     const send = createWorkbenchResponder('companion');
