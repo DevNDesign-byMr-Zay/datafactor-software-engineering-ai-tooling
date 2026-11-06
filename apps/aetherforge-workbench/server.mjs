@@ -1,4 +1,5 @@
 import { getLogger } from '../../src/observability/json-logger.js';
+import { createWorkbenchFailureHandler } from '../../src/api/workbench-http-failure.js';
 import { rejectWorkbenchRequestBoundary } from '../../src/api/workbench-request-boundary.js';
 import { createWorkbenchResponder } from '../../src/api/workbench-http-response.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
@@ -45,7 +46,7 @@ const staticRoutes = new Map([
   ['/assets/aetherforge-icon.svg', ['assets/aetherforge-icon.svg', 'image/svg+xml']]
 ]);
 const respond = createWorkbenchResponder('companion');
-export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),errorTracker=createHttpErrorTracker('aetherforge-workbench')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
+export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),errorTracker=createHttpErrorTracker('aetherforge-workbench')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});const handleHttpFailure=createWorkbenchFailureHandler({RequestBodyError,respond,errorTracker});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const boundaryError=rejectWorkbenchRequestBoundary(req,{port:Number(process.env.AETHERFORGE_PORT||4545)});
  if(boundaryError)return respond(res,403,{error:boundaryError});
  if(req.method==='GET'&&url.pathname==='/api/health')return respond(res,200,{adapter:'ready',source:'maintained-library',offline:false,canExecuteDeployments:false,aiConfigured:false});
@@ -56,7 +57,7 @@ export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentB
  if(req.method==='GET'&&url.pathname.startsWith('/api/assets/')){const id=url.pathname.slice('/api/assets/'.length);if(!/^[a-f0-9]{64}\.(?:png|jpg|webp)$/.test(id))return respond(res,404,{error:'Invalid asset'});try{const data=await getLocalAsset(assetRoot,id);return respond(res,200,data.bytes,data.mime);}catch{return respond(res,404,{error:'Asset not found'});}}
  if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const bytes=await readBody(req,res,6*1024*1024,'File too large');try{const item=await saveLocalAsset(assetRoot,bytes,name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
  const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
- }catch(error){if(error instanceof RequestBodyError){if(req.aborted||res.destroyed)return;res.setHeader('Connection','close');if(error.statusCode===503)res.setHeader('Retry-After','1');return respond(res,error.statusCode,{error:error.message});}errorTracker.capture(error,req);return respond(res,500,{error:'Workbench request failed'});}});}
+ }catch(error){return handleHttpFailure(error,req,res);}});}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
  const port=Number(process.env.AETHERFORGE_PORT||4545);
  const bound=process.env.CODESPACES==='true'&&process.env.AETHERFORGE_CODESPACES_BIND==='1'?'0.0.0.0':'127.0.0.1';
