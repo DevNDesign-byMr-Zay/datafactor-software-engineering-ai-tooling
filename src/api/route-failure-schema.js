@@ -1,3 +1,5 @@
+import { isSensitiveDiagnosticKey } from '../observability/sensitive-metadata.js';
+
 const ROUTE_FAILURE_SCHEMA_VERSION = 1;
 const MAX_CONTEXT_STRING_LENGTH = 256;
 const RESERVED_CONTEXT_KEYS = new Set([
@@ -9,8 +11,6 @@ const RESERVED_CONTEXT_KEYS = new Set([
   'prototype',
   'constructor',
 ]);
-const SENSITIVE_CONTEXT_KEY =
-  /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
 const SAFE_ERROR_LABEL = /^[a-z][a-z0-9_.-]{0,63}$/iu;
 
 /**
@@ -41,7 +41,7 @@ export function sanitizeRouteFailureContext(context) {
   for (const [key, descriptor] of Object.entries(descriptors)) {
     if (
       RESERVED_CONTEXT_KEYS.has(key) ||
-      SENSITIVE_CONTEXT_KEY.test(key) ||
+      isSensitiveDiagnosticKey(key) ||
       !('value' in descriptor)
     )
       continue;
