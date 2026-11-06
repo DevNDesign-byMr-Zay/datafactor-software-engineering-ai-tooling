@@ -24,7 +24,15 @@ npm run verify:release
 npm run check
 ```
 
-The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green. Published versions v1.2.5 and v1.2.6 are independently confirmed by their GitHub Releases records; this guide does not establish publication by itself.
+The Python and container lanes remain independently enforced by CI. A hosted release or tag should be created only after the exact candidate commit is green. Published versions v1.2.5, v1.2.6 and v1.2.7 are independently confirmed by their GitHub Releases records; this guide does not establish v1.2.8 publication by itself.
+
+## v1.2.8 candidate checklist
+
+The candidate includes merged PRs #278–#286, including both local ÆtherForge adapter refactors and mandatory ZIP extraction checks. The first exact-main checkpoint after #286 was `f1c52f1754644c1c79121bdbca987c27c4c83370` with Engineering CI, CodeQL and Reference Collection successful; this **does not** replace verifying the final SHA after any release-note commit.
+
+Before dispatching `release/github` on `main` with input `v1.2.8`, confirm that the latest `engineering/ci` and `security/codeql` push runs both completed successfully on the **current** `main` commit, that no `v1.2.8` tag or GitHub Release already exists, and that all mandatory package and ZIP checks have passed. The release workflow rechecks these prerequisites, runs fresh and container verifications, generates release evidence, verifies SHA-256 hashes, and publishes only when each gate succeeds.
+
+The general version release publishes six evidence assets: `sbom.cdx.json`, `python-dependencies.json`, `release-commit.txt`, `release-artifacts.sha256`, `release-manifest.json`, and `release-prerequisites.json`. Companion and Commercial portable ZIPs are independently built/tested, but **are not** attached by this general release workflow. An image of the UI, a hosted deployment, or a ZIP attachment must not be inferred from the main release tag.
 
 ## Boundary rules
 
@@ -40,7 +48,7 @@ This check uses GitHub's real run conclusions, not a local certificate. Its `rel
 
 ## Published version versus upcoming candidate
 
-The changelog contains a separate `Unreleased` placeholder for future changes and accurately records both published v1.2.5 and v1.2.6 releases with their verified tags, UTC timestamps and commits. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
+The changelog contains a separate `Unreleased` candidate for 1.2.8 and accurately records the published v1.2.5, v1.2.6 and v1.2.7 releases with their verified tags, UTC timestamps and commits. The release-readiness test accepts a clearly labeled current published version or a genuinely unreleased candidate matching the package version; it does not misclassify an existing release as unpublished. Updating the changelog does not re-tag or modify the published release.
 
 ## Local error collector acceptance
 
@@ -52,4 +60,4 @@ A generated `requirements.hashed.txt` locks SHA-256 wheel and source-distributio
 
 ## Reproducible release dependency evidence
 
-The future-release `python-dependencies.json` asset is built deterministically from `requirements.lock.txt` and `requirements.hashed.txt` with `scripts/build-locked-python-inventory.mjs`. The builder cross-checks normalized package names, exact versions, and SHA-256 artifact hashes, rejecting differences, missing hashes, duplicate names, and unexpected directives. It includes both input-file SHA-256 digests and the bounded package/hash inventory. This describes **the reproducibly locked dependency graph**, not the incidental Python packages preinstalled on a GitHub runner. The existing separate `python-installed-dependencies.json` CI artifact remains available to inspect actual runner installations. The current published v1.2.6 assets remain unmodified; this safeguard applies only to subsequent releases.
+The future-release `python-dependencies.json` asset is built deterministically from `requirements.lock.txt` and `requirements.hashed.txt` with `scripts/build-locked-python-inventory.mjs`. The builder cross-checks normalized package names, exact versions, and SHA-256 artifact hashes, rejecting differences, missing hashes, duplicate names, and unexpected directives. It includes both input-file SHA-256 digests and the bounded package/hash inventory. This describes **the reproducibly locked dependency graph**, not the incidental Python packages preinstalled on a GitHub runner. The existing separate `python-installed-dependencies.json` CI artifact remains available to inspect actual runner installations. Published release evidence remains immutable; this locked-inventory safeguard applies to subsequent releases without modifying historical release assets.
