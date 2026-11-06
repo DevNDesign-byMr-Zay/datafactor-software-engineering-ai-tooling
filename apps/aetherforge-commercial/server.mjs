@@ -10,12 +10,7 @@ import { enumerateMirrors,readMirrorFile } from './upstream-mirror.mjs';
 import { saveLocalAsset, listLocalAssets, getLocalAsset } from './asset-store.mjs';
 import {listProjects,putProject,getProject,validProjectId,MAX_PROJECT_BYTES} from './workspace-store.mjs';
 import {capability,runIsolated,runIsolatedProject,validateRunnableProject} from './isolated-runner.mjs';
-import {
-  buildCloudRunDeployArgs, clampBrushSize, clampFeather,
-  normalizeBrushShape, computeStrokeSteps,
-  planHolographicScene, calculateSustainabilityEfficiency,
-  consumeRuntimeAcceptanceEvidence
-} from '../../src/index.js';
+import { WORKBENCH_MODULES, runWorkbenchAction, summarizeWorkbench } from '../../src/api/workbench-contract.js';
 const root = dirname(fileURLToPath(import.meta.url));
 const staticRoutes = new Map([
  ['/aetherforge-corpus/navigation.css',['../aetherforge-corpus/navigation.css','text/css; charset=utf-8']],
@@ -75,35 +70,10 @@ const staticRoutes = new Map([
   ['/assets/aetherforge-emblem.svg', ['assets/aetherforge-emblem.svg', 'image/svg+xml']],
   ['/assets/aetherforge-icon.svg', ['assets/aetherforge-icon.svg', 'image/svg+xml']]
 ]);
-const modules = Object.freeze([
-  { id:'auth', name:'Authentication & CORS', category:'Security', path:'./auth', description:'Authentication policy and validated origin handling', action:null },
-  { id:'api', name:'API route validation', category:'Security', path:'./index', description:'Bounded request validation and structured failures', action:null },
-  { id:'deploy', name:'Cloud Run preflight', category:'Deployment', path:'./cloud-run', description:'Credential-free deployment argument planning', action:'cloud' },
-  { id:'runtime', name:'Runtime Acceptance', category:'Evidence', path:'./runtime-acceptance-consumer', description:'Verify durable receipts and fingerprints', action:'receipt' },
-  { id:'holographic', name:'Holographic Scene Planning', category:'Spatial', path:'./holographic-scene-planner', description:'Advisory-only spatial scene plans with evidence', action:'holo' },
-  { id:'sustainability', name:'Sustainability Efficiency', category:'Sustainability', path:'./index', description:'Evidence-aware energy and workload calculations', action:'energy' },
-  { id:'frontend', name:'Erase & Mask Geometry', category:'Frontend', path:'./erase-mask', description:'Normalize brush size, shape, feather and stroke spacing', action:'brush' },
-  { id:'bootstrap', name:'Application Bootstrap', category:'Runtime', path:'./application-bootstrap', description:'Package and readiness contract utilities', action:null },
-  { id:'storage', name:'Cloud File Workflow', category:'Storage', path:'./index', description:'Validated cloud upload, signed URL and chat boundaries', action:null },
-  { id:'observability', name:'Observability', category:'Reliability', path:'./json-logger', description:'Structured logging and bounded error reporting', action:null }
-]);
 function respond(res, code, body, type = 'application/json; charset=utf-8') {
   res.writeHead(code, {'Content-Type':type,'X-Content-Type-Options':'nosniff','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.github.com https://raw.githubusercontent.com",'X-Frame-Options':'DENY'});
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
-function runAction(body) {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new TypeError('Invalid workflow body');
-  const v=body.inputs;if(!v||typeof v!=='object'||Array.isArray(v))throw new TypeError('Invalid inputs');
-  switch(body.action){
-    case 'cloud':return{status:'planned',advisoryOnly:true,executed:false,result:buildCloudRunDeployArgs({serviceName:v.serviceName,region:v.region||'us-central1',source:'.',envVarsFile:'run-env.yaml',allowUnauthenticated:false})};
-    case 'brush':return{status:'computed',result:{brushSize:clampBrushSize(Number(v.brushSize)),shape:normalizeBrushShape(v.shape),feather:clampFeather(Number(v.feather)),strokeSteps:computeStrokeSteps({distance:Number(v.distance),brushSize:Number(v.brushSize)})}};
-    case 'holo':return{status:'planned',advisoryOnly:true,executed:false,result:planHolographicScene({snapshotId:v.snapshotId,provenanceRef:v.provenanceRef,intent:v.intent,target:'web-dashboard',objects:[{id:'reference-object',kind:'asset',x:0,y:0,z:0}]})};
-    case 'energy':return{status:'computed',derivedFrom:'user-supplied estimates',result:calculateSustainabilityEfficiency({durationMs:Number(v.durationMs),estimatedEnergyWh:Number(v.estimatedEnergyWh),renewableRatio:Number(v.renewableRatio)})};
-    case 'receipt':return{status:'checked',authority:'none',result:consumeRuntimeAcceptanceEvidence({receipt:v.receipt,receiptFingerprint:v.receiptFingerprint,previousFingerprint:v.previousFingerprint||undefined})};
-    default:throw new TypeError('Unsupported workflow');
-  }
-}
-function summary(){const categories=[...new Set(modules.map(m=>m.category))].map(category=>({category,count:modules.filter(m=>m.category===category).length}));return{source:'maintained-library',moduleCount:modules.length,categories,quickActions:[{id:'studio',label:'Open Workflow Studio',description:'Run bounded library calculations',page:'studio'},{id:'modules',label:'Browse Module Library',description:'Inspect maintained capabilities',page:'modules'},{id:'evidence',label:'Verify Evidence',description:'Fail-closed receipt inspection',page:'evidence'},{id:'assets',label:'Open Asset Studio',description:'Review shipped ÆtherForge assets',page:'assets'}],boundary:{cloudMutations:false,aiProvider:false,localAdapterOnly:true,externalNetworkCalls:false}};}
 export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces'),errorTracker=createHttpErrorTracker('aetherforge-commercial')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const host=String(req.headers.host||'');
  const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
@@ -166,9 +136,9 @@ export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentB
      return respond(res,200,await runIsolated({language:body.language,code:body.code}));
    }catch{return respond(res,422,{error:'Invalid isolated execution request'});}
  }
- if(req.method==='GET'&&url.pathname==='/api/modules')return respond(res,200,{source:'canonical maintained exports',modules});
- if(req.method==='GET'&&url.pathname==='/api/workbench/summary')return respond(res,200,summary());
- if(req.method==='POST'&&url.pathname==='/api/run'){if(req.headers['content-type']?.split(';')[0]?.trim()!=='application/json')return respond(res,415,{error:'JSON content type required'});const raw=(await readBody(req,res,64*1024,'Request exceeds limit')).toString('utf8');try{return respond(res,200,runAction(workflowRequestSchema.parse(JSON.parse(raw))));}catch{return respond(res,422,{error:'Invalid workflow input. Review the required fields.'});}}
+ if(req.method==='GET'&&url.pathname==='/api/modules')return respond(res,200,{source:'canonical maintained exports',modules:WORKBENCH_MODULES});
+ if(req.method==='GET'&&url.pathname==='/api/workbench/summary')return respond(res,200,summarizeWorkbench());
+ if(req.method==='POST'&&url.pathname==='/api/run'){if(req.headers['content-type']?.split(';')[0]?.trim()!=='application/json')return respond(res,415,{error:'JSON content type required'});const raw=(await readBody(req,res,64*1024,'Request exceeds limit')).toString('utf8');try{return respond(res,200,runWorkbenchAction(workflowRequestSchema.parse(JSON.parse(raw))));}catch{return respond(res,422,{error:'Invalid workflow input. Review the required fields.'});}}
  if(req.method==='GET'&&url.pathname==='/api/assets')return respond(res,200,{assets:await listLocalAssets(assetRoot)});
  if(req.method==='GET'&&url.pathname.startsWith('/api/assets/')){const id=url.pathname.slice('/api/assets/'.length);if(!/^[a-f0-9]{64}\.(?:png|jpg|webp)$/.test(id))return respond(res,404,{error:'Invalid asset'});try{const data=await getLocalAsset(assetRoot,id);return respond(res,200,data.bytes,data.mime);}catch{return respond(res,404,{error:'Asset not found'});}}
  if(req.method==='POST'&&url.pathname==='/api/assets/upload'){const mime=String(req.headers['content-type']||'').trim();let name;try{name=decodeURIComponent(String(req.headers['x-file-name']||'asset'));}catch{return respond(res,400,{error:'Invalid filename'});}const bytes=await readBody(req,res,6*1024*1024,'File too large');try{const item=await saveLocalAsset(assetRoot,bytes,name,mime);return respond(res,201,{asset:item});}catch{return respond(res,415,{error:'File type, signature or size not supported'});}}
