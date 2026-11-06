@@ -142,4 +142,74 @@ describe('schema-validated workflow API boundary', () => {
       );
     }
   });
+  test('converts hostile reflection traps into the same 422 validation response', () => {
+    let trapCalls = 0;
+    const failReflection = () => {
+      trapCalls += 1;
+      throw new Error('private reflection failure');
+    };
+    const safeInputs = { serviceName: 'aetherforge' };
+    const candidates = [
+      new Proxy({ action: 'cloud', inputs: safeInputs }, { getPrototypeOf: failReflection }),
+      new Proxy({ action: 'cloud', inputs: safeInputs }, { ownKeys: failReflection }),
+      { action: 'cloud', inputs: new Proxy(safeInputs, { ownKeys: failReflection }) },
+      {
+        action: 'receipt',
+        inputs: {
+          receipt: new Proxy({}, { getPrototypeOf: failReflection }),
+          receiptFingerprint: 'a'.repeat(64),
+        },
+      },
+    ];
+
+    for (const candidate of candidates) {
+      const result = workflowRequestSchema.safeParse(candidate);
+      expect(result.success).toBe(false);
+      expect(result.error).toBeInstanceOf(WorkflowValidationError);
+      expect(result.error.statusCode).toBe(422);
+      expect(result.error.message).not.toContain('private reflection failure');
+    }
+    expect(trapCalls).toBe(4);
+  });
+
+  test('rejects non-JSON property descriptors and symbols without executing accessors', () => {
+    let getterCalls = 0;
+    const withNonEnumerableBodyField = { action: 'cloud', inputs: { serviceName: 'safe' } };
+    Object.defineProperty(withNonEnumerableBodyField, 'hidden', {
+      value: 'untrusted',
+      enumerable: false,
+    });
+
+    const withNonEnumerableInput = { action: 'cloud', inputs: {} };
+    Object.defineProperty(withNonEnumerableInput.inputs, 'serviceName', {
+      value: 'untrusted',
+      enumerable: false,
+    });
+
+    const withAccessor = { action: 'cloud', inputs: { serviceName: 'safe' } };
+    Object.defineProperty(withAccessor, 'action', {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return 'cloud';
+      },
+    });
+
+    const withSymbol = {
+      action: 'cloud',
+      inputs: { serviceName: 'safe', [Symbol('unexpected')]: true },
+    };
+
+    for (const candidate of [
+      withNonEnumerableBodyField,
+      withNonEnumerableInput,
+      withAccessor,
+      withSymbol,
+    ]) {
+      expect(workflowRequestSchema.safeParse(candidate).error).toBeInstanceOf(
+        WorkflowValidationError,
+      );
+    }
+    expect(getterCalls).toBe(0);
+  });
 });
