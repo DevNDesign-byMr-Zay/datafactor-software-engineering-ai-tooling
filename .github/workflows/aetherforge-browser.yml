@@ -45,6 +45,25 @@ jobs:
         run: |
           docker pull gcr.io/distroless/nodejs22-debian13:nonroot
           docker pull gcr.io/distroless/python3-debian13:nonroot
+      - name: Verify stable Docker sandbox readiness through the live local adapter
+        run: |
+          set -euo pipefail
+          consecutive=0
+          for attempt in $(seq 1 12); do
+            if curl --fail --silent --show-error --max-time 12 http://127.0.0.1:4546/api/execution/capabilities |
+              node -e 'let raw="";process.stdin.on("data",chunk=>raw+=chunk);process.stdin.on("end",()=>{try{const result=JSON.parse(raw);if(result.available!==true||result.imagesReady!==true)process.exitCode=1;}catch{process.exitCode=1;}})'; then
+              consecutive=$((consecutive+1))
+              if [ "$consecutive" -ge 2 ]; then
+                echo "Docker daemon and approved sandbox images are ready"
+                exit 0
+              fi
+            else
+              consecutive=0
+            fi
+            sleep 2
+          done
+          echo "::error::Docker sandbox was not ready; isolated browser tests cannot be bypassed"
+          exit 1
       - name: Test Chromium dashboard, Docker controls, project persistence and mobile layout
         run: node tests/aetherforge-browser-acceptance.mjs
       - name: Publish browser acceptance screenshots
