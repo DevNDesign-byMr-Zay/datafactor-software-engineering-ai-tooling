@@ -14,8 +14,7 @@ const MIME = new Map([
     {
       ext: 'png',
       matches: (bytes) =>
-        bytes.length >= 8 &&
-        bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
+        bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
     },
   ],
   [

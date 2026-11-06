@@ -45,12 +45,7 @@ describe('shared local asset store', () => {
     expect(await store.listLocalAssets(join(directory, 'not-yet-created'))).toEqual([]);
 
     for (const [mime, extension, bytes] of samples) {
-      const asset = await store.saveLocalAsset(
-        directory,
-        bytes,
-        `photo-${extension}`,
-        mime,
-      );
+      const asset = await store.saveLocalAsset(directory, bytes, `photo-${extension}`, mime);
       const expectedId = `${createHash('sha256').update(bytes).digest('hex')}.${extension}`;
       expect(asset).toEqual({
         id: expectedId,
@@ -63,15 +58,13 @@ describe('shared local asset store', () => {
       const read = await store.getLocalAsset(directory, expectedId);
       expect(read.mime).toBe(mime);
       expect(read.bytes).toEqual(bytes);
-      expect(JSON.parse(await readFile(join(directory, expectedId + '.json'), 'utf8'))).toEqual(
-        {
-          id: expectedId,
-          name: `photo-${extension}`,
-          mimeType: mime,
-          size: bytes.length,
-          stored: 'local-only',
-        },
-      );
+      expect(JSON.parse(await readFile(join(directory, expectedId + '.json'), 'utf8'))).toEqual({
+        id: expectedId,
+        name: `photo-${extension}`,
+        mimeType: mime,
+        size: bytes.length,
+        stored: 'local-only',
+      });
     }
 
     const listed = await store.listLocalAssets(directory);
@@ -86,9 +79,9 @@ describe('shared local asset store', () => {
   ])('%s keeps invalid uploads and traversal paths blocked', async (_name, store) => {
     const directory = await tempDirectory();
     const png = samples[0][2];
-    await expect(store.saveLocalAsset(directory, Buffer.alloc(0), 'empty', 'image/png')).rejects.toThrow(
-      'File must be 1 byte to 6 MiB',
-    );
+    await expect(
+      store.saveLocalAsset(directory, Buffer.alloc(0), 'empty', 'image/png'),
+    ).rejects.toThrow('File must be 1 byte to 6 MiB');
     await expect(
       store.saveLocalAsset(directory, Buffer.alloc(6 * 1024 * 1024 + 1), 'large', 'image/png'),
     ).rejects.toThrow('File must be 1 byte to 6 MiB');
