@@ -1,8 +1,7 @@
 import { getLogger } from './json-logger.js';
+import { isSensitiveDiagnosticKey } from './sensitive-metadata.js';
 
 const DEFAULT_LOGGER = getLogger('error-reporter');
-const SENSITIVE_CONTEXT_KEY =
-  /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
 const RESERVED_CONTEXT_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
 const SAFE_ERROR_NAME = /^[a-z][a-z0-9_.-]{0,63}$/iu;
 
@@ -25,7 +24,7 @@ function sanitizeContext(context = {}) {
       !descriptor.enumerable ||
       !Object.hasOwn(descriptor, 'value') ||
       RESERVED_CONTEXT_KEYS.has(key) ||
-      SENSITIVE_CONTEXT_KEY.test(key)
+      isSensitiveDiagnosticKey(key)
     ) {
       continue;
     }

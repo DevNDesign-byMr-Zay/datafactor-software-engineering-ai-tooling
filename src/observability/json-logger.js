@@ -1,5 +1,7 @@
 import process from 'node:process';
 
+import { isSensitiveDiagnosticKey } from './sensitive-metadata.js';
+
 const LEVELS = Object.freeze(['error', 'warn', 'info']);
 const LEVEL_SET = new Set(LEVELS);
 const RESERVED_METADATA_KEYS = new Set([
@@ -11,8 +13,6 @@ const RESERVED_METADATA_KEYS = new Set([
   'prototype',
   'constructor',
 ]);
-const SENSITIVE_METADATA_KEY =
-  /secret|token|api[_-]?key|auth|pass(?:word|phrase)?|credential|cookie|session|bearer|private[_-]?key/iu;
 
 function boundedName(value) {
   if (typeof value !== 'string') throw new TypeError('logger name must be a string');
@@ -45,7 +45,7 @@ function boundedMetadata(value = {}) {
       !descriptor.enumerable ||
       !Object.hasOwn(descriptor, 'value') ||
       RESERVED_METADATA_KEYS.has(key) ||
-      SENSITIVE_METADATA_KEY.test(key)
+      isSensitiveDiagnosticKey(key)
     ) {
       continue;
     }
