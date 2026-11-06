@@ -1,3 +1,4 @@
+import { createWorkbenchStaticRoutes } from '../src/api/workbench-static-routes.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -9,7 +10,11 @@ test('IDE accepts private Codespaces port 4546 and localhost',()=>{
  assert.equal(supported({protocol:'https:',hostname:'reimagined-computing-machine-5g946qwwj5w5hpr-4546.app.github.dev'}),true);
  assert.match(file('engineering-ide.js'),/AetherForgeCloud\?\.isSupportedOrigin\(location\)/);
  assert.match(file('index.html'),/cloud-backend\.js/);
- assert.match(file('server.mjs'),/\['\/cloud-backend\.js'/);
+ assert.deepEqual(createWorkbenchStaticRoutes('commercial').get('/cloud-backend.js'), [
+  'cloud-backend.js',
+  'text/javascript; charset=utf-8',
+]);
+assert.match(file('server.mjs'), /createWorkbenchStaticRoutes\('commercial'\)/);
 });
 test('IDE rejects arbitrary domains and incorrect forward ports',()=>{
  for(const loc of [

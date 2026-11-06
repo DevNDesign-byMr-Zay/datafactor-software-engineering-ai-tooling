@@ -98,6 +98,15 @@ try {
   const swatchColors = await page.locator('.brand-system .swatch').evaluateAll(swatches => swatches.map(swatch => getComputedStyle(swatch).backgroundColor));
   assert.deepEqual(swatchColors, ['rgb(8, 18, 35)', 'rgb(13, 30, 58)', 'rgb(39, 214, 255)', 'rgb(58, 136, 255)', 'rgb(138, 92, 255)', 'rgb(91, 110, 145)'], 'Approved palette swatches should retain their colors under the strict Content Security Policy.');
   await page.locator('#assetGrid img').last().waitFor({ state: 'visible' });
+  // On slower Windows runners, previously hidden/lazy images can be visible
+  // before the browser has requested or decoded them. Force readiness for the
+  // QA snapshot while preserving hard failure for missing/broken assets.
+  await page.locator('#assetGrid img').evaluateAll(images => images.forEach(image => { image.loading = 'eager'; }));
+  await page.waitForFunction(
+    () => [...document.querySelectorAll('#assetGrid img')].every(image => image.complete),
+    null,
+    { timeout: 15000 }
+  );
   const brokenImages = await page.locator('#assetGrid img').evaluateAll(images => images.filter(image => !image.complete || image.naturalWidth === 0).map(image => image.src));
   assert.deepEqual(brokenImages, [], 'All shipped brand assets should render in Asset Studio.');
   assert.deepEqual(pageErrors, [], `Browser reported runtime errors: ${pageErrors.join(' | ')}`);

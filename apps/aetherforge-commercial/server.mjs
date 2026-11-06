@@ -1,4 +1,5 @@
 import { getLogger } from '../../src/observability/json-logger.js';
+import { createWorkbenchStaticRoutes, serveWorkbenchStaticRoute } from '../../src/api/workbench-static-routes.js';
 import { createWorkbenchFailureHandler } from '../../src/api/workbench-http-failure.js';
 import { rejectWorkbenchRequestBoundary } from '../../src/api/workbench-request-boundary.js';
 import { createWorkbenchResponder } from '../../src/api/workbench-http-response.js';
@@ -15,64 +16,7 @@ import {listProjects,putProject,getProject,validProjectId,MAX_PROJECT_BYTES} fro
 import {capability,runIsolated,runIsolatedProject,validateRunnableProject} from './isolated-runner.mjs';
 import { WORKBENCH_MODULES, runWorkbenchAction, summarizeWorkbench } from '../../src/api/workbench-contract.js';
 const root = dirname(fileURLToPath(import.meta.url));
-const staticRoutes = new Map([
- ['/aetherforge-corpus/navigation.css',['../aetherforge-corpus/navigation.css','text/css; charset=utf-8']],
- ['/aetherforge-corpus/index.html',['../aetherforge-corpus/index.html','text/html; charset=utf-8']],
- ['/aetherforge-corpus/catalog.browser.js',['../aetherforge-corpus/catalog.browser.js','text/javascript; charset=utf-8']],
- ['/aetherforge-corpus/catalog-core.js',['../aetherforge-corpus/catalog-core.js','text/javascript; charset=utf-8']],
- ['/aetherforge-corpus/viewer.js',['../aetherforge-corpus/viewer.js','text/javascript; charset=utf-8']],
- ['/aetherforge-corpus/viewer.css',['../aetherforge-corpus/viewer.css','text/css; charset=utf-8']],
- ['/aetherforge-corpus/manifest.json',['../aetherforge-corpus/manifest.json','application/json; charset=utf-8']],
- ['/aetherforge-corpus/software-engineering-ai-tooling.zip',['../aetherforge-corpus/software-engineering-ai-tooling.zip','application/zip']],
- ['/aetherforge-workbench/assets/aetherforge-icon.svg',['../aetherforge-workbench/assets/aetherforge-icon.svg','image/svg+xml']],
- ['/aetherforge-workbench/assets/aetherforge-emblem.svg',['../aetherforge-workbench/assets/aetherforge-emblem.svg','image/svg+xml']],
- ['/upstream-core.js',['upstream-core.js','text/javascript; charset=utf-8']],
- ['/upstream-catalog.js',['upstream-catalog.js','text/javascript; charset=utf-8']],
- ['/ide-core.js',['ide-core.js','text/javascript; charset=utf-8']],
- ['/project-zip-core.js',['project-zip-core.js','text/javascript; charset=utf-8']],
- ['/engineering-ide.js',['engineering-ide.js','text/javascript; charset=utf-8']],
- ['/engineering-ide.css',['engineering-ide.css','text/css; charset=utf-8']],
- ['/operator-profile-core.js',['operator-profile-core.js','text/javascript; charset=utf-8']],
- ['/operator-profile.js',['operator-profile.js','text/javascript; charset=utf-8']],
- ['/operator-profile.css',['operator-profile.css','text/css; charset=utf-8']],
-  ['/assets/references/app-icon.webp', ['assets/references/app-icon.webp', 'image/webp']],
-  ['/assets/references/brand-identity-board.webp', ['assets/references/brand-identity-board.webp', 'image/webp']],
-  ['/assets/references/desktop-ui-concept.webp', ['assets/references/desktop-ui-concept.webp', 'image/webp']],
-  ['/assets/references/mobile-ui-concept.webp', ['assets/references/mobile-ui-concept.webp', 'image/webp']],
-  ['/assets/references/orbit-emblem.webp', ['assets/references/orbit-emblem.webp', 'image/webp']],
-  ['/assets/references/primary-logo.webp', ['assets/references/primary-logo.webp', 'image/webp']],
-  ['/', ['index.html', 'text/html; charset=utf-8']],
-  ['/index.html', ['index.html', 'text/html; charset=utf-8']],
-  ['/app.css', ['app.css', 'text/css; charset=utf-8']],
-  ['/app-v2.css', ['app-v2.css', 'text/css; charset=utf-8']],
-  ['/library.css', ['library.css','text/css; charset=utf-8']],
-  ['/sandbox.css', ['sandbox.css','text/css; charset=utf-8']],
-  ['/library-core.js', ['library-core.js','text/javascript; charset=utf-8']],
-  ['/library.js', ['library.js','text/javascript; charset=utf-8']],
-  ['/sandbox-core.js', ['sandbox-core.js','text/javascript; charset=utf-8']],
-  ['/sandbox-frame.html', ['sandbox-frame.html','text/html; charset=utf-8']],
-  ['/sandbox-frame.js', ['sandbox-frame.js','text/javascript; charset=utf-8']],
-  ['/sandbox.js', ['sandbox.js','text/javascript; charset=utf-8']],
-  ['/source-bundle.js', ['source-bundle.js','text/javascript; charset=utf-8']],
-  ['/project-desk.css', ['project-desk.css', 'text/css; charset=utf-8']],
-  ['/project-core.js', ['project-core.js', 'text/javascript; charset=utf-8']],
-  ['/project-desk.js', ['project-desk.js', 'text/javascript; charset=utf-8']],
-  ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
-  ['/offline-runtime.js', ['offline-runtime.js', 'text/javascript; charset=utf-8']],
-  ['/cloud-backend.js', ['cloud-backend.js', 'text/javascript; charset=utf-8']],
-  ['/reference-manifest.browser.js', ['reference-manifest.browser.js', 'text/javascript; charset=utf-8']],
-  ['/evidence-center.browser.js', ['evidence-center.browser.js', 'text/javascript; charset=utf-8']],
-  ['/app-behavior.js', ['app-behavior.js', 'text/javascript; charset=utf-8']],
-  ['/workspace-memory.js', ['workspace-memory.js', 'text/javascript; charset=utf-8']],
-  ['/command-rail.js', ['command-rail.js', 'text/javascript; charset=utf-8']],
-  ['/workflow-studio.js', ['workflow-studio.js', 'text/javascript; charset=utf-8']],
-  ['/workflow-studio-export.js', ['workflow-studio-export.js', 'text/javascript; charset=utf-8']],
-  ['/evidence-center.js', ['evidence-center.js', 'text/javascript; charset=utf-8']],
-  ['/assets/reference-manifest.json', ['assets/reference-manifest.json', 'application/json; charset=utf-8']],
-  ['/assets/aetherforge-logo.svg', ['assets/aetherforge-logo.svg', 'image/svg+xml']],
-  ['/assets/aetherforge-emblem.svg', ['assets/aetherforge-emblem.svg', 'image/svg+xml']],
-  ['/assets/aetherforge-icon.svg', ['assets/aetherforge-icon.svg', 'image/svg+xml']]
-]);
+const staticRoutes = createWorkbenchStaticRoutes('commercial');
 const respond = createWorkbenchResponder('commercial');
 export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),workspaceRoot=process.env.AETHERFORGE_WORKSPACE_DIR||join(root,'.local-workspaces'),errorTracker=createHttpErrorTracker('aetherforge-commercial')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});const handleHttpFailure=createWorkbenchFailureHandler({RequestBodyError,respond,errorTracker});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const boundaryError=rejectWorkbenchRequestBoundary(req,{port:Number(process.env.AETHERFORGE_PORT||4546)});
@@ -147,7 +91,7 @@ export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentB
    res.end(body);return;
  }
 
- const asset=staticRoutes.get(url.pathname);if(req.method==='GET'&&asset){const file=await readFile(join(root,asset[0]));return respond(res,200,file,asset[1]);}return respond(res,404,{error:'Not found'});
+ if(await serveWorkbenchStaticRoute({routes:staticRoutes,pathname:url.pathname,method:req.method,root,res,respond}))return;return respond(res,404,{error:'Not found'});
  }catch(error){return handleHttpFailure(error,req,res);}});}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
  const port=Number(process.env.AETHERFORGE_PORT||4546);
