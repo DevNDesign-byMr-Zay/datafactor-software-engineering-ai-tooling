@@ -1,4 +1,5 @@
 import { getLogger } from '../../src/observability/json-logger.js';
+import { rejectWorkbenchRequestBoundary } from '../../src/api/workbench-request-boundary.js';
 import { createWorkbenchResponder } from '../../src/api/workbench-http-response.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
 import { createServer } from 'node:http';
@@ -45,19 +46,8 @@ const staticRoutes = new Map([
 ]);
 const respond = createWorkbenchResponder('companion');
 export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),errorTracker=createHttpErrorTracker('aetherforge-workbench')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
- const host=String(req.headers.host||'');
- const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
- const csName=String(process.env.CODESPACE_NAME||'');
- const csHost=process.env.CODESPACES==='true'&&/^[a-z0-9-]{1,90}$/.test(csName)?`${csName}-${Number(process.env.AETHERFORGE_PORT||4545)}.app.github.dev`:'';
- const privateForward=Boolean(csHost)&&host===csHost;
- if(!localHost&&!privateForward)return respond(res,403,{error:'Local or private Codespaces host required'});
- const origin=String(req.headers.origin||'');
- const allowedOrigins=[(privateForward?'https://':'http://')+host];
- // GitHub's private forwarder may rewrite Host to localhost while retaining browser Origin.
- if(localHost&&csHost)allowedOrigins.push('https://'+csHost);
- if(origin&&!allowedOrigins.includes(origin))return respond(res,403,{error:'Cross-origin requests are not accepted'});
- const fetchSite=String(req.headers['sec-fetch-site']||'');
- if(fetchSite==='cross-site')return respond(res,403,{error:'Cross-site requests are not accepted'});
+ const boundaryError=rejectWorkbenchRequestBoundary(req,{port:Number(process.env.AETHERFORGE_PORT||4545)});
+ if(boundaryError)return respond(res,403,{error:boundaryError});
  if(req.method==='GET'&&url.pathname==='/api/health')return respond(res,200,{adapter:'ready',source:'maintained-library',offline:false,canExecuteDeployments:false,aiConfigured:false});
  if(req.method==='GET'&&url.pathname==='/api/modules')return respond(res,200,{source:'canonical maintained exports',modules:WORKBENCH_MODULES});
  if(req.method==='GET'&&url.pathname==='/api/workbench/summary')return respond(res,200,summarizeWorkbench());
