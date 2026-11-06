@@ -1,4 +1,5 @@
 import { getLogger } from '../../src/observability/json-logger.js';
+import { createWorkbenchResponder } from '../../src/api/workbench-http-response.js';
 import { workflowRequestSchema } from '../../src/api/workflow-request-schema.js';
 import { createServer } from 'node:http';
 import { createRequestBodyReader, RequestBodyError } from './http-request-body.mjs';
@@ -42,10 +43,7 @@ const staticRoutes = new Map([
   ['/assets/aetherforge-emblem.svg', ['assets/aetherforge-emblem.svg', 'image/svg+xml']],
   ['/assets/aetherforge-icon.svg', ['assets/aetherforge-icon.svg', 'image/svg+xml']]
 ]);
-function respond(res, code, body, type = 'application/json; charset=utf-8') {
-  res.writeHead(code, {'Content-Type':type,'X-Content-Type-Options':'nosniff','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'",'X-Frame-Options':'DENY'});
-  res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
-}
+const respond = createWorkbenchResponder('companion');
 export function createWorkbenchServer({requestBodyTimeoutMs=15000,maxConcurrentBodyRequests=8,assetRoot=process.env.AETHERFORGE_DATA_DIR||join(root,'.local-assets'),errorTracker=createHttpErrorTracker('aetherforge-workbench')}={}){const readBody=createRequestBodyReader({timeoutMs:requestBodyTimeoutMs,maxConcurrent:maxConcurrentBodyRequests});return createServer(async(req,res)=>{try{const url=new URL(req.url,'http://127.0.0.1');
  const host=String(req.headers.host||'');
  const localHost=/^(?:127\.0\.0\.1|localhost)(?::[0-9]{1,5})?$/.test(host);
