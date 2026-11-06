@@ -68,6 +68,8 @@ jobs:
         run: npm test
       - name: ci_runs_coverage (root-node-coverage)
         run: npm run test:coverage
+      - name: Verify extracted ÆtherForge distribution integrity
+        run: node --test tools/distribution-files.test.mjs
       - name: Retain JavaScript coverage evidence
         uses: actions/upload-artifact@v7
         with:
