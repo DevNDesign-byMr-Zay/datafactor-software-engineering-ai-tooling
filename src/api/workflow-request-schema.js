@@ -46,8 +46,37 @@ export class WorkflowValidationError extends TypeError {
 
 function plainRecord(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
+  try {
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
+  } catch {
+    // Untrusted Proxy traps must become a validation failure, never a 500.
+    return false;
+  }
+}
+
+/**
+ * Take one safe snapshot of a JSON-shaped record. In particular, do not
+ * re-read user-supplied properties after validating their descriptors.
+ */
+function ownDataDescriptors(value) {
+  if (!plainRecord(value)) return null;
+  try {
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    if (
+      Reflect.ownKeys(descriptors).some(
+        (key) =>
+          typeof key !== 'string' ||
+          !descriptors[key].enumerable ||
+          !Object.hasOwn(descriptors[key], 'value'),
+      )
+    ) {
+      return null;
+    }
+    return descriptors;
+  } catch {
+    return null;
+  }
 }
 
 function validValue(value, spec) {
@@ -71,14 +100,15 @@ function validValue(value, spec) {
 
 export const workflowRequestSchema = Object.freeze({
   parse(body) {
+    const bodyFields = ownDataDescriptors(body);
     if (
-      !plainRecord(body) ||
-      Reflect.ownKeys(body).some((key) => !['action', 'inputs'].includes(key))
+      !bodyFields ||
+      Object.keys(bodyFields).some((key) => key !== 'action' && key !== 'inputs')
     ) {
       throw new WorkflowValidationError();
     }
-    const action = Object.getOwnPropertyDescriptor(body, 'action');
-    const inputs = Object.getOwnPropertyDescriptor(body, 'inputs');
+    const action = bodyFields.action;
+    const inputs = bodyFields.inputs;
     if (
       !action ||
       !('value' in action) ||
@@ -91,9 +121,8 @@ export const workflowRequestSchema = Object.freeze({
       throw new WorkflowValidationError();
     }
     const fields = WORKFLOW_INPUT_SCHEMAS[action.value];
-    const descriptors = Object.getOwnPropertyDescriptors(inputs.value);
-    const allowed = Object.keys(fields);
-    if (Reflect.ownKeys(inputs.value).some((key) => !allowed.includes(key))) {
+    const descriptors = ownDataDescriptors(inputs.value);
+    if (!descriptors || Object.keys(descriptors).some((key) => !Object.hasOwn(fields, key))) {
       throw new WorkflowValidationError();
     }
     const checked = {};
