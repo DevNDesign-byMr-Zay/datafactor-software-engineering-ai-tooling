@@ -190,10 +190,30 @@ export function summarizeWorkbench() {
     moduleCount: WORKBENCH_MODULES.length,
     categories,
     quickActions: [
-      { id: 'studio', label: 'Open Workflow Studio', description: 'Run bounded library calculations', page: 'studio' },
-      { id: 'modules', label: 'Browse Module Library', description: 'Inspect maintained capabilities', page: 'modules' },
-      { id: 'evidence', label: 'Verify Evidence', description: 'Fail-closed receipt inspection', page: 'evidence' },
-      { id: 'assets', label: 'Open Asset Studio', description: 'Review shipped ÆtherForge assets', page: 'assets' },
+      {
+        id: 'studio',
+        label: 'Open Workflow Studio',
+        description: 'Run bounded library calculations',
+        page: 'studio',
+      },
+      {
+        id: 'modules',
+        label: 'Browse Module Library',
+        description: 'Inspect maintained capabilities',
+        page: 'modules',
+      },
+      {
+        id: 'evidence',
+        label: 'Verify Evidence',
+        description: 'Fail-closed receipt inspection',
+        page: 'evidence',
+      },
+      {
+        id: 'assets',
+        label: 'Open Asset Studio',
+        description: 'Review shipped ÆtherForge assets',
+        page: 'assets',
+      },
     ],
     boundary: {
       cloudMutations: false,

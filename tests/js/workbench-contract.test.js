@@ -42,10 +42,30 @@ describe('canonical ÆtherForge workbench contract', () => {
         { category: 'Reliability', count: 1 },
       ],
       quickActions: [
-        { id: 'studio', label: 'Open Workflow Studio', description: 'Run bounded library calculations', page: 'studio' },
-        { id: 'modules', label: 'Browse Module Library', description: 'Inspect maintained capabilities', page: 'modules' },
-        { id: 'evidence', label: 'Verify Evidence', description: 'Fail-closed receipt inspection', page: 'evidence' },
-        { id: 'assets', label: 'Open Asset Studio', description: 'Review shipped ÆtherForge assets', page: 'assets' },
+        {
+          id: 'studio',
+          label: 'Open Workflow Studio',
+          description: 'Run bounded library calculations',
+          page: 'studio',
+        },
+        {
+          id: 'modules',
+          label: 'Browse Module Library',
+          description: 'Inspect maintained capabilities',
+          page: 'modules',
+        },
+        {
+          id: 'evidence',
+          label: 'Verify Evidence',
+          description: 'Fail-closed receipt inspection',
+          page: 'evidence',
+        },
+        {
+          id: 'assets',
+          label: 'Open Asset Studio',
+          description: 'Review shipped ÆtherForge assets',
+          page: 'assets',
+        },
       ],
       boundary: {
         cloudMutations: false,
@@ -74,52 +94,55 @@ describe('canonical ÆtherForge workbench contract', () => {
     expect(() => runWorkbenchAction({ action: 'unknown', inputs: {} })).toThrow(
       'Unsupported workflow',
     );
-    expect(() => runWorkbenchAction({ action: 'cloud', inputs: null })).toThrow(
-      'Invalid inputs',
-    );
+    expect(() => runWorkbenchAction({ action: 'cloud', inputs: null })).toThrow('Invalid inputs');
   });
 
   test.each([
     ['companion', createCompanion],
     ['commercial', createCommercial],
-  ])('%s exposes the same module catalog and action result contracts', async (_name, createServer) => {
-    const server = createServer();
-    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-    const url = `http://127.0.0.1:${server.address().port}`;
-    try {
-      const modules = await fetch(`${url}/api/modules`);
-      expect(modules.status).toBe(200);
-      expect(await modules.json()).toEqual({
-        source: 'canonical maintained exports',
-        modules: WORKBENCH_MODULES,
-      });
-      const summary = await fetch(`${url}/api/workbench/summary`);
-      expect(summary.status).toBe(200);
-      expect(await summary.json()).toEqual(summarizeWorkbench());
+  ])(
+    '%s exposes the same module catalog and action result contracts',
+    async (_name, createServer) => {
+      const server = createServer();
+      await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+      const url = `http://127.0.0.1:${server.address().port}`;
+      try {
+        const modules = await fetch(`${url}/api/modules`);
+        expect(modules.status).toBe(200);
+        expect(await modules.json()).toEqual({
+          source: 'canonical maintained exports',
+          modules: WORKBENCH_MODULES,
+        });
+        const summary = await fetch(`${url}/api/workbench/summary`);
+        expect(summary.status).toBe(200);
+        expect(await summary.json()).toEqual(summarizeWorkbench());
 
-      for (const payload of actions) {
-        const response = await fetch(`${url}/api/run`, {
+        for (const payload of actions) {
+          const response = await fetch(`${url}/api/run`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          expect(response.status).toBe(200);
+          expect(await response.json()).toEqual(
+            runWorkbenchAction(workflowRequestSchema.parse(payload)),
+          );
+        }
+
+        const invalid = await fetch(`${url}/api/run`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({ action: 'cloud', inputs: { serviceName: 42 } }),
         });
-        expect(response.status).toBe(200);
-        expect(await response.json()).toEqual(runWorkbenchAction(workflowRequestSchema.parse(payload)));
+        expect(invalid.status).toBe(422);
+        expect(await invalid.json()).toEqual({
+          error: 'Invalid workflow input. Review the required fields.',
+        });
+      } finally {
+        await new Promise((resolve, reject) =>
+          server.close((error) => (error ? reject(error) : resolve())),
+        );
       }
-
-      const invalid = await fetch(`${url}/api/run`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action: 'cloud', inputs: { serviceName: 42 } }),
-      });
-      expect(invalid.status).toBe(422);
-      expect(await invalid.json()).toEqual({
-        error: 'Invalid workflow input. Review the required fields.',
-      });
-    } finally {
-      await new Promise((resolve, reject) =>
-        server.close((error) => (error ? reject(error) : resolve())),
-      );
-    }
-  });
+    },
+  );
 });
